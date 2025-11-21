@@ -22,6 +22,10 @@ function updateElementList() {
         item.addEventListener('click', () => {
             selectRoom(room);
             draw(document.getElementById('editorCanvas'), document.getElementById('editorCanvas').getContext('2d'));
+            // На мобильных переключаемся на панель свойств
+            if (window.innerWidth <= 768) {
+                showPropertiesPanel();
+            }
         });
         elementList.appendChild(item);
         
@@ -41,6 +45,10 @@ function updateElementList() {
                 selectedRoom = room;
                 selectElement(window);
                 draw(document.getElementById('editorCanvas'), document.getElementById('editorCanvas').getContext('2d'));
+                // На мобильных переключаемся на панель свойств
+                if (window.innerWidth <= 768) {
+                    showPropertiesPanel();
+                }
             });
             
             const deleteBtn = windowItem.querySelector('.delete-btn');
@@ -77,6 +85,10 @@ function updateElementList() {
                 selectedRoom = room;
                 selectElement(door);
                 draw(document.getElementById('editorCanvas'), document.getElementById('editorCanvas').getContext('2d'));
+                // На мобильных переключаемся на панель свойств
+                if (window.innerWidth <= 768) {
+                    showPropertiesPanel();
+                }
             });
             
             const deleteBtn = doorItem.querySelector('.delete-btn');
@@ -355,6 +367,19 @@ function hideAllProperties() {
     doorProperties.style.display = 'none';
     windowProperties.style.display = 'none';
     selectedElement.textContent = 'Не выбран';
+}
+
+// Показать панель свойств на мобильных
+function showPropertiesPanel() {
+    if (window.innerWidth <= 768) {
+        const mobileNavBtns = document.querySelectorAll('.mobile-nav-btn');
+        const propertiesPanel = document.querySelector('.properties-panel');
+        
+        mobileNavBtns.forEach(btn => btn.classList.remove('active'));
+        document.querySelector('.mobile-nav-btn[data-panel="properties"]').classList.add('active');
+        
+        propertiesPanel.classList.add('active');
+    }
 }
 
 // Функции для отправки сметы
@@ -679,6 +704,52 @@ ${receiptText}
     }
 }
 
+// Мобильная навигация
+function initMobileNavigation() {
+    const mobileNavBtns = document.querySelectorAll('.mobile-nav-btn');
+    const closePanelBtns = document.querySelectorAll('.close-panel');
+    const toolsPanel = document.querySelector('.tools-panel');
+    const propertiesPanel = document.querySelector('.properties-panel');
+    const editorPanel = document.querySelector('.editor-panel');
+
+    mobileNavBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const panel = btn.dataset.panel;
+            
+            // Сбрасываем активные классы
+            mobileNavBtns.forEach(b => b.classList.remove('active'));
+            toolsPanel.classList.remove('active');
+            propertiesPanel.classList.remove('active');
+            
+            // Активируем выбранную панель
+            btn.classList.add('active');
+            
+            if (panel === 'tools') {
+                toolsPanel.classList.add('active');
+            } else if (panel === 'properties') {
+                propertiesPanel.classList.add('active');
+            }
+            // Для 'editor' ничего не делаем - показываем основной интерфейс
+        });
+    });
+
+    // Кнопки закрытия панелей
+    closePanelBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            toolsPanel.classList.remove('active');
+            propertiesPanel.classList.remove('active');
+            // Активируем кнопку редактора
+            mobileNavBtns.forEach(b => {
+                if (b.dataset.panel === 'editor') {
+                    b.classList.add('active');
+                } else {
+                    b.classList.remove('active');
+                }
+            });
+        });
+    });
+}
+
 // Инициализация пользовательского интерфейса
 function initUI() {
     // Получение ссылок на DOM элементы
@@ -857,6 +928,9 @@ function initEventListeners() {
         updateProjectSummary();
         calculateCost();
     });
+    
+    // Инициализация мобильной навигации
+    initMobileNavigation();
 }
 
 // Обработка нажатия мыши
@@ -1011,6 +1085,11 @@ function handleMouseUp(e) {
             roomCounter++;
             selectRoom(room);
             showNotification('Комната добавлена');
+            
+            // На мобильных переключаемся на панель свойств после создания комнаты
+            if (window.innerWidth <= 768) {
+                showPropertiesPanel();
+            }
         }
     }
     

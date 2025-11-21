@@ -11,8 +11,44 @@ function initCanvas(editorCanvas, ctx) {
     editorCanvas.addEventListener('mouseup', handleMouseUp);
     editorCanvas.addEventListener('wheel', handleWheel);
     
+    // Обработчики сенсорных событий для мобильных
+    editorCanvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+    editorCanvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+    editorCanvas.addEventListener('touchend', handleTouchEnd);
+    
     // Обработчик изменения размера окна
     window.addEventListener('resize', () => resizeCanvas(editorCanvas));
+}
+
+// Обработчики сенсорных событий
+function handleTouchStart(e) {
+    e.preventDefault();
+    if (e.touches.length === 1) {
+        const touch = e.touches[0];
+        const mouseEvent = new MouseEvent('mousedown', {
+            clientX: touch.clientX,
+            clientY: touch.clientY
+        });
+        handleMouseDown(mouseEvent);
+    }
+}
+
+function handleTouchMove(e) {
+    e.preventDefault();
+    if (e.touches.length === 1) {
+        const touch = e.touches[0];
+        const mouseEvent = new MouseEvent('mousemove', {
+            clientX: touch.clientX,
+            clientY: touch.clientY
+        });
+        handleMouseMove(mouseEvent);
+    }
+}
+
+function handleTouchEnd(e) {
+    e.preventDefault();
+    const mouseEvent = new MouseEvent('mouseup', {});
+    handleMouseUp(mouseEvent);
 }
 
 // Изменение размера canvas
