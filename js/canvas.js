@@ -61,7 +61,7 @@ function resizeCanvas(editorCanvas) {
 
 // Отрисовка сетки
 function drawGrid(editorCanvas, ctx) {
-    const gridSize = scale; // Размер ячейки сетки (50 пикселей = 1 метр)
+    const gridSize = scale;
     const gridColor = 'rgba(200, 200, 200, 0.2)';
     ctx.save();
     ctx.strokeStyle = gridColor;
@@ -140,7 +140,7 @@ function centerView(editorCanvas) {
     // Вычисляем масштаб для вмещения всех комнат
     const scaleX = editorCanvas.width / width;
     const scaleY = editorCanvas.height / height;
-    zoom = Math.min(scaleX, scaleY, 1); // Ограничиваем максимальный масштаб
+    zoom = Math.min(scaleX, scaleY, 1);
     
     // Центрируем
     viewOffsetX = (editorCanvas.width - width * zoom) / 2 - minX * zoom;
@@ -166,7 +166,7 @@ function handleWheel(e) {
     
     // Изменяем масштаб
     zoom *= Math.exp(wheel * zoomIntensity);
-    zoom = Math.max(0.1, Math.min(3, zoom)); // Ограничиваем масштаб
+    zoom = Math.max(0.1, Math.min(3, zoom));
     
     // Вычисляем новые смещения для сохранения позиции под курсором
     viewOffsetX = mouseX - worldX * zoom;

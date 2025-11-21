@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ПланПомещений - Конструктор помещений и расчет стоимости ремонта в Симферополе</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/responsive.css">
@@ -25,28 +25,11 @@
             </div>
         </header>
 
-        <!-- Мобильная навигация -->
-        <div class="mobile-nav">
-            <button class="mobile-nav-btn active" data-panel="editor">
-                <i class="fas fa-edit"></i>
-                <span>Редактор</span>
-            </button>
-            <button class="mobile-nav-btn" data-panel="tools">
-                <i class="fas fa-tools"></i>
-                <span>Инструменты</span>
-            </button>
-            <button class="mobile-nav-btn" data-panel="properties">
-                <i class="fas fa-cog"></i>
-                <span>Свойства</span>
-            </button>
-        </div>
-
         <div class="app-container">
             <div class="panel tools-panel">
                 <div class="panel-header">
                     <i class="fas fa-tools"></i>
                     <span>Инструменты</span>
-                    <button class="close-panel">&times;</button>
                 </div>
                 <div class="panel-content">
                     <div class="tool-group">
@@ -124,7 +107,6 @@
                 <div class="panel-header">
                     <i class="fas fa-cog"></i>
                     <span>Свойства и расчеты</span>
-                    <button class="close-panel">&times;</button>
                 </div>
                 <div class="panel-content">
                     <div class="property-group" id="roomProperties" style="display: none;">
@@ -249,7 +231,6 @@
                         <button id="applyDoorChanges" disabled><i class="fas fa-check"></i> Применить изменения</button>
                         <div class="divider"></div>
                         <button class="btn-danger" id="deleteDoor"><i class="fas fa-trash"></i> Удалить дверь</button>
-                        <div style="margin-bottom: 20px;"></div>
                     </div>
                     <div class="property-group" id="projectProperties">
                         <h3><i class="fas fa-chart-pie"></i> Сводка проекта</h3>
@@ -291,7 +272,6 @@
             <div class="receipt-content" id="receiptContent">
                 <!-- Содержимое чека будет сгенерировано JavaScript -->
             </div>
-            <!-- Кнопки отправки сметы -->
             <div class="receipt-actions" id="receiptActions" style="display: none;">
                 <div class="sharing-buttons">
                     <button id="sendWhatsApp" class="btn-whatsapp">
@@ -377,7 +357,7 @@
                     <div class="form-actions">
                         <button type="submit" class="btn-submit">
                             <i class="fas fa-paper-plane"></i> Отправить заявку
-                        </div>
+                        </button>
                     </div>
                 </form>
             </div>

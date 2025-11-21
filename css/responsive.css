@@ -1,39 +1,48 @@
-/* Responsive Design */
-@media (max-width: 1400px) {
+/* Responsive Design - Упрощенная версия */
+
+/* Большие экраны */
+@media (min-width: 1201px) {
+    .app-container {
+        grid-template-columns: 300px 1fr 380px;
+    }
+}
+
+/* Стандартные десктопы */
+@media (max-width: 1200px) and (min-width: 993px) {
     .app-container {
         grid-template-columns: 280px 1fr 350px;
     }
 }
 
-@media (max-width: 1200px) {
+/* Небольшие десктопы и планшеты в альбомной ориентации */
+@media (max-width: 992px) and (min-width: 769px) {
     .app-container {
         grid-template-columns: 250px 1fr 320px;
     }
-}
-
-/* Планшетная версия */
-@media (max-width: 1024px) {
-    .app-container {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto auto 1fr;
-        gap: 15px;
-        height: auto;
+    
+    .container {
+        padding: 15px;
     }
     
-    .tools-panel, .properties-panel {
-        max-height: 300px;
-        overflow-y: auto;
+    .tool-btn {
+        padding: 12px 10px;
+        font-size: 13px;
     }
     
-    .editor-panel {
-        min-height: 600px;
+    .tool-btn i {
+        font-size: 20px;
     }
 }
 
-/* Мобильная версия */
-@media (max-width: 768px) {
+/* Планшеты и большие телефоны */
+@media (max-width: 768px) and (min-width: 577px) {
     .container {
         padding: 10px;
+    }
+    
+    .app-container {
+        grid-template-columns: 220px 1fr 280px;
+        gap: 10px;
     }
     
     header {
@@ -42,16 +51,79 @@
     }
     
     h1 {
-        font-size: 1.8rem;
+        font-size: 2rem;
     }
     
     .tagline {
         font-size: 1.1rem;
     }
     
+    .tool-btn {
+        padding: 10px 8px;
+        font-size: 12px;
+        min-height: 70px;
+    }
+    
+    .tool-btn i {
+        font-size: 18px;
+        margin-bottom: 5px;
+    }
+    
+    .panel-content {
+        padding: 15px;
+    }
+    
+    .editor-toolbar {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .editor-toolbar button {
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+    
+    .zoom-controls {
+        margin-left: auto;
+    }
+    
+    .status-bar {
+        font-size: 12px;
+    }
+    
+    .form-group {
+        margin-bottom: 15px;
+    }
+    
+    input, select, textarea, button {
+        padding: 10px 12px;
+        font-size: 14px;
+    }
+}
+
+/* Мобильные телефоны */
+@media (max-width: 576px) {
+    .container {
+        padding: 8px;
+        overflow-x: auto;
+        min-width: 320px;
+    }
+    
+    .app-container {
+        grid-template-columns: 200px 1fr 250px;
+        gap: 8px;
+        min-width: 800px; /* Минимальная ширина для комфортного отображения */
+    }
+    
+    header {
+        padding: 15px 10px;
+        margin-bottom: 10px;
+        text-align: center;
+    }
+    
     .logo {
         flex-direction: column;
-        text-align: center;
+        align-items: center;
     }
     
     .logo-icon {
@@ -59,256 +131,8 @@
         margin-bottom: 10px;
     }
     
-    .app-container {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto 1fr auto;
-        gap: 10px;
-    }
-    
-    /* Мобильная навигация */
-    .mobile-nav {
-        display: flex;
-        background: var(--white);
-        border-radius: var(--border-radius);
-        margin-bottom: 10px;
-        box-shadow: var(--shadow);
-    }
-    
-    .mobile-nav-btn {
-        flex: 1;
-        padding: 15px;
-        text-align: center;
-        border: none;
-        background: transparent;
-        color: var(--text-color);
-        font-weight: 600;
-        border-radius: var(--border-radius);
-        transition: var(--transition);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 5px;
-        min-height: 60px;
-    }
-    
-    .mobile-nav-btn i {
-        font-size: 1.2rem;
-    }
-    
-    .mobile-nav-btn.active {
-        background: var(--primary-color);
-        color: var(--white);
-    }
-    
-    /* Панели для мобильных */
-    .panel {
-        margin-bottom: 10px;
-    }
-    
-    .tools-panel, 
-    .properties-panel {
-        max-height: 60vh;
-        overflow-y: auto;
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        z-index: 1000;
-        background: var(--white);
-        display: none;
-    }
-    
-    .tools-panel.active, 
-    .properties-panel.active {
-        display: block;
-    }
-    
-    .editor-panel {
-        min-height: 70vh;
-    }
-    
-    .editor-container {
-        min-height: 60vh;
-    }
-    
-    /* Кнопки закрытия для мобильных панелей */
-    .panel-header {
-        position: relative;
-    }
-    
-    .close-panel {
-        position: absolute;
-        right: 15px;
-        top: 50%;
-        transform: translateY(-50%);
-        background: none;
-        border: none;
-        color: var(--white);
-        font-size: 1.5rem;
-        cursor: pointer;
-        width: auto;
-        padding: 5px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: auto;
-    }
-    
-    .editor-toolbar {
-        flex-direction: column;
-        gap: 10px;
-    }
-    
-    .zoom-controls {
-        margin-left: 0;
-        justify-content: center;
-        order: -1;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-    
-    .status-bar {
-        flex-direction: column;
-        gap: 5px;
-        text-align: center;
-        font-size: 12px;
-    }
-    
-    /* Увеличим размеры кнопок для касания */
-    .tool-btn {
-        padding: 20px 15px;
-        min-height: 80px;
-        font-size: 14px;
-    }
-    
-    button {
-        min-height: 44px;
-        padding: 12px 15px;
-        font-size: 14px;
-    }
-    
-    input, select, textarea {
-        min-height: 44px;
-        font-size: 16px; /* Предотвращает масштабирование в iOS */
-    }
-    
-    /* Формы на мобильных */
-    .form-group {
-        margin-bottom: 15px;
-    }
-    
-    .checkbox-group {
-        gap: 8px;
-    }
-    
-    .checkbox-item {
-        padding: 8px;
-    }
-    
-    /* Элементы списка */
-    .element-list {
-        max-height: 200px;
-    }
-    
-    .element-item {
-        padding: 15px 10px;
-        min-height: 50px;
-    }
-    
-    /* Кнопки отправки сметы */
-    .sharing-buttons {
-        flex-direction: column;
-        gap: 10px;
-    }
-    
-    .btn-whatsapp,
-    .btn-copy,
-    .btn-print {
-        min-width: 100%;
-        font-size: 14px;
-    }
-    
-    .btn-feedback {
-        font-size: 1rem;
-        padding: 15px 20px;
-        width: 100%;
-    }
-    
-    .feedback-section {
-        padding: 20px 15px;
-    }
-    
-    /* Модальное окно */
-    .modal-content {
-        width: 95%;
-        margin: 10% auto;
-        max-height: 85vh;
-    }
-    
-    .modal-body {
-        padding: 20px 15px;
-    }
-    
-    /* Кассовый чек */
-    .receipt-container {
-        margin: 10px;
-    }
-    
-    .receipt-content {
-        padding: 15px;
-        font-size: 14px;
-    }
-    
-    .receipt-work-details {
-        flex-direction: column;
-        gap: 5px;
-    }
-    
-    .receipt-work-name,
-    .receipt-work-calculation,
-    .receipt-work-cost {
-        text-align: left;
-    }
-    
-    .receipt-section-header {
-        font-size: 14px;
-        padding: 10px;
-    }
-    
-    /* Улучшение отображения свойств элементов */
-    .property-group {
-        padding: 10px 0;
-    }
-    
-    .property-group h3 {
-        font-size: 1.1rem;
-        margin-bottom: 15px;
-    }
-    
-    /* Улучшение тулбара редактора */
-    .editor-toolbar button {
-        font-size: 14px;
-        padding: 12px 15px;
-    }
-    
-    .zoom-controls button {
-        width: 40px;
-        height: 40px;
-    }
-    
-    #zoomLevel {
-        font-size: 14px;
-        min-width: 50px;
-        text-align: center;
-    }
-}
-
-/* Очень маленькие экраны */
-@media (max-width: 480px) {
     h1 {
-        font-size: 1.5rem;
+        font-size: 1.6rem;
     }
     
     .tagline {
@@ -317,69 +141,268 @@
     
     .location-badge {
         font-size: 0.8rem;
-        padding: 5px 12px;
+        padding: 4px 10px;
+    }
+    
+    .panel {
+        min-height: 300px;
+    }
+    
+    .panel-header {
+        padding: 15px;
+        font-size: 1rem;
     }
     
     .panel-content {
-        padding: 15px;
+        padding: 12px;
     }
     
-    .tool-buttons {
-        grid-template-columns: 1fr;
-    }
-    
-    .editor-container {
-        min-height: 50vh;
-    }
-    
-    .element-item {
-        flex-direction: column;
-        gap: 10px;
-        text-align: center;
-    }
-    
-    .delete-btn {
-        width: 100%;
-        margin-top: 5px;
-    }
-    
-    .mobile-nav-btn {
-        padding: 12px 8px;
-        font-size: 12px;
-    }
-    
-    .mobile-nav-btn i {
-        font-size: 1rem;
+    .tool-group {
+        margin-bottom: 20px;
     }
     
     .tool-group h3 {
-        font-size: 1rem;
+        font-size: 0.9rem;
+        margin-bottom: 10px;
+    }
+    
+    .tool-buttons {
+        gap: 8px;
+    }
+    
+    .tool-btn {
+        padding: 8px 6px;
+        font-size: 11px;
+        min-height: 60px;
+    }
+    
+    .tool-btn i {
+        font-size: 16px;
+        margin-bottom: 4px;
+    }
+    
+    .editor-toolbar {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 15px;
+    }
+    
+    .editor-toolbar button {
+        padding: 8px 10px;
+        font-size: 12px;
+        flex: 1;
+        min-width: 120px;
+    }
+    
+    .zoom-controls {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-left: auto;
+    }
+    
+    .zoom-controls button {
+        width: 35px;
+        height: 35px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    #zoomLevel {
+        font-size: 12px;
+        min-width: 45px;
+        text-align: center;
+    }
+    
+    .editor-container {
+        min-height: 400px;
+    }
+    
+    .status-bar {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 10px;
+        font-size: 11px;
+        padding: 8px 10px;
+    }
+    
+    .form-group {
+        margin-bottom: 12px;
+    }
+    
+    input, select, textarea, button {
+        padding: 8px 10px;
+        font-size: 14px;
+        min-height: 40px;
+    }
+    
+    label {
+        font-size: 13px;
+        margin-bottom: 6px;
+    }
+    
+    .checkbox-group {
+        gap: 6px;
+    }
+    
+    .checkbox-item {
+        padding: 6px;
+        font-size: 12px;
+    }
+    
+    .element-list {
+        max-height: 150px;
+    }
+    
+    .element-item {
+        padding: 8px 10px;
+        font-size: 12px;
     }
     
     .summary-item {
+        font-size: 12px;
+        margin-bottom: 8px;
+    }
+    
+    .property-group h3 {
+        font-size: 1rem;
+        margin-bottom: 12px;
+    }
+    
+    /* Улучшение для ползунков на мобильных */
+    input[type="range"] {
+        height: 6px;
+        margin: 10px 0;
+    }
+    
+    input[type="range"]::-webkit-slider-thumb {
+        width: 18px;
+        height: 18px;
+    }
+    
+    /* Кнопки отправки сметы */
+    .sharing-buttons {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .btn-whatsapp,
+    .btn-copy,
+    .btn-print {
+        font-size: 13px;
+        padding: 10px 15px;
+    }
+    
+    .btn-feedback {
+        font-size: 14px;
+        padding: 12px 20px;
+        width: 100%;
+    }
+    
+    .feedback-section {
+        padding: 15px;
+    }
+    
+    .feedback-note {
+        font-size: 12px;
+    }
+    
+    /* Модальное окно */
+    .modal-content {
+        width: 95%;
+        margin: 5% auto;
+        max-height: 90vh;
+    }
+    
+    .modal-body {
+        padding: 15px;
+    }
+    
+    /* Кассовый чек */
+    .receipt-container {
+        margin: 10px 5px;
+    }
+    
+    .receipt-content {
+        padding: 15px;
+        font-size: 12px;
+    }
+    
+    .receipt-work-details {
+        flex-direction: column;
+        gap: 3px;
+    }
+    
+    .receipt-work-name,
+    .receipt-work-calculation,
+    .receipt-work-cost {
+        text-align: left;
+        font-size: 11px;
+    }
+    
+    .receipt-section-header {
+        font-size: 13px;
+        padding: 8px;
+    }
+}
+
+/* Очень маленькие телефоны */
+@media (max-width: 360px) {
+    .container {
+        padding: 5px;
+    }
+    
+    .app-container {
+        grid-template-columns: 180px 1fr 220px;
+        gap: 5px;
+    }
+    
+    .tool-btn {
+        font-size: 10px;
+        min-height: 55px;
+        padding: 6px 4px;
+    }
+    
+    .tool-btn i {
         font-size: 14px;
     }
-}
-
-/* Скрываем мобильную навигацию на десктопе */
-.mobile-nav {
-    display: none;
-}
-
-/* Показываем мобильную навигацию только на мобильных */
-@media (max-width: 768px) {
-    .mobile-nav {
-        display: flex;
+    
+    .editor-toolbar button {
+        font-size: 11px;
+        padding: 6px 8px;
     }
     
-    /* Скрываем обычные панели по умолчанию на мобильных */
-    .tools-panel,
-    .properties-panel {
-        display: none;
+    .status-bar {
+        font-size: 10px;
+    }
+}
+
+/* Поддержка touch устройств */
+@media (hover: none) and (pointer: coarse) {
+    .tool-btn:hover {
+        transform: none;
     }
     
-    .editor-panel {
-        display: block;
+    button:hover:not(:disabled) {
+        transform: none;
+    }
+    
+    /* Улучшение для касаний */
+    .tool-btn,
+    button,
+    .element-item {
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+    }
+    
+    /* Увеличение области касания для важных элементов */
+    .tool-btn,
+    .editor-toolbar button,
+    .zoom-controls button {
+        min-height: 44px;
     }
 }
 
@@ -390,10 +413,6 @@
     }
     
     .feedback-section {
-        display: none;
-    }
-    
-    .mobile-nav {
         display: none;
     }
     
@@ -409,95 +428,28 @@
     }
 }
 
-/* Улучшение касаний для мобильных */
-@media (max-width: 768px) {
-    .tool-btn {
-        -webkit-tap-highlight-color: transparent;
-        touch-action: manipulation;
+/* Поддержка landscape на мобильных */
+@media (max-width: 768px) and (orientation: landscape) {
+    .editor-container {
+        min-height: 300px;
     }
     
-    button {
-        -webkit-tap-highlight-color: transparent;
-        touch-action: manipulation;
-    }
-    
-    /* Исправление для input range - убрана ошибка с -webkit-appearance */
-    input[type="range"] {
-        -webkit-appearance: none; /* Убираем стандартный стиль в WebKit */
-        appearance: none; /* Стандартное свойство */
-        height: 8px;
-        background: var(--neutral-medium);
-        border-radius: 4px;
-        width: 100%;
-        margin: 10px 0;
-    }
-    
-    input[type="range"]::-webkit-slider-thumb {
-        -webkit-appearance: none; /* Убираем стандартный стиль thumb в WebKit */
-        appearance: none;
-        width: 20px;
-        height: 20px;
-        background: var(--primary-color);
-        border-radius: 50%;
-        cursor: pointer;
-        border: 2px solid var(--white);
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    }
-    
-    input[type="range"]::-moz-range-thumb {
-        width: 20px;
-        height: 20px;
-        background: var(--primary-color);
-        border-radius: 50%;
-        cursor: pointer;
-        border: 2px solid var(--white);
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    }
-    
-    input[type="range"]::-webkit-slider-track {
-        -webkit-appearance: none;
-        height: 8px;
-        background: var(--neutral-medium);
-        border-radius: 4px;
-    }
-    
-    input[type="range"]::-moz-range-track {
-        height: 8px;
-        background: var(--neutral-medium);
-        border-radius: 4px;
-        border: none;
+    .app-container {
+        grid-template-columns: 200px 1fr 250px;
     }
 }
 
-/* Дополнительные улучшения для очень маленьких экранов */
-@media (max-width: 360px) {
-    .mobile-nav-btn {
-        padding: 10px 5px;
-        font-size: 11px;
+/* Улучшение читаемости на очень маленьких экранах */
+@media (max-width: 320px) {
+    .app-container {
+        grid-template-columns: 170px 1fr 200px;
     }
     
-    .mobile-nav-btn i {
-        font-size: 0.9rem;
-    }
-    
-    .tool-btn {
-        padding: 15px 10px;
-        min-height: 70px;
+    .tool-btn span {
+        font-size: 9px;
     }
     
     .panel-content {
-        padding: 10px;
-    }
-}
-
-/* Поддержка ориентации landscape на мобильных */
-@media (max-width: 768px) and (orientation: landscape) {
-    .tools-panel,
-    .properties-panel {
-        max-height: 80vh;
-    }
-    
-    .editor-container {
-        min-height: 50vh;
+        padding: 8px;
     }
 }
