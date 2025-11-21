@@ -1,0 +1,1022 @@
+// Функции для работы с пользовательским интерфейсом
+
+// Обновление списка элементов
+function updateElementList() {
+    const elementList = document.getElementById('elementList');
+    elementList.innerHTML = '';
+    
+    if (rooms.length === 0) {
+        elementList.innerHTML = '<div class="element-item">Нет элементов</div>';
+        return;
+    }
+    
+    rooms.forEach(room => {
+        const item = document.createElement('div');
+        item.className = 'element-item';
+        if (selectedRoom && selectedRoom.id === room.id) {
+            item.classList.add('selected');
+        }
+        item.innerHTML = `
+            <span>${escapeHTML(room.name)} (${(room.width / scale).toFixed(1)}x${(room.height / scale).toFixed(1)} м)</span>
+        `;
+        item.addEventListener('click', () => {
+            selectRoom(room);
+            draw(document.getElementById('editorCanvas'), document.getElementById('editorCanvas').getContext('2d'));
+        });
+        elementList.appendChild(item);
+        
+        // Добавляем окна комнаты
+        room.windows.forEach(window => {
+            const windowItem = document.createElement('div');
+            windowItem.className = 'element-item';
+            if (selectedElementObj && selectedElementObj.id === window.id) {
+                windowItem.classList.add('selected');
+            }
+            windowItem.innerHTML = `
+                <span style="margin-left: 20px;">Окно: ${window.width}x${window.height} м (${escapeHTML(window.wall)})</span>
+                <button class="delete-btn" data-id="${window.id}"><i class="fas fa-trash"></i></button>
+            `;
+            windowItem.addEventListener('click', (e) => {
+                if (e.target.classList.contains('delete-btn') || e.target.parentElement?.classList.contains('delete-btn')) return;
+                selectedRoom = room;
+                selectElement(window);
+                draw(document.getElementById('editorCanvas'), document.getElementById('editorCanvas').getContext('2d'));
+            });
+            
+            const deleteBtn = windowItem.querySelector('.delete-btn');
+            deleteBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                room.windows = room.windows.filter(w => w.id !== window.id);
+                if (selectedElementObj && selectedElementObj.id === window.id) {
+                    selectedElementObj = null;
+                    hideAllProperties();
+                }
+                updateElementList();
+                updateProjectSummary();
+                calculateCost();
+                draw(document.getElementById('editorCanvas'), document.getElementById('editorCanvas').getContext('2d'));
+                showNotification('Окно удалено');
+            });
+            
+            elementList.appendChild(windowItem);
+        });
+        
+        // Добавляем двери комнаты
+        room.doors.forEach(door => {
+            const doorItem = document.createElement('div');
+            doorItem.className = 'element-item';
+            if (selectedElementObj && selectedElementObj.id === door.id) {
+                doorItem.classList.add('selected');
+            }
+            doorItem.innerHTML = `
+                <span style="margin-left: 20px;">Дверь: ${door.width}x${door.height} м (${escapeHTML(door.wall)})</span>
+                <button class="delete-btn" data-id="${door.id}"><i class="fas fa-trash"></i></button>
+            `;
+            doorItem.addEventListener('click', (e) => {
+                if (e.target.classList.contains('delete-btn') || e.target.parentElement?.classList.contains('delete-btn')) return;
+                selectedRoom = room;
+                selectElement(door);
+                draw(document.getElementById('editorCanvas'), document.getElementById('editorCanvas').getContext('2d'));
+            });
+            
+            const deleteBtn = doorItem.querySelector('.delete-btn');
+            deleteBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                room.doors = room.doors.filter(d => d.id !== door.id);
+                if (selectedElementObj && selectedElementObj.id === door.id) {
+                    selectedElementObj = null;
+                    hideAllProperties();
+                }
+                updateElementList();
+                updateProjectSummary();
+                calculateCost();
+                draw(document.getElementById('editorCanvas'), document.getElementById('editorCanvas').getContext('2d'));
+                showNotification('Дверь удалена');
+            });
+            
+            elementList.appendChild(doorItem);
+        });
+    });
+}
+
+// Обновление сводки проекта
+function updateProjectSummary() {
+    let windowsCount = 0;
+    let doorsCount = 0;
+    let totalArea = 0;
+    
+    rooms.forEach(room => {
+        windowsCount += room.windows.length;
+        doorsCount += room.doors.length;
+        
+        const perimeter = ((room.width / scale) + (room.height / scale)) * 2;
+        const ceilingHeight = parseFloat(document.getElementById('ceilingHeight').value);
+        const wallsArea = perimeter * ceilingHeight;
+        
+        // Вычитаем площади окон и дверей
+        let windowsArea = 0;
+        let doorsArea = 0;
+        
+        room.windows.forEach(window => {
+            windowsArea += window.width * window.height;
+        });
+        
+        room.doors.forEach(door => {
+            doorsArea += door.width * door.height;
+        });
+        
+        totalArea += wallsArea - windowsArea - doorsArea;
+    });
+    
+    document.getElementById('roomsCount').textContent = rooms.length;
+    document.getElementById('windowsCount').textContent = windowsCount;
+    document.getElementById('doorsCount').textContent = doorsCount;
+    document.getElementById('totalArea').textContent = `${totalArea.toFixed(1)} м²`;
+}
+
+// Обновление панели свойств в зависимости от выбранного элемента
+function updatePropertiesPanel(element) {
+    hideAllProperties();
+    
+    if (element.type === 'room') {
+        roomProperties.style.display = 'block';
+        document.getElementById('roomName').value = element.name;
+        document.getElementById('roomWidth').value = (element.width / scale).toFixed(1);
+        document.getElementById('roomHeightProp').value = (element.height / scale).toFixed(1);
+        
+        // Установка чекбоксов отделки
+        plasterCheckbox.checked = element.plaster;
+        armoringCheckbox.checked = element.armoring;
+        puttyWallpaperCheckbox.checked = element.puttyWallpaper;
+        puttyPaintCheckbox.checked = element.puttyPaint;
+        paintingCheckbox.checked = element.painting;
+        
+        // Управление состоянием чекбокса покраски при загрузке
+        if (element.puttyWallpaper) {
+            paintingCheckbox.disabled = true;
+        } else if (element.puttyPaint) {
+            paintingCheckbox.disabled = false;
+        } else {
+            paintingCheckbox.disabled = true;
+        }
+        
+        // Сброс состояния кнопки
+        applyRoomChangesBtn.disabled = true;
+        
+        // Обработчики изменений
+        const roomInputs = ['roomName', 'roomWidth', 'roomHeightProp'];
+        roomInputs.forEach(inputId => {
+            document.getElementById(inputId).removeEventListener('input', roomInputHandler);
+            document.getElementById(inputId).addEventListener('input', roomInputHandler);
+        });
+        
+        function roomInputHandler() {
+            applyRoomChangesBtn.disabled = false;
+        }
+        
+        // Обработчики чекбоксов
+        const checkboxes = [plasterCheckbox, armoringCheckbox, puttyWallpaperCheckbox, puttyPaintCheckbox, paintingCheckbox];
+        checkboxes.forEach(checkbox => {
+            checkbox.removeEventListener('change', checkboxHandler);
+            checkbox.addEventListener('change', checkboxHandler);
+        });
+        
+        function checkboxHandler() {
+            applyRoomChangesBtn.disabled = false;
+            
+            // Взаимное исключение для шпаклевки
+            if (this === puttyWallpaperCheckbox && this.checked) {
+                puttyPaintCheckbox.checked = false;
+                // Если выбрана шпаклевка под обои, покраска недоступна
+                paintingCheckbox.checked = false;
+                paintingCheckbox.disabled = true;
+            } else if (this === puttyPaintCheckbox && this.checked) {
+                puttyWallpaperCheckbox.checked = false;
+                // Если выбрана шпаклевка под покраску, покраска доступна
+                paintingCheckbox.disabled = false;
+            } else if (this === puttyWallpaperCheckbox && !this.checked) {
+                // Если сняли шпаклевку под обои, покраска снова доступна
+                paintingCheckbox.disabled = false;
+            } else if (this === puttyPaintCheckbox && !this.checked) {
+                // Если сняли шпаклевку под покраску, покраска недоступна
+                paintingCheckbox.checked = false;
+                paintingCheckbox.disabled = true;
+            }
+            
+            // Если сняли штукатурку, снимаем и армирование
+            if (this === plasterCheckbox && !this.checked) {
+                armoringCheckbox.checked = false;
+                puttyWallpaperCheckbox.checked = false;
+                puttyPaintCheckbox.checked = false;
+                paintingCheckbox.checked = false;
+                paintingCheckbox.disabled = true;
+            }
+        }
+        
+        applyRoomChangesBtn.onclick = () => {
+            element.name = document.getElementById('roomName').value;
+            element.width = document.getElementById('roomWidth').value * scale;
+            element.height = document.getElementById('roomHeightProp').value * scale;
+            element.plaster = plasterCheckbox.checked;
+            element.armoring = armoringCheckbox.checked;
+            element.puttyWallpaper = puttyWallpaperCheckbox.checked;
+            element.puttyPaint = puttyPaintCheckbox.checked;
+            element.painting = paintingCheckbox.checked;
+            
+            applyRoomChangesBtn.disabled = true;
+            updateElementList();
+            updateProjectSummary();
+            calculateCost();
+            draw(document.getElementById('editorCanvas'), document.getElementById('editorCanvas').getContext('2d'));
+            showNotification('Изменения применены');
+        };
+        
+        document.getElementById('deleteRoom').onclick = () => {
+            rooms = rooms.filter(r => r.id !== element.id);
+            selectedRoom = null;
+            selectedElementObj = null;
+            hideAllProperties();
+            updateElementList();
+            updateProjectSummary();
+            calculateCost();
+            centerView(editorCanvas);
+            showNotification('Комната удалена');
+        };
+    } else if (element.type === 'window') {
+        windowProperties.style.display = 'block';
+        document.getElementById('windowWidth').value = element.width;
+        document.getElementById('windowHeight').value = element.height;
+        document.getElementById('windowWall').value = element.wall;
+        document.getElementById('windowPosition').value = element.position;
+        document.getElementById('windowPositionValue').textContent = `${element.position}%`;
+        document.getElementById('windowSlopes').value = element.slopes;
+        
+        // Сброс состояния кнопки
+        applyWindowChangesBtn.disabled = true;
+        
+        // Обработчики изменений
+        const windowInputs = ['windowWidth', 'windowHeight', 'windowWall', 'windowPosition', 'windowSlopes'];
+        windowInputs.forEach(inputId => {
+            document.getElementById(inputId).removeEventListener('input', windowInputHandler);
+            document.getElementById(inputId).addEventListener('input', windowInputHandler);
+        });
+        
+        function windowInputHandler(e) {
+            applyWindowChangesBtn.disabled = false;
+            if (e.target.id === 'windowPosition') {
+                document.getElementById('windowPositionValue').textContent = `${document.getElementById('windowPosition').value}%`;
+            }
+        }
+        
+        applyWindowChangesBtn.onclick = () => {
+            element.width = parseFloat(document.getElementById('windowWidth').value);
+            element.height = parseFloat(document.getElementById('windowHeight').value);
+            element.wall = document.getElementById('windowWall').value;
+            element.position = parseInt(document.getElementById('windowPosition').value);
+            element.slopes = document.getElementById('windowSlopes').value;
+            
+            applyWindowChangesBtn.disabled = true;
+            updateElementList();
+            updateProjectSummary();
+            calculateCost();
+            draw(document.getElementById('editorCanvas'), document.getElementById('editorCanvas').getContext('2d'));
+            showNotification('Изменения применены');
+        };
+        
+        document.getElementById('deleteWindow').onclick = () => {
+            selectedRoom.windows = selectedRoom.windows.filter(w => w.id !== element.id);
+            selectedElementObj = null;
+            hideAllProperties();
+            updateElementList();
+            updateProjectSummary();
+            calculateCost();
+            draw(document.getElementById('editorCanvas'), document.getElementById('editorCanvas').getContext('2d'));
+            showNotification('Окно удалено');
+        };
+    } else if (element.type === 'door') {
+        doorProperties.style.display = 'block';
+        document.getElementById('doorWidth').value = element.width;
+        document.getElementById('doorHeight').value = element.height;
+        document.getElementById('doorWall').value = element.wall;
+        document.getElementById('doorPosition').value = element.position;
+        document.getElementById('doorPositionValue').textContent = `${element.position}%`;
+        document.getElementById('doorSlopes').value = element.slopes;
+        
+        // Сброс состояния кнопки
+        applyDoorChangesBtn.disabled = true;
+        
+        // Обработчики изменений
+        const doorInputs = ['doorWidth', 'doorHeight', 'doorWall', 'doorPosition', 'doorSlopes'];
+        doorInputs.forEach(inputId => {
+            document.getElementById(inputId).removeEventListener('input', doorInputHandler);
+            document.getElementById(inputId).addEventListener('input', doorInputHandler);
+        });
+        
+        function doorInputHandler(e) {
+            applyDoorChangesBtn.disabled = false;
+            if (e.target.id === 'doorPosition') {
+                document.getElementById('doorPositionValue').textContent = `${document.getElementById('doorPosition').value}%`;
+            }
+        }
+        
+        applyDoorChangesBtn.onclick = () => {
+            element.width = parseFloat(document.getElementById('doorWidth').value);
+            element.height = parseFloat(document.getElementById('doorHeight').value);
+            element.wall = document.getElementById('doorWall').value;
+            element.position = parseInt(document.getElementById('doorPosition').value);
+            element.slopes = document.getElementById('doorSlopes').value;
+            
+            applyDoorChangesBtn.disabled = true;
+            updateElementList();
+            updateProjectSummary();
+            calculateCost();
+            draw(document.getElementById('editorCanvas'), document.getElementById('editorCanvas').getContext('2d'));
+            showNotification('Изменения применены');
+        };
+        
+        document.getElementById('deleteDoor').onclick = () => {
+            selectedRoom.doors = selectedRoom.doors.filter(d => d.id !== element.id);
+            selectedElementObj = null;
+            hideAllProperties();
+            updateElementList();
+            updateProjectSummary();
+            calculateCost();
+            draw(document.getElementById('editorCanvas'), document.getElementById('editorCanvas').getContext('2d'));
+            showNotification('Дверь удалена');
+        };
+    }
+    
+    selectedElement.textContent = `${element.type === 'room' ? 'Комната' : element.type === 'window' ? 'Окно' : 'Дверь'}: ${escapeHTML(element.name || '')}`;
+}
+
+// Скрытие всех панелей свойств
+function hideAllProperties() {
+    roomProperties.style.display = 'none';
+    doorProperties.style.display = 'none';
+    windowProperties.style.display = 'none';
+    selectedElement.textContent = 'Не выбран';
+}
+
+// Функции для отправки сметы
+function initSharingButtons() {
+    const sendWhatsAppBtn = document.getElementById('sendWhatsApp');
+    const copyReceiptBtn = document.getElementById('copyReceipt');
+    const printReceiptBtn = document.getElementById('printReceipt');
+    const feedbackBtn = document.getElementById('feedbackBtn');
+    
+    if (sendWhatsAppBtn) {
+        sendWhatsAppBtn.addEventListener('click', shareToWhatsApp);
+    }
+    
+    if (copyReceiptBtn) {
+        copyReceiptBtn.addEventListener('click', copyReceiptToClipboard);
+    }
+    
+    if (printReceiptBtn) {
+        printReceiptBtn.addEventListener('click', printReceipt);
+    }
+    
+    if (feedbackBtn) {
+        feedbackBtn.addEventListener('click', openFeedbackModal);
+    }
+}
+
+// Функция для получения текстового представления сметы в формате кассового чека
+function getReceiptText() {
+    let text = `🧾 СМЕТА РАБОТ\n`;
+    text += `📅 ${new Date().toLocaleDateString()}\n`;
+    text += `📍 Расчет для г. Симферополь\n\n`;
+    
+    let totalCost = 0;
+    
+    rooms.forEach(room => {
+        const roomArea = (room.width / scale * room.height / scale).toFixed(1);
+        text += `🏠 ${escapeHTML(room.name)} (${(room.width / scale).toFixed(1)}×${(room.height / scale).toFixed(1)} м)\n`;
+        text += `📐 Площадь: ${roomArea} м²\n`;
+        text += `━━━━━━━━━━━━━━━━━━━━\n`;
+        
+        const ceilingHeight = parseFloat(document.getElementById('ceilingHeight').value);
+        const perimeter = ((room.width / scale) + (room.height / scale)) * 2;
+        const wallsArea = perimeter * ceilingHeight;
+        
+        let windowsArea = 0;
+        let doorsArea = 0;
+        let slopesLinear = 0;
+        let slopesLinearWithNet = 0;
+        
+        room.windows.forEach(window => {
+            windowsArea += window.width * window.height;
+            if (window.slopes === 'with') {
+                slopesLinear += (window.width + window.height * 2);
+            } else if (window.slopes === 'with_net') {
+                slopesLinear += (window.width + window.height * 2);
+                slopesLinearWithNet += (window.width + window.height * 2);
+            }
+        });
+        
+        room.doors.forEach(door => {
+            doorsArea += door.width * door.height;
+            if (door.slopes === 'with') {
+                slopesLinear += (door.width + door.height * 2);
+            } else if (door.slopes === 'with_net') {
+                slopesLinear += (door.width + door.height * 2);
+                slopesLinearWithNet += (door.width + door.height * 2);
+            }
+        });
+        
+        const netWallsArea = wallsArea - windowsArea - doorsArea;
+        let roomCost = 0;
+        
+        // Стартовая штукатурка
+        if (room.plaster) {
+            text += `СТАРТОВАЯ ШТУКАТУРКА:\n`;
+            let plasterCost = 0;
+            
+            // Грунтовка стен
+            const primerWallsCost = netWallsArea * prices.primer.square;
+            plasterCost += primerWallsCost;
+            text += `├ Грунтовка стен: ${netWallsArea.toFixed(1)} м² × ${prices.primer.square} руб = ${primerWallsCost.toFixed(2)} руб\n`;
+            
+            // Штукатурка стен
+            const plasterWallsCost = netWallsArea * prices.plaster.square;
+            plasterCost += plasterWallsCost;
+            text += `├ Штукатурка стен: ${netWallsArea.toFixed(1)} м² × ${prices.plaster.square} руб = ${plasterWallsCost.toFixed(2)} руб\n`;
+            
+            // Работы по откосам
+            if (slopesLinear > 0) {
+                const primerSlopesCost = slopesLinear * prices.primer.linear;
+                plasterCost += primerSlopesCost;
+                text += `├ Грунтовка откосов: ${slopesLinear.toFixed(1)} мп × ${prices.primer.linear} руб = ${primerSlopesCost.toFixed(2)} руб\n`;
+                
+                const plasterSlopesCost = slopesLinear * prices.plaster.linear;
+                plasterCost += plasterSlopesCost;
+                text += `├ Штукатурка откосов: ${slopesLinear.toFixed(1)} мп × ${prices.plaster.linear} руб = ${plasterSlopesCost.toFixed(2)} руб\n`;
+                
+                const cornerCost = slopesLinear * prices.corner.linear;
+                plasterCost += cornerCost;
+                text += `└ Установка уголков: ${slopesLinear.toFixed(1)} мп × ${prices.corner.linear} руб = ${cornerCost.toFixed(2)} руб\n`;
+            }
+            
+            text += `Итого по штукатурке: ${plasterCost.toFixed(2)} руб\n\n`;
+            roomCost += plasterCost;
+        }
+        
+        // Армирование сеткой
+        if (room.armoring) {
+            text += `АРМИРОВАНИЕ СЕТКОЙ:\n`;
+            let armoringCost = 0;
+            
+            // Армирование стен
+            const armoringWallsCost = netWallsArea * prices.armoring.square;
+            armoringCost += armoringWallsCost;
+            text += `├ Армирование стен: ${netWallsArea.toFixed(1)} м² × ${prices.armoring.square} руб = ${armoringWallsCost.toFixed(2)} руб\n`;
+            
+            // Армирование откосов (только с сеткой)
+            if (slopesLinearWithNet > 0) {
+                const armoringSlopesCost = slopesLinearWithNet * prices.armoring.linear;
+                armoringCost += armoringSlopesCost;
+                text += `└ Армирование откосов: ${slopesLinearWithNet.toFixed(1)} мп × ${prices.armoring.linear} руб = ${armoringSlopesCost.toFixed(2)} руб\n`;
+            }
+            
+            text += `Итого по армированию: ${armoringCost.toFixed(2)} руб\n\n`;
+            roomCost += armoringCost;
+        }
+        
+        // Финишная шпаклевка
+        if (room.puttyWallpaper || room.puttyPaint) {
+            const puttyType = room.puttyWallpaper ? 'wallpaper' : 'paint';
+            const puttyName = room.puttyWallpaper ? 'под обои' : 'под покраску';
+            const puttyPrice = prices.putty[puttyType];
+            
+            text += `ФИНИШНАЯ ШПАКЛЕВКА ${puttyName.toUpperCase()}:\n`;
+            let puttyCost = 0;
+            
+            // Шпаклевка стен
+            const puttyWallsCost = netWallsArea * puttyPrice.square;
+            puttyCost += puttyWallsCost;
+            text += `├ Шпаклевка стен: ${netWallsArea.toFixed(1)} м² × ${puttyPrice.square} руб = ${puttyWallsCost.toFixed(2)} руб\n`;
+            
+            // Зашкуривание стен
+            const sandingWallsCost = netWallsArea * prices.sanding.square;
+            puttyCost += sandingWallsCost;
+            text += `├ Зашкуривание стен: ${netWallsArea.toFixed(1)} м² × ${prices.sanding.square} руб = ${sandingWallsCost.toFixed(2)} руб\n`;
+            
+            // Работы по откосам
+            if (slopesLinear > 0) {
+                const puttySlopesCost = slopesLinear * puttyPrice.linear;
+                puttyCost += puttySlopesCost;
+                text += `├ Шпаклевка откосов: ${slopesLinear.toFixed(1)} мп × ${puttyPrice.linear} руб = ${puttySlopesCost.toFixed(2)} руб\n`;
+                
+                const sandingSlopesCost = slopesLinear * prices.sanding.linear;
+                puttyCost += sandingSlopesCost;
+                text += `└ Зашкуривание откосов: ${slopesLinear.toFixed(1)} мп × ${prices.sanding.linear} руб = ${sandingSlopesCost.toFixed(2)} руб\n`;
+            }
+            
+            text += `Итого по шпаклевке: ${puttyCost.toFixed(2)} руб\n\n`;
+            roomCost += puttyCost;
+        }
+        
+        // Покраска
+        if (room.painting) {
+            text += `ПОКРАСКА В 2 СЛОЯ:\n`;
+            let paintingCost = 0;
+            
+            // Грунтовка перед покраской
+            const paintingPrimerCost = netWallsArea * prices.primer.square;
+            paintingCost += paintingPrimerCost;
+            text += `├ Грунтовка перед покраской: ${netWallsArea.toFixed(1)} м² × ${prices.primer.square} руб = ${paintingPrimerCost.toFixed(2)} руб\n`;
+            
+            // Покраска стен
+            const paintingWallsCost = netWallsArea * prices.painting.square;
+            paintingCost += paintingWallsCost;
+            text += `├ Покраска стен: ${netWallsArea.toFixed(1)} м² × ${prices.painting.square} руб = ${paintingWallsCost.toFixed(2)} руб\n`;
+            
+            // Работы по откосам
+            if (slopesLinear > 0) {
+                const paintingPrimerSlopesCost = slopesLinear * prices.primer.linear;
+                paintingCost += paintingPrimerSlopesCost;
+                text += `├ Грунтовка откосов: ${slopesLinear.toFixed(1)} мп × ${prices.primer.linear} руб = ${paintingPrimerSlopesCost.toFixed(2)} руб\n`;
+                
+                const paintingSlopesCost = slopesLinear * prices.painting.linear;
+                paintingCost += paintingSlopesCost;
+                text += `└ Покраска откосов: ${slopesLinear.toFixed(1)} мп × ${prices.painting.linear} руб = ${paintingSlopesCost.toFixed(2)} руб\n`;
+            }
+            
+            text += `Итого по покраске: ${paintingCost.toFixed(2)} руб\n\n`;
+            roomCost += paintingCost;
+        }
+        
+        text += `💰 ИТОГО ПО КОМНАТЕ: ${roomCost.toFixed(2)} руб\n\n`;
+        totalCost += roomCost;
+    });
+    
+    text += `════════════════════════════\n`;
+    text += `💵 ОБЩАЯ СТОИМОСТЬ РАБОТ: ${totalCost.toFixed(2)} руб\n`;
+    text += `════════════════════════════\n\n`;
+    
+    // Общая информация о проекте
+    text += `Общая информация:\n`;
+    text += `• Комнат: ${document.getElementById('roomsCount').textContent}\n`;
+    text += `• Окон: ${document.getElementById('windowsCount').textContent}\n`;
+    text += `• Дверей: ${document.getElementById('doorsCount').textContent}\n`;
+    text += `• Общая площадь стен: ${document.getElementById('totalArea').textContent}\n`;
+    text += `• Высота потолков: ${document.getElementById('ceilingHeight').value} м\n\n`;
+    
+    text += `Детализация сметы:\n`;
+    text += `• Штукатурка: ${prices.plaster.square} руб/м²\n`;
+    text += `• Армирование сеткой: ${prices.armoring.square} руб/м²\n`;
+    text += `• Шпаклевка под обои: ${prices.putty.wallpaper.square} руб/м²\n`;
+    text += `• Шпаклевка под покраску: ${prices.putty.paint.square} руб/м²\n`;
+    text += `• Покраска: ${prices.painting.square} руб/м²\n\n`;
+    
+    text += `ПланПомещений - конструктор и расчет стоимости ремонта\n`;
+    text += `Симферополь\n`;
+    text += `Расчет действителен на ${new Date().toLocaleDateString()}\n\n`;
+    text += `ВНИМАНИЕ: Данная смета является информационной. Итоговая стоимость может отличаться в зависимости от конкретных условий работ.`;
+    
+    return text;
+}
+
+// Функция для отправки в WhatsApp
+function shareToWhatsApp() {
+    const text = getReceiptText();
+    const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
+    showNotification('Открывается WhatsApp для отправки сметы');
+}
+
+// Функция для копирования сметы в буфер обмена
+function copyReceiptToClipboard() {
+    const text = getReceiptText();
+    
+    navigator.clipboard.writeText(text).then(() => {
+        showNotification('Смета скопирована в буфер обмена!');
+    }).catch(err => {
+        console.error('Ошибка копирования: ', err);
+        showNotification('Ошибка копирования. Попробуйте еще раз.');
+    });
+}
+
+// Функция для печати сметы
+function printReceipt() {
+    window.print();
+    showNotification('Подготовка к печати сметы');
+}
+
+// Функции для модального окна обратной связи
+function openFeedbackModal() {
+    const modal = document.getElementById('feedbackModal');
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+}
+
+function closeFeedbackModal() {
+    const modal = document.getElementById('feedbackModal');
+    modal.style.display = 'none';
+    document.body.style.overflow = 'auto';
+}
+
+// Функция для отправки формы обратной связи
+async function submitFeedbackForm(formData) {
+    const TELEGRAM_BOT_TOKEN = '8142957488:AAGDsEIsGdtrCX-ZyvOD7nJjaVVD3_YIFks';
+    const TELEGRAM_CHAT_ID = '-1001701431569';
+    
+    const receiptText = getReceiptText();
+    
+    const message = `
+📋 *НОВАЯ ЗАЯВКА НА КОНСУЛЬТАЦИЮ*
+
+👤 *Клиент:* ${formData.clientName}
+📞 *Контакты:* ${formData.clientContact}
+🏠 *Тип помещения:* ${formData.propertyType}
+📏 *Площадь:* ${formData.totalArea || 'Не указана'} м²
+
+💬 *Дополнительная информация:*
+${formData.additionalInfo || 'Не указана'}
+
+━━━━━━━━━━━━━━━━━━━━
+${receiptText}
+    `;
+    
+    try {
+        const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                chat_id: TELEGRAM_CHAT_ID,
+                text: message,
+                parse_mode: 'Markdown'
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (!result.ok) {
+            console.error('Ошибка Telegram API:', result);
+            // Попробуем отправить без Markdown разметки
+            const responsePlain = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    chat_id: TELEGRAM_CHAT_ID,
+                    text: message.replace(/\*/g, ''),
+                    parse_mode: null
+                })
+            });
+            
+            const resultPlain = await responsePlain.json();
+            return resultPlain.ok;
+        }
+        
+        return result.ok;
+    } catch (error) {
+        console.error('Ошибка отправки заявки:', error);
+        return false;
+    }
+}
+
+// Инициализация пользовательского интерфейса
+function initUI() {
+    // Получение ссылок на DOM элементы
+    window.toolButtons = document.querySelectorAll('.tool-btn');
+    window.cursorPosition = document.getElementById('cursorPosition');
+    window.selectedElement = document.getElementById('selectedElement');
+    window.zoomLevel = document.getElementById('zoomLevel');
+    window.receiptContainer = document.getElementById('receiptContainer');
+    window.receiptContent = document.getElementById('receiptContent');
+    
+    // Панели свойств
+    window.roomProperties = document.getElementById('roomProperties');
+    window.doorProperties = document.getElementById('doorProperties');
+    window.windowProperties = document.getElementById('windowProperties');
+    window.costEstimate = document.getElementById('costEstimate');
+    
+    // Кнопки управления
+    window.newProjectBtn = document.getElementById('newProject');
+    window.clearAllBtn = document.getElementById('clearAll');
+    window.zoomInBtn = document.getElementById('zoomIn');
+    window.zoomOutBtn = document.getElementById('zoomOut');
+    window.centerViewBtn = document.getElementById('centerView');
+    
+    // Кнопки применения изменений
+    window.applyRoomChangesBtn = document.getElementById('applyRoomChanges');
+    window.applyWindowChangesBtn = document.getElementById('applyWindowChanges');
+    window.applyDoorChangesBtn = document.getElementById('applyDoorChanges');
+    
+    // Элементы управления окнами и дверями
+    window.windowPositionSlider = document.getElementById('windowPosition');
+    window.windowPositionValue = document.getElementById('windowPositionValue');
+    window.doorPositionSlider = document.getElementById('doorPosition');
+    window.doorPositionValue = document.getElementById('doorPositionValue');
+    
+    // Чекбоксы отделки
+    window.plasterCheckbox = document.getElementById('plaster');
+    window.armoringCheckbox = document.getElementById('armoring');
+    window.puttyWallpaperCheckbox = document.getElementById('puttyWallpaper');
+    window.puttyPaintCheckbox = document.getElementById('puttyPaint');
+    window.paintingCheckbox = document.getElementById('painting');
+    
+    // Инициализация кнопок отправки
+    initSharingButtons();
+    
+    // Инициализация модального окна обратной связи
+    initFeedbackModal();
+}
+
+// Инициализация модального окна обратной связи
+function initFeedbackModal() {
+    const modal = document.getElementById('feedbackModal');
+    const closeBtn = document.querySelector('.close-modal');
+    const feedbackForm = document.getElementById('feedbackForm');
+    
+    // Закрытие модального окна
+    closeBtn.addEventListener('click', closeFeedbackModal);
+    
+    // Закрытие при клике вне модального окна
+    window.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeFeedbackModal();
+        }
+    });
+    
+    // Обработка отправки формы
+    feedbackForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const formData = {
+            clientName: document.getElementById('clientName').value,
+            clientContact: document.getElementById('clientContact').value,
+            propertyType: document.getElementById('propertyType').value,
+            totalArea: document.getElementById('totalAreaInput').value,
+            additionalInfo: document.getElementById('additionalInfo').value
+        };
+        
+        const submitBtn = feedbackForm.querySelector('.btn-submit');
+        const originalText = submitBtn.innerHTML;
+        
+        // Показываем индикатор загрузки
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Отправка...';
+        submitBtn.disabled = true;
+        
+        try {
+            const success = await submitFeedbackForm(formData);
+            
+            if (success) {
+                showNotification('Заявка успешно отправлена! Мы свяжемся с вами в ближайшее время.');
+                closeFeedbackModal();
+                feedbackForm.reset();
+            } else {
+                throw new Error('Ошибка отправки');
+            }
+        } catch (error) {
+            showNotification('Ошибка отправки заявки. Пожалуйста, попробуйте еще раз.');
+        } finally {
+            // Восстанавливаем кнопку
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        }
+    });
+}
+
+// Инициализация обработчиков событий
+function initEventListeners() {
+    const editorCanvas = document.getElementById('editorCanvas');
+    
+    // Обработчики инструментов
+    toolButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            toolButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            currentTool = button.dataset.tool;
+            
+            // Изменение курсора
+            if (currentTool === 'select') {
+                editorCanvas.style.cursor = 'move';
+            } else if (currentTool === 'room') {
+                editorCanvas.style.cursor = 'crosshair';
+            } else if (currentTool === 'window' || currentTool === 'door') {
+                editorCanvas.style.cursor = 'cell';
+            }
+        });
+    });
+    
+    // Обработчик кнопки нового проекта
+    newProjectBtn.addEventListener('click', () => {
+        rooms = [];
+        selectedRoom = null;
+        selectedElementObj = null;
+        roomCounter = 1;
+        hideAllProperties();
+        updateElementList();
+        updateProjectSummary();
+        calculateCost();
+        centerView(editorCanvas);
+        showNotification('Новый проект создан');
+    });
+    
+    // Обработчик кнопки очистки
+    clearAllBtn.addEventListener('click', () => {
+        if (confirm('Вы уверены, что хотите удалить все комнаты?')) {
+            rooms = [];
+            selectedRoom = null;
+            selectedElementObj = null;
+            roomCounter = 1;
+            hideAllProperties();
+            updateElementList();
+            updateProjectSummary();
+            calculateCost();
+            centerView(editorCanvas);
+            showNotification('Все комнаты удалены');
+        }
+    });
+    
+    // Обработчики кнопок масштабирования
+    zoomInBtn.addEventListener('click', () => {
+        zoom *= 1.2;
+        zoom = Math.min(3, zoom);
+        zoomLevel.textContent = `${Math.round(zoom * 100)}%`;
+        draw(editorCanvas, editorCanvas.getContext('2d'));
+    });
+    
+    zoomOutBtn.addEventListener('click', () => {
+        zoom /= 1.2;
+        zoom = Math.max(0.1, zoom);
+        zoomLevel.textContent = `${Math.round(zoom * 100)}%`;
+        draw(editorCanvas, editorCanvas.getContext('2d'));
+    });
+    
+    // Обработчик кнопки центрирования
+    centerViewBtn.addEventListener('click', () => centerView(editorCanvas));
+    
+    // Обработчик изменения высоты потолков
+    document.getElementById('ceilingHeight').addEventListener('change', () => {
+        updateProjectSummary();
+        calculateCost();
+    });
+}
+
+// Обработка нажатия мыши
+function handleMouseDown(e) {
+    const editorCanvas = document.getElementById('editorCanvas');
+    const rect = editorCanvas.getBoundingClientRect();
+    const safeZoom = zoom > 0 ? zoom : 1; // Проверка деления на ноль
+    const x = (e.clientX - rect.left - viewOffsetX) / safeZoom;
+    const y = (e.clientY - rect.top - viewOffsetY) / safeZoom;
+    
+    if (currentTool === 'select') {
+        // Поиск элемента под курсором
+        const element = findElementAt(x, y);
+        if (element) {
+            if (element.type === 'room') {
+                selectRoom(element);
+                // Начинаем перетаскивание комнаты
+                isDragging = true;
+                dragStartX = e.clientX;
+                dragStartY = e.clientY;
+                dragOffsetX = x - element.x;
+                dragOffsetY = y - element.y;
+            } else if (element.type === 'window' || element.type === 'door') {
+                selectElement(element);
+                // Начинаем перемещение элемента по стене
+                isMovingElement = true;
+                movingElement = element;
+            }
+        } else {
+            selectedRoom = null;
+            selectedElementObj = null;
+            hideAllProperties();
+        }
+    } else if (currentTool === 'room') {
+        // Начало рисования комнаты
+        isDrawing = true;
+        startX = x;
+        startY = y;
+    } else if (currentTool === 'window' || currentTool === 'door') {
+        // Добавление окна или двери - находим ближайшую комнату и стену
+        const room = findRoomAt(x, y);
+        if (room) {
+            selectRoom(room);
+            // Определяем ближайшую стену
+            const wallInfo = findNearestWall(room, x, y);
+            if (wallInfo) {
+                addElementToRoom(currentTool, room, wallInfo.wall, wallInfo.position);
+            }
+        } else {
+            showNotification('Кликните внутри комнаты для добавления элемента');
+        }
+    }
+    
+    draw(editorCanvas, editorCanvas.getContext('2d'));
+}
+
+// Обработка перемещения мыши
+function handleMouseMove(e) {
+    const editorCanvas = document.getElementById('editorCanvas');
+    const rect = editorCanvas.getBoundingClientRect();
+    const safeZoom = zoom > 0 ? zoom : 1; // Проверка деления на ноль
+    const x = (e.clientX - rect.left - viewOffsetX) / safeZoom;
+    const y = (e.clientY - rect.top - viewOffsetY) / safeZoom;
+    
+    // Обновление позиции курсора
+    cursorPosition.textContent = `X: ${(x / scale).toFixed(2)}, Y: ${(y / scale).toFixed(2)}`;
+    
+    // Перемещение комнаты
+    if (isDragging && selectedRoom) {
+        const newX = x - dragOffsetX;
+        const newY = y - dragOffsetY;
+        // Обновляем позицию комнаты и всех её элементов
+        const deltaX = newX - selectedRoom.x;
+        const deltaY = newY - selectedRoom.y;
+        selectedRoom.x = newX;
+        selectedRoom.y = newY;
+        draw(editorCanvas, editorCanvas.getContext('2d'));
+    }
+    
+    // Перемещение элемента по стене
+    if (isMovingElement && movingElement && selectedRoom) {
+        const wallInfo = findNearestWall(selectedRoom, x, y);
+        if (wallInfo && wallInfo.wall === movingElement.wall) {
+            // Ограничиваем позицию, чтобы элемент не выходил за границы стены
+            const elementWidth = movingElement.width * scale;
+            const maxPosition = 100 - (elementWidth / selectedRoom.width * 100);
+            const clampedPosition = Math.max(0, Math.min(maxPosition, wallInfo.position));
+            movingElement.position = clampedPosition;
+            updatePropertiesPanel(movingElement);
+            draw(editorCanvas, editorCanvas.getContext('2d'));
+        }
+    }
+    
+    // Отрисовка временной комнаты при рисовании
+    if (isDrawing && currentTool === 'room') {
+        draw(editorCanvas, editorCanvas.getContext('2d'));
+        // Рисуем временную комнату
+        const ctx = editorCanvas.getContext('2d');
+        ctx.save();
+        ctx.translate(viewOffsetX, viewOffsetY);
+        ctx.scale(zoom, zoom);
+        ctx.strokeStyle = '#4a6ee0';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+        ctx.strokeRect(startX, startY, x - startX, y - startY);
+        ctx.setLineDash([]);
+        ctx.restore();
+    }
+}
+
+// Обработка отпускания мыши
+function handleMouseUp(e) {
+    const editorCanvas = document.getElementById('editorCanvas');
+    
+    if (isDragging) {
+        isDragging = false;
+    }
+    
+    if (isMovingElement) {
+        isMovingElement = false;
+        movingElement = null;
+    }
+    
+    if (!isDrawing) return;
+    
+    const rect = editorCanvas.getBoundingClientRect();
+    const safeZoom = zoom > 0 ? zoom : 1; // Проверка деления на ноль
+    const x = (e.clientX - rect.left - viewOffsetX) / safeZoom;
+    const y = (e.clientY - rect.top - viewOffsetY) / safeZoom;
+    
+    if (currentTool === 'room') {
+        const width = Math.abs(x - startX);
+        const height = Math.abs(y - startY);
+        if (width > 50 && height > 50) { // Минимальный размер 1x1 метр
+            const room = {
+                id: generateId(),
+                type: 'room',
+                x: Math.min(startX, x),
+                y: Math.min(startY, y),
+                width: width,
+                height: height,
+                name: `Комната ${roomCounter}`,
+                plaster: true,
+                armoring: false,
+                puttyWallpaper: false,
+                puttyPaint: false,
+                painting: false,
+                windows: [],
+                doors: []
+            };
+            rooms.push(room);
+            roomCounter++;
+            selectRoom(room);
+            showNotification('Комната добавлена');
+        }
+    }
+    
+    isDrawing = false;
+    updateElementList();
+    updateProjectSummary();
+    calculateCost();
+    draw(editorCanvas, editorCanvas.getContext('2d'));
+}

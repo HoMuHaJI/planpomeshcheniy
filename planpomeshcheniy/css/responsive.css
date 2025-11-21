@@ -1,0 +1,90 @@
+/* Responsive Design */
+@media (max-width: 1400px) {
+    .app-container {
+        grid-template-columns: 280px 1fr 350px;
+    }
+}
+
+@media (max-width: 1200px) {
+    .app-container {
+        grid-template-columns: 1fr;
+        height: auto;
+    }
+    
+    .receipt-container {
+        margin: 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+    }
+    
+    header {
+        padding: 20px;
+    }
+    
+    h1 {
+        font-size: 2.2rem;
+    }
+    
+    .editor-toolbar {
+        flex-direction: column;
+    }
+    
+    .zoom-controls {
+        margin-left: 0;
+        justify-content: center;
+    }
+    
+    .sharing-buttons {
+        flex-direction: column;
+    }
+    
+    .btn-whatsapp,
+    .btn-copy,
+    .btn-print {
+        min-width: 100%;
+    }
+    
+    .btn-feedback {
+        font-size: 1rem;
+        padding: 15px 25px;
+    }
+    
+    .feedback-section {
+        padding: 20px;
+    }
+    
+    .modal-content {
+        width: 95%;
+        margin: 5% auto;
+    }
+    
+    .modal-body {
+        padding: 20px;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .app-container {
+        display: none;
+    }
+    
+    .feedback-section {
+        display: none;
+    }
+    
+    .receipt-container {
+        box-shadow: none;
+        border: none;
+        margin: 0;
+        padding: 0;
+    }
+    
+    .receipt-actions {
+        display: none;
+    }
+}
