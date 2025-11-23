@@ -18,14 +18,23 @@ function updateElementList() {
         }
         item.innerHTML = `
             <span>${escapeHTML(room.name)} (${(room.width / scale).toFixed(1)}x${(room.height / scale).toFixed(1)} м)</span>
+            <button class="delete-btn" data-id="${room.id}" data-type="room"><i class="fas fa-trash"></i></button>
         `;
-        item.addEventListener('click', () => {
+        item.addEventListener('click', (e) => {
+            if (e.target.classList.contains('delete-btn') || e.target.parentElement?.classList.contains('delete-btn')) return;
             selectRoom(room);
             draw(document.getElementById('editorCanvas'), document.getElementById('editorCanvas').getContext('2d'));
             if (window.innerWidth <= 576) {
                 showMobilePanel('properties');
             }
         });
+        
+        const deleteBtn = item.querySelector('.delete-btn');
+        deleteBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            deleteRoom(room);
+        });
+        
         elementList.appendChild(item);
         
         // Добавляем окна комнаты
@@ -37,7 +46,7 @@ function updateElementList() {
             }
             windowItem.innerHTML = `
                 <span style="margin-left: 20px;">Окно: ${window.width}x${window.height} м (${escapeHTML(window.wall)})</span>
-                <button class="delete-btn" data-id="${window.id}"><i class="fas fa-trash"></i></button>
+                <button class="delete-btn" data-id="${window.id}" data-type="window"><i class="fas fa-trash"></i></button>
             `;
             windowItem.addEventListener('click', (e) => {
                 if (e.target.classList.contains('delete-btn') || e.target.parentElement?.classList.contains('delete-btn')) return;
@@ -52,16 +61,7 @@ function updateElementList() {
             const deleteBtn = windowItem.querySelector('.delete-btn');
             deleteBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                room.windows = room.windows.filter(w => w.id !== window.id);
-                if (selectedElementObj && selectedElementObj.id === window.id) {
-                    selectedElementObj = null;
-                    hideAllProperties();
-                }
-                updateElementList();
-                updateProjectSummary();
-                calculateCost();
-                draw(document.getElementById('editorCanvas'), document.getElementById('editorCanvas').getContext('2d'));
-                showNotification('Окно удалено');
+                deleteWindow(room, window);
             });
             
             elementList.appendChild(windowItem);
@@ -76,7 +76,7 @@ function updateElementList() {
             }
             doorItem.innerHTML = `
                 <span style="margin-left: 20px;">Дверь: ${door.width}x${door.height} м (${escapeHTML(door.wall)})</span>
-                <button class="delete-btn" data-id="${door.id}"><i class="fas fa-trash"></i></button>
+                <button class="delete-btn" data-id="${door.id}" data-type="door"><i class="fas fa-trash"></i></button>
             `;
             doorItem.addEventListener('click', (e) => {
                 if (e.target.classList.contains('delete-btn') || e.target.parentElement?.classList.contains('delete-btn')) return;
@@ -91,21 +91,59 @@ function updateElementList() {
             const deleteBtn = doorItem.querySelector('.delete-btn');
             deleteBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                room.doors = room.doors.filter(d => d.id !== door.id);
-                if (selectedElementObj && selectedElementObj.id === door.id) {
-                    selectedElementObj = null;
-                    hideAllProperties();
-                }
-                updateElementList();
-                updateProjectSummary();
-                calculateCost();
-                draw(document.getElementById('editorCanvas'), document.getElementById('editorCanvas').getContext('2d'));
-                showNotification('Дверь удалена');
+                deleteDoor(room, door);
             });
             
             elementList.appendChild(doorItem);
         });
     });
+}
+
+// Функции удаления элементов
+function deleteRoom(room) {
+    if (confirm(`Удалить комнату "${room.name}"?`)) {
+        rooms = rooms.filter(r => r.id !== room.id);
+        if (selectedRoom && selectedRoom.id === room.id) {
+            selectedRoom = null;
+            selectedElementObj = null;
+            hideAllProperties();
+        }
+        updateElementList();
+        updateProjectSummary();
+        calculateCost();
+        centerView(editorCanvas);
+        showNotification('Комната удалена');
+    }
+}
+
+function deleteWindow(room, window) {
+    if (confirm('Удалить окно?')) {
+        room.windows = room.windows.filter(w => w.id !== window.id);
+        if (selectedElementObj && selectedElementObj.id === window.id) {
+            selectedElementObj = null;
+            hideAllProperties();
+        }
+        updateElementList();
+        updateProjectSummary();
+        calculateCost();
+        draw(document.getElementById('editorCanvas'), document.getElementById('editorCanvas').getContext('2d'));
+        showNotification('Окно удалено');
+    }
+}
+
+function deleteDoor(room, door) {
+    if (confirm('Удалить дверь?')) {
+        room.doors = room.doors.filter(d => d.id !== door.id);
+        if (selectedElementObj && selectedElementObj.id === door.id) {
+            selectedElementObj = null;
+            hideAllProperties();
+        }
+        updateElementList();
+        updateProjectSummary();
+        calculateCost();
+        draw(document.getElementById('editorCanvas'), document.getElementById('editorCanvas').getContext('2d'));
+        showNotification('Дверь удалена');
+    }
 }
 
 // Обновление сводки проекта
@@ -175,8 +213,9 @@ function updatePropertiesPanel(element) {
         // Обработчики изменений
         const roomInputs = ['roomName', 'roomWidth', 'roomHeightProp'];
         roomInputs.forEach(inputId => {
-            document.getElementById(inputId).removeEventListener('input', roomInputHandler);
-            document.getElementById(inputId).addEventListener('input', roomInputHandler);
+            const input = document.getElementById(inputId);
+            input.removeEventListener('input', roomInputHandler);
+            input.addEventListener('input', roomInputHandler);
         });
         
         function roomInputHandler() {
@@ -220,8 +259,8 @@ function updatePropertiesPanel(element) {
         
         applyRoomChangesBtn.onclick = () => {
             element.name = document.getElementById('roomName').value;
-            element.width = document.getElementById('roomWidth').value * scale;
-            element.height = document.getElementById('roomHeightProp').value * scale;
+            element.width = parseFloat(document.getElementById('roomWidth').value) * scale;
+            element.height = parseFloat(document.getElementById('roomHeightProp').value) * scale;
             element.plaster = plasterCheckbox.checked;
             element.armoring = armoringCheckbox.checked;
             element.puttyWallpaper = puttyWallpaperCheckbox.checked;
@@ -237,15 +276,7 @@ function updatePropertiesPanel(element) {
         };
         
         document.getElementById('deleteRoom').onclick = () => {
-            rooms = rooms.filter(r => r.id !== element.id);
-            selectedRoom = null;
-            selectedElementObj = null;
-            hideAllProperties();
-            updateElementList();
-            updateProjectSummary();
-            calculateCost();
-            centerView(editorCanvas);
-            showNotification('Комната удалена');
+            deleteRoom(element);
         };
     } else if (element.type === 'window') {
         windowProperties.style.display = 'block';
@@ -262,8 +293,9 @@ function updatePropertiesPanel(element) {
         // Обработчики изменений
         const windowInputs = ['windowWidth', 'windowHeight', 'windowWall', 'windowPosition', 'windowSlopes'];
         windowInputs.forEach(inputId => {
-            document.getElementById(inputId).removeEventListener('input', windowInputHandler);
-            document.getElementById(inputId).addEventListener('input', windowInputHandler);
+            const input = document.getElementById(inputId);
+            input.removeEventListener('input', windowInputHandler);
+            input.addEventListener('input', windowInputHandler);
         });
         
         function windowInputHandler(e) {
@@ -289,14 +321,9 @@ function updatePropertiesPanel(element) {
         };
         
         document.getElementById('deleteWindow').onclick = () => {
-            selectedRoom.windows = selectedRoom.windows.filter(w => w.id !== element.id);
-            selectedElementObj = null;
-            hideAllProperties();
-            updateElementList();
-            updateProjectSummary();
-            calculateCost();
-            draw(document.getElementById('editorCanvas'), document.getElementById('editorCanvas').getContext('2d'));
-            showNotification('Окно удалено');
+            if (selectedRoom) {
+                deleteWindow(selectedRoom, element);
+            }
         };
     } else if (element.type === 'door') {
         doorProperties.style.display = 'block';
@@ -313,8 +340,9 @@ function updatePropertiesPanel(element) {
         // Обработчики изменений
         const doorInputs = ['doorWidth', 'doorHeight', 'doorWall', 'doorPosition', 'doorSlopes'];
         doorInputs.forEach(inputId => {
-            document.getElementById(inputId).removeEventListener('input', doorInputHandler);
-            document.getElementById(inputId).addEventListener('input', doorInputHandler);
+            const input = document.getElementById(inputId);
+            input.removeEventListener('input', doorInputHandler);
+            input.addEventListener('input', doorInputHandler);
         });
         
         function doorInputHandler(e) {
@@ -340,14 +368,9 @@ function updatePropertiesPanel(element) {
         };
         
         document.getElementById('deleteDoor').onclick = () => {
-            selectedRoom.doors = selectedRoom.doors.filter(d => d.id !== element.id);
-            selectedElementObj = null;
-            hideAllProperties();
-            updateElementList();
-            updateProjectSummary();
-            calculateCost();
-            draw(document.getElementById('editorCanvas'), document.getElementById('editorCanvas').getContext('2d'));
-            showNotification('Дверь удалена');
+            if (selectedRoom) {
+                deleteDoor(selectedRoom, element);
+            }
         };
     }
     
@@ -786,11 +809,24 @@ function initMobilePanelEvents() {
         });
     });
     
-    // Обработчики для удаления элементов
+    // Обработчики для удаления элементов в мобильной панели
     const deleteButtons = document.querySelectorAll('#mobilePanelContent .btn-danger');
     deleteButtons.forEach(button => {
         button.addEventListener('click', () => {
-            closeMobilePanel();
+            if (selectedElementObj) {
+                if (selectedElementObj.type === 'room') {
+                    deleteRoom(selectedElementObj);
+                } else if (selectedElementObj.type === 'window') {
+                    if (selectedRoom) {
+                        deleteWindow(selectedRoom, selectedElementObj);
+                    }
+                } else if (selectedElementObj.type === 'door') {
+                    if (selectedRoom) {
+                        deleteDoor(selectedRoom, selectedElementObj);
+                    }
+                }
+                closeMobilePanel();
+            }
         });
     });
 }
@@ -1254,8 +1290,6 @@ function handleMouseMove(e) {
     if (isDragging && selectedRoom) {
         const newX = x - dragOffsetX;
         const newY = y - dragOffsetY;
-        const deltaX = newX - selectedRoom.x;
-        const deltaY = newY - selectedRoom.y;
         selectedRoom.x = newX;
         selectedRoom.y = newY;
         draw(editorCanvas, editorCanvas.getContext('2d'));
@@ -1266,7 +1300,13 @@ function handleMouseMove(e) {
         const wallInfo = findNearestWall(selectedRoom, x, y);
         if (wallInfo && wallInfo.wall === movingElement.wall) {
             const elementWidth = movingElement.width * scale;
-            const maxPosition = 100 - (elementWidth / selectedRoom.width * 100);
+            let roomDimension;
+            if (movingElement.wall === 'top' || movingElement.wall === 'bottom') {
+                roomDimension = selectedRoom.width;
+            } else {
+                roomDimension = selectedRoom.height;
+            }
+            const maxPosition = 100 - (elementWidth / roomDimension * 100);
             const clampedPosition = Math.max(0, Math.min(maxPosition, wallInfo.position));
             movingElement.position = clampedPosition;
             updatePropertiesPanel(movingElement);
@@ -1313,10 +1353,11 @@ function handleMouseUp(e) {
     if (currentTool === 'room') {
         const width = Math.abs(x - startX);
         const height = Math.abs(y - startY);
+        
+        // Минимальный размер комнаты - 1x1 метр (50x50 пикселей)
         if (width > 50 && height > 50) {
-            // Перемещаем комнату в верхний левый угол (20px отступ)
-            const roomX = 20;
-            const roomY = 20;
+            const roomX = Math.min(startX, x);
+            const roomY = Math.min(startY, y);
             
             const room = {
                 id: generateId(),
