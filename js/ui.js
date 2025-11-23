@@ -22,7 +22,6 @@ function updateElementList() {
         item.addEventListener('click', () => {
             selectRoom(room);
             draw(document.getElementById('editorCanvas'), document.getElementById('editorCanvas').getContext('2d'));
-            // На мобильных устройствах автоматически открываем свойства
             if (window.innerWidth <= 576) {
                 showMobilePanel('properties');
             }
@@ -45,7 +44,6 @@ function updateElementList() {
                 selectedRoom = room;
                 selectElement(window);
                 draw(document.getElementById('editorCanvas'), document.getElementById('editorCanvas').getContext('2d'));
-                // На мобильных устройствах автоматически открываем свойства
                 if (window.innerWidth <= 576) {
                     showMobilePanel('properties');
                 }
@@ -85,7 +83,6 @@ function updateElementList() {
                 selectedRoom = room;
                 selectElement(door);
                 draw(document.getElementById('editorCanvas'), document.getElementById('editorCanvas').getContext('2d'));
-                // На мобильных устройствах автоматически открываем свойства
                 if (window.innerWidth <= 576) {
                     showMobilePanel('properties');
                 }
@@ -800,124 +797,28 @@ function initMobilePanelEvents() {
 
 // Инициализация мобильного интерфейса
 function initMobileUI() {
-    // Создаем контейнер для мобильных инструментов
-    const mobileToolsContainer = document.createElement('div');
-    mobileToolsContainer.className = 'mobile-tools-container';
-    mobileToolsContainer.innerHTML = `
-        <div class="mobile-top-controls">
-            <button id="mobileNewProject"><i class="fas fa-file"></i> Новый проект</button>
-            <button id="mobileClearAll"><i class="fas fa-trash"></i> Очистить все</button>
-        </div>
-        
-        <div class="mobile-zoom-controls">
-            <button id="mobileZoomOut"><i class="fas fa-search-minus"></i></button>
-            <button id="mobileCenterView"><i class="fas fa-crosshairs"></i> Центр</button>
-            <button id="mobileZoomIn"><i class="fas fa-search-plus"></i></button>
-        </div>
-        
-        <div class="mobile-tool-groups">
-            <div class="mobile-tool-section">
-                <h4><i class="fas fa-sliders-h"></i> Основные инструменты</h4>
-                <div class="mobile-tool-buttons">
-                    <div class="mobile-tool-btn active" data-tool="select">
-                        <i class="fas fa-mouse-pointer"></i>
-                        <span>Выбор</span>
-                    </div>
-                    <div class="mobile-tool-btn" data-tool="room">
-                        <i class="fas fa-vector-square"></i>
-                        <span>Комната</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="mobile-tool-section">
-                <h4><i class="fas fa-door-closed"></i> Элементы комнаты</h4>
-                <div class="mobile-tool-buttons">
-                    <div class="mobile-tool-btn" data-tool="window">
-                        <i class="fas fa-square"></i>
-                        <span>Окно</span>
-                    </div>
-                    <div class="mobile-tool-btn" data-tool="door">
-                        <i class="fas fa-door-open"></i>
-                        <span>Дверь</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="mobile-tool-section">
-                <h4><i class="fas fa-ruler-combined"></i> Параметры проекта</h4>
-                <div class="form-group">
-                    <label for="mobileCeilingHeight">Высота потолков (м):</label>
-                    <input type="number" id="mobileCeilingHeight" min="2.0" max="5.0" step="0.1" value="2.5">
-                </div>
-            </div>
-        </div>
-    `;
+    console.log('Инициализация мобильного интерфейса');
     
-    // Вставляем мобильные инструменты перед редактором
-    const editorPanel = document.querySelector('.editor-panel .panel-content');
-    const editorContainer = editorPanel.querySelector('.editor-container');
-    editorPanel.insertBefore(mobileToolsContainer, editorContainer);
+    // Показываем мобильные элементы
+    const mobileToolsContainer = document.querySelector('.mobile-tools-container');
+    const fabContainer = document.getElementById('fabContainer');
     
-    // Создаем оверлей для мобильной панели
-    const overlay = document.createElement('div');
-    overlay.id = 'mobilePanelOverlay';
-    overlay.className = 'mobile-panel-overlay';
-    document.body.appendChild(overlay);
+    if (mobileToolsContainer) {
+        mobileToolsContainer.style.display = 'block';
+    }
     
-    // Создаем мобильную панель
-    const mobilePanel = document.createElement('div');
-    mobilePanel.id = 'mobilePanel';
-    mobilePanel.className = 'mobile-panel';
-    mobilePanel.innerHTML = `
-        <div class="mobile-panel-header">
-            <span id="mobilePanelTitle">Панель</span>
-            <button class="close-mobile-panel">&times;</button>
-        </div>
-        <div class="mobile-panel-content" id="mobilePanelContent">
-            <!-- Контент будет заполнен динамически -->
-        </div>
-    `;
-    document.body.appendChild(mobilePanel);
-    
-    // Создаем плавающие кнопки
-    createFloatingActionButtons();
+    if (fabContainer) {
+        fabContainer.style.display = 'flex';
+    }
     
     // Инициализация обработчиков мобильного интерфейса
     initMobileEventHandlers();
 }
 
-// Создание плавающих кнопок действий
-function createFloatingActionButtons() {
-    const fabContainer = document.createElement('div');
-    fabContainer.id = 'fabContainer';
-    
-    const buttons = [
-        { id: 'fabProperties', icon: 'fas fa-cog', title: 'Свойства', className: 'properties', action: () => showMobilePanel('properties') },
-        { id: 'fabSummary', icon: 'fas fa-chart-pie', title: 'Сводка', className: 'summary', action: () => showMobilePanel('summary') },
-        { id: 'fabReceipt', icon: 'fas fa-receipt', title: 'Смета', className: 'receipt', action: () => {
-            document.getElementById('receiptContainer').scrollIntoView({ behavior: 'smooth' });
-        }},
-        { id: 'fabTop', icon: 'fas fa-arrow-up', title: 'Наверх', className: 'top', action: () => {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
-    ];
-    
-    buttons.forEach(btn => {
-        const button = document.createElement('button');
-        button.id = btn.id;
-        button.className = `fab-btn ${btn.className}`;
-        button.innerHTML = `<i class="${btn.icon}"></i>`;
-        button.title = btn.title;
-        button.addEventListener('click', btn.action);
-        fabContainer.appendChild(button);
-    });
-    
-    document.body.appendChild(fabContainer);
-}
-
 // Инициализация обработчиков мобильного интерфейса
 function initMobileEventHandlers() {
+    console.log('Инициализация мобильных обработчиков');
+    
     // Обработчики для мобильных кнопок инструментов
     const mobileToolButtons = document.querySelectorAll('.mobile-tool-btn');
     mobileToolButtons.forEach(button => {
@@ -936,26 +837,21 @@ function initMobileEventHandlers() {
                 } else if (currentTool === 'window' || currentTool === 'door') {
                     editorCanvas.style.cursor = 'cell';
                 }
+                
+                showNotification(`Инструмент: ${tool === 'select' ? 'Выбор' : tool === 'room' ? 'Комната' : tool === 'window' ? 'Окно' : 'Дверь'}`);
             }
         });
     });
     
     // Обработчики для мобильных кнопок управления
-    document.getElementById('mobileNewProject').addEventListener('click', () => {
-        rooms = [];
-        selectedRoom = null;
-        selectedElementObj = null;
-        roomCounter = 1;
-        hideAllProperties();
-        updateElementList();
-        updateProjectSummary();
-        calculateCost();
-        centerView(editorCanvas);
-        showNotification('Новый проект создан');
-    });
+    const mobileNewProject = document.getElementById('mobileNewProject');
+    const mobileClearAll = document.getElementById('mobileClearAll');
+    const mobileZoomIn = document.getElementById('mobileZoomIn');
+    const mobileZoomOut = document.getElementById('mobileZoomOut');
+    const mobileCenterView = document.getElementById('mobileCenterView');
     
-    document.getElementById('mobileClearAll').addEventListener('click', () => {
-        if (confirm('Вы уверены, что хотите удалить все комнаты?')) {
+    if (mobileNewProject) {
+        mobileNewProject.addEventListener('click', () => {
             rooms = [];
             selectedRoom = null;
             selectedElementObj = null;
@@ -965,57 +861,125 @@ function initMobileEventHandlers() {
             updateProjectSummary();
             calculateCost();
             centerView(editorCanvas);
-            showNotification('Все комнаты удалены');
-        }
-    });
+            showNotification('Новый проект создан');
+        });
+    }
     
-    document.getElementById('mobileZoomIn').addEventListener('click', () => {
-        zoom *= 1.2;
-        zoom = Math.min(3, zoom);
-        zoomLevel.textContent = `${Math.round(zoom * 100)}%`;
-        draw(editorCanvas, editorCanvas.getContext('2d'));
-    });
+    if (mobileClearAll) {
+        mobileClearAll.addEventListener('click', () => {
+            if (confirm('Вы уверены, что хотите удалить все комнаты?')) {
+                rooms = [];
+                selectedRoom = null;
+                selectedElementObj = null;
+                roomCounter = 1;
+                hideAllProperties();
+                updateElementList();
+                updateProjectSummary();
+                calculateCost();
+                centerView(editorCanvas);
+                showNotification('Все комнаты удалены');
+            }
+        });
+    }
     
-    document.getElementById('mobileZoomOut').addEventListener('click', () => {
-        zoom /= 1.2;
-        zoom = Math.max(0.1, zoom);
-        zoomLevel.textContent = `${Math.round(zoom * 100)}%`;
-        draw(editorCanvas, editorCanvas.getContext('2d'));
-    });
+    if (mobileZoomIn) {
+        mobileZoomIn.addEventListener('click', () => {
+            zoom *= 1.2;
+            zoom = Math.min(3, zoom);
+            zoomLevel.textContent = `${Math.round(zoom * 100)}%`;
+            draw(editorCanvas, editorCanvas.getContext('2d'));
+        });
+    }
     
-    document.getElementById('mobileCenterView').addEventListener('click', () => centerView(editorCanvas));
+    if (mobileZoomOut) {
+        mobileZoomOut.addEventListener('click', () => {
+            zoom /= 1.2;
+            zoom = Math.max(0.1, zoom);
+            zoomLevel.textContent = `${Math.round(zoom * 100)}%`;
+            draw(editorCanvas, editorCanvas.getContext('2d'));
+        });
+    }
+    
+    if (mobileCenterView) {
+        mobileCenterView.addEventListener('click', () => centerView(editorCanvas));
+    }
     
     // Обработчик изменения высоты потолков в мобильной версии
-    document.getElementById('mobileCeilingHeight').addEventListener('change', function() {
-        document.getElementById('ceilingHeight').value = this.value;
-        updateProjectSummary();
-        calculateCost();
-    });
+    const mobileCeilingHeight = document.getElementById('mobileCeilingHeight');
+    if (mobileCeilingHeight) {
+        mobileCeilingHeight.addEventListener('change', function() {
+            document.getElementById('ceilingHeight').value = this.value;
+            updateProjectSummary();
+            calculateCost();
+        });
+    }
     
     // Синхронизация значений высоты потолков
-    document.getElementById('ceilingHeight').addEventListener('change', function() {
-        const mobileCeilingHeight = document.getElementById('mobileCeilingHeight');
-        if (mobileCeilingHeight) {
-            mobileCeilingHeight.value = this.value;
-        }
-    });
+    const ceilingHeight = document.getElementById('ceilingHeight');
+    if (ceilingHeight) {
+        ceilingHeight.addEventListener('change', function() {
+            const mobileCeilingHeight = document.getElementById('mobileCeilingHeight');
+            if (mobileCeilingHeight) {
+                mobileCeilingHeight.value = this.value;
+            }
+        });
+    }
+    
+    // Обработчики для плавающих кнопок
+    const fabProperties = document.getElementById('fabProperties');
+    const fabSummary = document.getElementById('fabSummary');
+    const fabReceipt = document.getElementById('fabReceipt');
+    const fabTop = document.getElementById('fabTop');
+    
+    if (fabProperties) {
+        fabProperties.addEventListener('click', () => {
+            showMobilePanel('properties');
+        });
+    }
+    
+    if (fabSummary) {
+        fabSummary.addEventListener('click', () => {
+            showMobilePanel('summary');
+        });
+    }
+    
+    if (fabReceipt) {
+        fabReceipt.addEventListener('click', () => {
+            document.getElementById('receiptContainer').scrollIntoView({ behavior: 'smooth' });
+        });
+    }
+    
+    if (fabTop) {
+        fabTop.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    }
     
     // Обработчики для мобильной панели
     const overlay = document.getElementById('mobilePanelOverlay');
     const mobilePanel = document.getElementById('mobilePanel');
     const closeButton = mobilePanel.querySelector('.close-mobile-panel');
     
-    overlay.addEventListener('click', closeMobilePanel);
-    closeButton.addEventListener('click', closeMobilePanel);
+    if (overlay) {
+        overlay.addEventListener('click', closeMobilePanel);
+    }
+    
+    if (closeButton) {
+        closeButton.addEventListener('click', closeMobilePanel);
+    }
     
     // Предотвращаем закрытие при клике на саму панель
-    mobilePanel.addEventListener('click', (e) => {
-        e.stopPropagation();
-    });
+    if (mobilePanel) {
+        mobilePanel.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+    }
 }
 
 // Инициализация пользовательского интерфейса
 function initUI() {
+    console.log('Инициализация UI');
+    
     // Получение ссылок на DOM элементы
     window.toolButtons = document.querySelectorAll('.tool-btn');
     window.cursorPosition = document.getElementById('cursorPosition');
@@ -1068,7 +1032,7 @@ function initUI() {
     
     // Обработчик изменения размера окна
     window.addEventListener('resize', () => {
-        if (window.innerWidth <= 576 && !document.getElementById('mobileToolsContainer')) {
+        if (window.innerWidth <= 576) {
             initMobileUI();
         }
     });
@@ -1079,6 +1043,8 @@ function initFeedbackModal() {
     const modal = document.getElementById('feedbackModal');
     const closeBtn = document.querySelector('.close-modal');
     const feedbackForm = document.getElementById('feedbackForm');
+    
+    if (!modal || !closeBtn || !feedbackForm) return;
     
     // Закрытие модального окна
     closeBtn.addEventListener('click', closeFeedbackModal);
@@ -1133,41 +1099,31 @@ function initFeedbackModal() {
 function initEventListeners() {
     const editorCanvas = document.getElementById('editorCanvas');
     
+    if (!editorCanvas) return;
+    
     // Обработчики инструментов
-    toolButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            toolButtons.forEach(btn => btn.classList.remove('active'));
-            button.classList.add('active');
-            currentTool = button.dataset.tool;
-            
-            // Изменение курсора
-            if (currentTool === 'select') {
-                editorCanvas.style.cursor = 'move';
-            } else if (currentTool === 'room') {
-                editorCanvas.style.cursor = 'crosshair';
-            } else if (currentTool === 'window' || currentTool === 'door') {
-                editorCanvas.style.cursor = 'cell';
-            }
+    if (toolButtons) {
+        toolButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                toolButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                currentTool = button.dataset.tool;
+                
+                // Изменение курсора
+                if (currentTool === 'select') {
+                    editorCanvas.style.cursor = 'move';
+                } else if (currentTool === 'room') {
+                    editorCanvas.style.cursor = 'crosshair';
+                } else if (currentTool === 'window' || currentTool === 'door') {
+                    editorCanvas.style.cursor = 'cell';
+                }
+            });
         });
-    });
+    }
     
     // Обработчик кнопки нового проекта
-    newProjectBtn.addEventListener('click', () => {
-        rooms = [];
-        selectedRoom = null;
-        selectedElementObj = null;
-        roomCounter = 1;
-        hideAllProperties();
-        updateElementList();
-        updateProjectSummary();
-        calculateCost();
-        centerView(editorCanvas);
-        showNotification('Новый проект создан');
-    });
-    
-    // Обработчик кнопки очистки
-    clearAllBtn.addEventListener('click', () => {
-        if (confirm('Вы уверены, что хотите удалить все комнаты?')) {
+    if (newProjectBtn) {
+        newProjectBtn.addEventListener('click', () => {
             rooms = [];
             selectedRoom = null;
             selectedElementObj = null;
@@ -1177,33 +1133,60 @@ function initEventListeners() {
             updateProjectSummary();
             calculateCost();
             centerView(editorCanvas);
-            showNotification('Все комнаты удалены');
-        }
-    });
+            showNotification('Новый проект создан');
+        });
+    }
+    
+    // Обработчик кнопки очистки
+    if (clearAllBtn) {
+        clearAllBtn.addEventListener('click', () => {
+            if (confirm('Вы уверены, что хотите удалить все комнаты?')) {
+                rooms = [];
+                selectedRoom = null;
+                selectedElementObj = null;
+                roomCounter = 1;
+                hideAllProperties();
+                updateElementList();
+                updateProjectSummary();
+                calculateCost();
+                centerView(editorCanvas);
+                showNotification('Все комнаты удалены');
+            }
+        });
+    }
     
     // Обработчики кнопок масштабирования
-    zoomInBtn.addEventListener('click', () => {
-        zoom *= 1.2;
-        zoom = Math.min(3, zoom);
-        zoomLevel.textContent = `${Math.round(zoom * 100)}%`;
-        draw(editorCanvas, editorCanvas.getContext('2d'));
-    });
+    if (zoomInBtn) {
+        zoomInBtn.addEventListener('click', () => {
+            zoom *= 1.2;
+            zoom = Math.min(3, zoom);
+            zoomLevel.textContent = `${Math.round(zoom * 100)}%`;
+            draw(editorCanvas, editorCanvas.getContext('2d'));
+        });
+    }
     
-    zoomOutBtn.addEventListener('click', () => {
-        zoom /= 1.2;
-        zoom = Math.max(0.1, zoom);
-        zoomLevel.textContent = `${Math.round(zoom * 100)}%`;
-        draw(editorCanvas, editorCanvas.getContext('2d'));
-    });
+    if (zoomOutBtn) {
+        zoomOutBtn.addEventListener('click', () => {
+            zoom /= 1.2;
+            zoom = Math.max(0.1, zoom);
+            zoomLevel.textContent = `${Math.round(zoom * 100)}%`;
+            draw(editorCanvas, editorCanvas.getContext('2d'));
+        });
+    }
     
     // Обработчик кнопки центрирования
-    centerViewBtn.addEventListener('click', () => centerView(editorCanvas));
+    if (centerViewBtn) {
+        centerViewBtn.addEventListener('click', () => centerView(editorCanvas));
+    }
     
     // Обработчик изменения высоты потолков
-    document.getElementById('ceilingHeight').addEventListener('change', () => {
-        updateProjectSummary();
-        calculateCost();
-    });
+    const ceilingHeight = document.getElementById('ceilingHeight');
+    if (ceilingHeight) {
+        ceilingHeight.addEventListener('change', () => {
+            updateProjectSummary();
+            calculateCost();
+        });
+    }
 }
 
 // Обработка нажатия мыши
@@ -1263,7 +1246,9 @@ function handleMouseMove(e) {
     const y = (e.clientY - rect.top - viewOffsetY) / safeZoom;
     
     // Обновление позиции курсора
-    cursorPosition.textContent = `X: ${(x / scale).toFixed(2)}, Y: ${(y / scale).toFixed(2)}`;
+    if (cursorPosition) {
+        cursorPosition.textContent = `X: ${(x / scale).toFixed(2)}, Y: ${(y / scale).toFixed(2)}`;
+    }
     
     // Перемещение комнаты
     if (isDragging && selectedRoom) {

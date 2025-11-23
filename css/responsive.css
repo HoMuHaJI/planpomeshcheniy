@@ -128,7 +128,7 @@
     
     .tools-panel, .properties-panel {
         order: 2;
-        display: none;
+        display: none !important;
     }
     
     .editor-panel {
@@ -137,12 +137,12 @@
     }
     
     .mobile-tools-container {
-        display: block;
+        display: block !important;
         margin-bottom: 15px;
     }
     
     .mobile-top-controls {
-        display: flex;
+        display: flex !important;
         gap: 8px;
         margin-bottom: 15px;
     }
@@ -152,10 +152,19 @@
         padding: 12px 10px;
         font-size: 14px;
         min-height: 44px;
+        background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary-color) 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
     }
     
     .mobile-zoom-controls {
-        display: flex;
+        display: flex !important;
         gap: 8px;
         margin-bottom: 15px;
         align-items: center;
@@ -166,6 +175,15 @@
         padding: 12px;
         font-size: 16px;
         min-height: 44px;
+        background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary-color) 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
     }
     
     .mobile-tool-groups {
@@ -206,6 +224,7 @@
         font-size: 12px;
         min-height: 70px;
         transition: var(--transition);
+        cursor: pointer;
     }
     
     .mobile-tool-btn.active {
@@ -260,37 +279,12 @@
         padding: 12px;
     }
     
-    .tool-group {
-        margin-bottom: 20px;
-    }
-    
-    .tool-group h3 {
-        font-size: 1rem;
-        margin-bottom: 12px;
-    }
-    
-    .tool-buttons {
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-    }
-    
-    .tool-btn {
-        padding: 12px 8px;
-        font-size: 12px;
-        min-height: 80px;
-    }
-    
-    .tool-btn i {
-        font-size: 18px;
-        margin-bottom: 6px;
-    }
-    
     .editor-toolbar {
-        display: none;
+        display: none !important;
     }
     
     .zoom-controls {
-        display: none;
+        display: none !important;
     }
     
     .editor-container {
@@ -436,7 +430,7 @@
         position: fixed;
         bottom: 20px;
         right: 20px;
-        display: flex;
+        display: flex !important;
         flex-direction: column;
         gap: 10px;
         z-index: 1000;
@@ -455,10 +449,7 @@
         align-items: center;
         justify-content: center;
         transition: var(--transition);
-    }
-    
-    .fab-btn:hover {
-        transform: scale(1.1);
+        cursor: pointer;
     }
     
     .fab-btn.properties { background: linear-gradient(135deg, #8e6bc9 0%, #7a5ab5 100%); }
@@ -519,6 +510,7 @@
         font-size: 24px;
         width: auto;
         padding: 5px;
+        cursor: pointer;
     }
     
     .mobile-panel-content {
@@ -648,9 +640,11 @@
 }
 
 /* Скрываем мобильные элементы на десктопе */
-.mobile-tools-container,
-.mobile-panel-overlay,
-.mobile-panel,
-#fabContainer {
-    display: none;
+@media (min-width: 577px) {
+    .mobile-tools-container,
+    .mobile-panel-overlay,
+    .mobile-panel,
+    #fabContainer {
+        display: none !important;
+    }
 }
