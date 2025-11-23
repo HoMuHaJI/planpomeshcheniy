@@ -111,218 +111,6 @@ function updateElementList() {
     });
 }
 
-// Показ мобильной панели
-function showMobilePanel(panelType) {
-    const overlay = document.getElementById('mobilePanelOverlay');
-    const panel = document.getElementById('mobilePanel');
-    const panelContent = document.getElementById('mobilePanelContent');
-    const panelTitle = document.getElementById('mobilePanelTitle');
-    
-    // Заполняем контент в зависимости от типа панели
-    switch(panelType) {
-        case 'tools':
-            panelTitle.innerHTML = '<i class="fas fa-tools"></i> Инструменты';
-            panelContent.innerHTML = document.querySelector('.tools-panel .panel-content').innerHTML;
-            break;
-        case 'properties':
-            panelTitle.innerHTML = '<i class="fas fa-cog"></i> Свойства';
-            panelContent.innerHTML = document.querySelector('.properties-panel .panel-content').innerHTML;
-            // Обновляем свойства выбранного элемента
-            if (selectedElementObj) {
-                updatePropertiesPanel(selectedElementObj);
-            }
-            break;
-        case 'summary':
-            panelTitle.innerHTML = '<i class="fas fa-chart-pie"></i> Сводка';
-            panelContent.innerHTML = `
-                <div class="property-group">
-                    <h3><i class="fas fa-chart-pie"></i> Сводка проекта</h3>
-                    <div class="summary" id="projectSummary">
-                        <div class="summary-item">
-                            <span>Комнат:</span>
-                            <span id="roomsCount">0</span>
-                        </div>
-                        <div class="summary-item">
-                            <span>Окон:</span>
-                            <span id="windowsCount">0</span>
-                        </div>
-                        <div class="summary-item">
-                            <span>Дверей:</span>
-                            <span id="doorsCount">0</span>
-                        </div>
-                        <div class="summary-item">
-                            <span>Общая площадь стен:</span>
-                            <span id="totalArea">0 м²</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="property-group">
-                    <h3><i class="fas fa-calculator"></i> Смета работ</h3>
-                    <div id="estimateResults"></div>
-                </div>
-            `;
-            updateProjectSummary();
-            calculateCost();
-            break;
-    }
-    
-    // Показываем панель
-    overlay.style.display = 'block';
-    panel.classList.add('active');
-    document.body.style.overflow = 'hidden';
-    
-    // Переинициализируем обработчики событий для элементов внутри панели
-    initMobilePanelEvents();
-}
-
-// Закрытие мобильной панели
-function closeMobilePanel() {
-    const overlay = document.getElementById('mobilePanelOverlay');
-    const panel = document.getElementById('mobilePanel');
-    
-    overlay.style.display = 'none';
-    panel.classList.remove('active');
-    document.body.style.overflow = 'auto';
-}
-
-// Инициализация событий мобильной панели
-function initMobilePanelEvents() {
-    // Обработчики для инструментов в мобильной панели
-    const toolButtons = document.querySelectorAll('#mobilePanelContent .tool-btn');
-    toolButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            const tool = button.dataset.tool;
-            if (tool) {
-                toolButtons.forEach(btn => btn.classList.remove('active'));
-                button.classList.add('active');
-                currentTool = tool;
-                
-                const editorCanvas = document.getElementById('editorCanvas');
-                if (currentTool === 'select') {
-                    editorCanvas.style.cursor = 'move';
-                } else if (currentTool === 'room') {
-                    editorCanvas.style.cursor = 'crosshair';
-                } else if (currentTool === 'window' || currentTool === 'door') {
-                    editorCanvas.style.cursor = 'cell';
-                }
-                
-                // Закрываем панель после выбора инструмента
-                closeMobilePanel();
-            }
-        });
-    });
-    
-    // Обработчики для кнопок в мобильной панели
-    const applyButtons = document.querySelectorAll('#mobilePanelContent #applyRoomChanges, #mobilePanelContent #applyWindowChanges, #mobilePanelContent #applyDoorChanges');
-    applyButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            closeMobilePanel();
-        });
-    });
-    
-    // Обработчики для удаления элементов
-    const deleteButtons = document.querySelectorAll('#mobilePanelContent .btn-danger');
-    deleteButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            closeMobilePanel();
-        });
-    });
-}
-
-// Инициализация мобильного интерфейса
-function initMobileUI() {
-    // Создаем кнопку мобильного меню
-    const mobileMenuButton = document.createElement('button');
-    mobileMenuButton.id = 'mobileMenuButton';
-    mobileMenuButton.className = 'mobile-menu-button';
-    mobileMenuButton.innerHTML = '<i class="fas fa-bars"></i>';
-    document.body.appendChild(mobileMenuButton);
-    
-    // Создаем оверлей для мобильной панели
-    const overlay = document.createElement('div');
-    overlay.id = 'mobilePanelOverlay';
-    overlay.className = 'mobile-panel-overlay';
-    document.body.appendChild(overlay);
-    
-    // Создаем мобильную панель
-    const mobilePanel = document.createElement('div');
-    mobilePanel.id = 'mobilePanel';
-    mobilePanel.className = 'mobile-panel';
-    mobilePanel.innerHTML = `
-        <div class="mobile-panel-header">
-            <span id="mobilePanelTitle">Панель</span>
-            <button class="close-mobile-panel">&times;</button>
-        </div>
-        <div class="panel-content" id="mobilePanelContent">
-            <!-- Контент будет заполнен динамически -->
-        </div>
-    `;
-    document.body.appendChild(mobilePanel);
-    
-    // Обработчики для мобильного меню
-    mobileMenuButton.addEventListener('click', () => {
-        showMobilePanel('tools');
-    });
-    
-    overlay.addEventListener('click', closeMobilePanel);
-    
-    const closeButton = mobilePanel.querySelector('.close-mobile-panel');
-    closeButton.addEventListener('click', closeMobilePanel);
-    
-    // Предотвращаем закрытие при клике на саму панель
-    mobilePanel.addEventListener('click', (e) => {
-        e.stopPropagation();
-    });
-    
-    // Создаем плавающие кнопки для быстрого доступа
-    createFloatingActionButtons();
-}
-
-// Создание плавающих кнопок действий
-function createFloatingActionButtons() {
-    const fabContainer = document.createElement('div');
-    fabContainer.id = 'fabContainer';
-    fabContainer.style.cssText = `
-        position: fixed;
-        bottom: 90px;
-        right: 20px;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        z-index: 998;
-    `;
-    
-    const buttons = [
-        { id: 'fabProperties', icon: 'fas fa-cog', title: 'Свойства', action: () => showMobilePanel('properties') },
-        { id: 'fabSummary', icon: 'fas fa-chart-pie', title: 'Сводка', action: () => showMobilePanel('summary') },
-        { id: 'fabEstimate', icon: 'fas fa-receipt', title: 'Смета', action: () => document.getElementById('receiptContainer').scrollIntoView({ behavior: 'smooth' }) }
-    ];
-    
-    buttons.forEach(btn => {
-        const button = document.createElement('button');
-        button.id = btn.id;
-        button.innerHTML = `<i class="${btn.icon}"></i>`;
-        button.title = btn.title;
-        button.style.cssText = `
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-            color: white;
-            border: none;
-            font-size: 18px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        `;
-        button.addEventListener('click', btn.action);
-        fabContainer.appendChild(button);
-    });
-    
-    document.body.appendChild(fabContainer);
-}
-
 // Обновление сводки проекта
 function updateProjectSummary() {
     let windowsCount = 0;
@@ -886,6 +674,346 @@ ${receiptText}
     }
 }
 
+// Показ мобильной панели
+function showMobilePanel(panelType) {
+    const overlay = document.getElementById('mobilePanelOverlay');
+    const panel = document.getElementById('mobilePanel');
+    const panelContent = document.getElementById('mobilePanelContent');
+    const panelTitle = document.getElementById('mobilePanelTitle');
+    
+    // Заполняем контент в зависимости от типа панели
+    switch(panelType) {
+        case 'tools':
+            panelTitle.innerHTML = '<i class="fas fa-tools"></i> Инструменты';
+            panelContent.innerHTML = document.querySelector('.tools-panel .panel-content').innerHTML;
+            break;
+        case 'properties':
+            panelTitle.innerHTML = '<i class="fas fa-cog"></i> Свойства';
+            // Копируем содержимое панели свойств
+            const propertiesContent = document.querySelector('.properties-panel .panel-content').cloneNode(true);
+            panelContent.innerHTML = propertiesContent.innerHTML;
+            // Обновляем свойства выбранного элемента
+            if (selectedElementObj) {
+                updatePropertiesPanel(selectedElementObj);
+            }
+            break;
+        case 'summary':
+            panelTitle.innerHTML = '<i class="fas fa-chart-pie"></i> Сводка';
+            panelContent.innerHTML = `
+                <div class="property-group">
+                    <h3><i class="fas fa-chart-pie"></i> Сводка проекта</h3>
+                    <div class="summary" id="mobileProjectSummary">
+                        <div class="summary-item">
+                            <span>Комнат:</span>
+                            <span id="mobileRoomsCount">0</span>
+                        </div>
+                        <div class="summary-item">
+                            <span>Окон:</span>
+                            <span id="mobileWindowsCount">0</span>
+                        </div>
+                        <div class="summary-item">
+                            <span>Дверей:</span>
+                            <span id="mobileDoorsCount">0</span>
+                        </div>
+                        <div class="summary-item">
+                            <span>Общая площадь стен:</span>
+                            <span id="mobileTotalArea">0 м²</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="property-group">
+                    <h3><i class="fas fa-calculator"></i> Смета работ</h3>
+                    <div id="mobileEstimateResults"></div>
+                </div>
+            `;
+            // Обновляем данные
+            document.getElementById('mobileRoomsCount').textContent = document.getElementById('roomsCount').textContent;
+            document.getElementById('mobileWindowsCount').textContent = document.getElementById('windowsCount').textContent;
+            document.getElementById('mobileDoorsCount').textContent = document.getElementById('doorsCount').textContent;
+            document.getElementById('mobileTotalArea').textContent = document.getElementById('totalArea').textContent;
+            document.getElementById('mobileEstimateResults').innerHTML = document.getElementById('estimateResults').innerHTML;
+            break;
+    }
+    
+    // Показываем панель
+    overlay.style.display = 'block';
+    panel.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    
+    // Переинициализируем обработчики событий для элементов внутри панели
+    initMobilePanelEvents();
+}
+
+// Закрытие мобильной панели
+function closeMobilePanel() {
+    const overlay = document.getElementById('mobilePanelOverlay');
+    const panel = document.getElementById('mobilePanel');
+    
+    overlay.style.display = 'none';
+    panel.classList.remove('active');
+    document.body.style.overflow = 'auto';
+}
+
+// Инициализация событий мобильной панели
+function initMobilePanelEvents() {
+    // Обработчики для инструментов в мобильной панели
+    const toolButtons = document.querySelectorAll('#mobilePanelContent .tool-btn');
+    toolButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const tool = button.dataset.tool;
+            if (tool) {
+                toolButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                currentTool = tool;
+                
+                const editorCanvas = document.getElementById('editorCanvas');
+                if (currentTool === 'select') {
+                    editorCanvas.style.cursor = 'move';
+                } else if (currentTool === 'room') {
+                    editorCanvas.style.cursor = 'crosshair';
+                } else if (currentTool === 'window' || currentTool === 'door') {
+                    editorCanvas.style.cursor = 'cell';
+                }
+                
+                // Закрываем панель после выбора инструмента
+                closeMobilePanel();
+            }
+        });
+    });
+    
+    // Обработчики для кнопок в мобильной панели
+    const applyButtons = document.querySelectorAll('#mobilePanelContent #applyRoomChanges, #mobilePanelContent #applyWindowChanges, #mobilePanelContent #applyDoorChanges');
+    applyButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            closeMobilePanel();
+        });
+    });
+    
+    // Обработчики для удаления элементов
+    const deleteButtons = document.querySelectorAll('#mobilePanelContent .btn-danger');
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            closeMobilePanel();
+        });
+    });
+}
+
+// Инициализация мобильного интерфейса
+function initMobileUI() {
+    // Создаем контейнер для мобильных инструментов
+    const mobileToolsContainer = document.createElement('div');
+    mobileToolsContainer.className = 'mobile-tools-container';
+    mobileToolsContainer.innerHTML = `
+        <div class="mobile-top-controls">
+            <button id="mobileNewProject"><i class="fas fa-file"></i> Новый проект</button>
+            <button id="mobileClearAll"><i class="fas fa-trash"></i> Очистить все</button>
+        </div>
+        
+        <div class="mobile-zoom-controls">
+            <button id="mobileZoomOut"><i class="fas fa-search-minus"></i></button>
+            <button id="mobileCenterView"><i class="fas fa-crosshairs"></i> Центр</button>
+            <button id="mobileZoomIn"><i class="fas fa-search-plus"></i></button>
+        </div>
+        
+        <div class="mobile-tool-groups">
+            <div class="mobile-tool-section">
+                <h4><i class="fas fa-sliders-h"></i> Основные инструменты</h4>
+                <div class="mobile-tool-buttons">
+                    <div class="mobile-tool-btn active" data-tool="select">
+                        <i class="fas fa-mouse-pointer"></i>
+                        <span>Выбор</span>
+                    </div>
+                    <div class="mobile-tool-btn" data-tool="room">
+                        <i class="fas fa-vector-square"></i>
+                        <span>Комната</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mobile-tool-section">
+                <h4><i class="fas fa-door-closed"></i> Элементы комнаты</h4>
+                <div class="mobile-tool-buttons">
+                    <div class="mobile-tool-btn" data-tool="window">
+                        <i class="fas fa-square"></i>
+                        <span>Окно</span>
+                    </div>
+                    <div class="mobile-tool-btn" data-tool="door">
+                        <i class="fas fa-door-open"></i>
+                        <span>Дверь</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mobile-tool-section">
+                <h4><i class="fas fa-ruler-combined"></i> Параметры проекта</h4>
+                <div class="form-group">
+                    <label for="mobileCeilingHeight">Высота потолков (м):</label>
+                    <input type="number" id="mobileCeilingHeight" min="2.0" max="5.0" step="0.1" value="2.5">
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Вставляем мобильные инструменты перед редактором
+    const editorPanel = document.querySelector('.editor-panel .panel-content');
+    const editorContainer = editorPanel.querySelector('.editor-container');
+    editorPanel.insertBefore(mobileToolsContainer, editorContainer);
+    
+    // Создаем оверлей для мобильной панели
+    const overlay = document.createElement('div');
+    overlay.id = 'mobilePanelOverlay';
+    overlay.className = 'mobile-panel-overlay';
+    document.body.appendChild(overlay);
+    
+    // Создаем мобильную панель
+    const mobilePanel = document.createElement('div');
+    mobilePanel.id = 'mobilePanel';
+    mobilePanel.className = 'mobile-panel';
+    mobilePanel.innerHTML = `
+        <div class="mobile-panel-header">
+            <span id="mobilePanelTitle">Панель</span>
+            <button class="close-mobile-panel">&times;</button>
+        </div>
+        <div class="mobile-panel-content" id="mobilePanelContent">
+            <!-- Контент будет заполнен динамически -->
+        </div>
+    `;
+    document.body.appendChild(mobilePanel);
+    
+    // Создаем плавающие кнопки
+    createFloatingActionButtons();
+    
+    // Инициализация обработчиков мобильного интерфейса
+    initMobileEventHandlers();
+}
+
+// Создание плавающих кнопок действий
+function createFloatingActionButtons() {
+    const fabContainer = document.createElement('div');
+    fabContainer.id = 'fabContainer';
+    
+    const buttons = [
+        { id: 'fabProperties', icon: 'fas fa-cog', title: 'Свойства', className: 'properties', action: () => showMobilePanel('properties') },
+        { id: 'fabSummary', icon: 'fas fa-chart-pie', title: 'Сводка', className: 'summary', action: () => showMobilePanel('summary') },
+        { id: 'fabReceipt', icon: 'fas fa-receipt', title: 'Смета', className: 'receipt', action: () => {
+            document.getElementById('receiptContainer').scrollIntoView({ behavior: 'smooth' });
+        }},
+        { id: 'fabTop', icon: 'fas fa-arrow-up', title: 'Наверх', className: 'top', action: () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+    ];
+    
+    buttons.forEach(btn => {
+        const button = document.createElement('button');
+        button.id = btn.id;
+        button.className = `fab-btn ${btn.className}`;
+        button.innerHTML = `<i class="${btn.icon}"></i>`;
+        button.title = btn.title;
+        button.addEventListener('click', btn.action);
+        fabContainer.appendChild(button);
+    });
+    
+    document.body.appendChild(fabContainer);
+}
+
+// Инициализация обработчиков мобильного интерфейса
+function initMobileEventHandlers() {
+    // Обработчики для мобильных кнопок инструментов
+    const mobileToolButtons = document.querySelectorAll('.mobile-tool-btn');
+    mobileToolButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const tool = button.dataset.tool;
+            if (tool) {
+                mobileToolButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                currentTool = tool;
+                
+                const editorCanvas = document.getElementById('editorCanvas');
+                if (currentTool === 'select') {
+                    editorCanvas.style.cursor = 'move';
+                } else if (currentTool === 'room') {
+                    editorCanvas.style.cursor = 'crosshair';
+                } else if (currentTool === 'window' || currentTool === 'door') {
+                    editorCanvas.style.cursor = 'cell';
+                }
+            }
+        });
+    });
+    
+    // Обработчики для мобильных кнопок управления
+    document.getElementById('mobileNewProject').addEventListener('click', () => {
+        rooms = [];
+        selectedRoom = null;
+        selectedElementObj = null;
+        roomCounter = 1;
+        hideAllProperties();
+        updateElementList();
+        updateProjectSummary();
+        calculateCost();
+        centerView(editorCanvas);
+        showNotification('Новый проект создан');
+    });
+    
+    document.getElementById('mobileClearAll').addEventListener('click', () => {
+        if (confirm('Вы уверены, что хотите удалить все комнаты?')) {
+            rooms = [];
+            selectedRoom = null;
+            selectedElementObj = null;
+            roomCounter = 1;
+            hideAllProperties();
+            updateElementList();
+            updateProjectSummary();
+            calculateCost();
+            centerView(editorCanvas);
+            showNotification('Все комнаты удалены');
+        }
+    });
+    
+    document.getElementById('mobileZoomIn').addEventListener('click', () => {
+        zoom *= 1.2;
+        zoom = Math.min(3, zoom);
+        zoomLevel.textContent = `${Math.round(zoom * 100)}%`;
+        draw(editorCanvas, editorCanvas.getContext('2d'));
+    });
+    
+    document.getElementById('mobileZoomOut').addEventListener('click', () => {
+        zoom /= 1.2;
+        zoom = Math.max(0.1, zoom);
+        zoomLevel.textContent = `${Math.round(zoom * 100)}%`;
+        draw(editorCanvas, editorCanvas.getContext('2d'));
+    });
+    
+    document.getElementById('mobileCenterView').addEventListener('click', () => centerView(editorCanvas));
+    
+    // Обработчик изменения высоты потолков в мобильной версии
+    document.getElementById('mobileCeilingHeight').addEventListener('change', function() {
+        document.getElementById('ceilingHeight').value = this.value;
+        updateProjectSummary();
+        calculateCost();
+    });
+    
+    // Синхронизация значений высоты потолков
+    document.getElementById('ceilingHeight').addEventListener('change', function() {
+        const mobileCeilingHeight = document.getElementById('mobileCeilingHeight');
+        if (mobileCeilingHeight) {
+            mobileCeilingHeight.value = this.value;
+        }
+    });
+    
+    // Обработчики для мобильной панели
+    const overlay = document.getElementById('mobilePanelOverlay');
+    const mobilePanel = document.getElementById('mobilePanel');
+    const closeButton = mobilePanel.querySelector('.close-mobile-panel');
+    
+    overlay.addEventListener('click', closeMobilePanel);
+    closeButton.addEventListener('click', closeMobilePanel);
+    
+    // Предотвращаем закрытие при клике на саму панель
+    mobilePanel.addEventListener('click', (e) => {
+        e.stopPropagation();
+    });
+}
+
 // Инициализация пользовательского интерфейса
 function initUI() {
     // Получение ссылок на DOM элементы
@@ -940,12 +1068,8 @@ function initUI() {
     
     // Обработчик изменения размера окна
     window.addEventListener('resize', () => {
-        if (window.innerWidth <= 576 && !document.getElementById('mobileMenuButton')) {
+        if (window.innerWidth <= 576 && !document.getElementById('mobileToolsContainer')) {
             initMobileUI();
-        } else if (window.innerWidth > 576 && document.getElementById('mobileMenuButton')) {
-            // Удаляем мобильные элементы на десктопе
-            const mobileElements = document.querySelectorAll('#mobileMenuButton, #mobilePanelOverlay, #mobilePanel, #fabContainer');
-            mobileElements.forEach(el => el.remove());
         }
     });
 }
@@ -1205,11 +1329,15 @@ function handleMouseUp(e) {
         const width = Math.abs(x - startX);
         const height = Math.abs(y - startY);
         if (width > 50 && height > 50) {
+            // Перемещаем комнату в верхний левый угол (20px отступ)
+            const roomX = 20;
+            const roomY = 20;
+            
             const room = {
                 id: generateId(),
                 type: 'room',
-                x: Math.min(startX, x),
-                y: Math.min(startY, y),
+                x: roomX,
+                y: roomY,
                 width: width,
                 height: height,
                 name: `Комната ${roomCounter}`,
@@ -1225,6 +1353,9 @@ function handleMouseUp(e) {
             roomCounter++;
             selectRoom(room);
             showNotification('Комната добавлена');
+            
+            // Центрируем вид на новой комнате
+            centerView(editorCanvas);
         }
     }
     
