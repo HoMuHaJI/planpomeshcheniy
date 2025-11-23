@@ -718,16 +718,25 @@ function showMobilePanel(panelType) {
     const panelContent = document.getElementById('mobilePanelContent');
     const panelTitle = document.getElementById('mobilePanelTitle');
     
+    if (!overlay || !panel || !panelContent) {
+        console.error('Мобильные элементы не найдены');
+        return;
+    }
+    
     // Заполняем контент в зависимости от типа панели
     switch(panelType) {
         case 'tools':
             panelTitle.innerHTML = '<i class="fas fa-tools"></i> Инструменты';
-            panelContent.innerHTML = document.querySelector('.tools-panel .panel-content').innerHTML;
+            // Копируем содержимое из десктопной панели инструментов
+            const toolsContent = document.querySelector('.tools-panel .panel-content');
+            if (toolsContent) {
+                panelContent.innerHTML = toolsContent.innerHTML;
+            }
             break;
+            
         case 'properties':
             panelTitle.innerHTML = '<i class="fas fa-cog"></i> Свойства';
             if (selectedElementObj) {
-                // Создаем содержимое свойств динамически
                 if (selectedElementObj.type === 'room') {
                     panelContent.innerHTML = `
                         <div class="property-group">
@@ -769,17 +778,73 @@ function showMobilePanel(panelType) {
                                     </div>
                                 </div>
                             </div>
-                            <button id="mobileApplyRoomChanges"><i class="fas fa-check"></i> Применить изменения</button>
+                            <button id="mobileApplyRoomChanges" class="btn-primary"><i class="fas fa-check"></i> Применить изменения</button>
                             <div class="divider"></div>
                             <button class="btn-danger" id="mobileDeleteRoom"><i class="fas fa-trash"></i> Удалить комнату</button>
                         </div>
                     `;
+                } else if (selectedElementObj.type === 'window') {
+                    panelContent.innerHTML = `
+                        <div class="property-group">
+                            <h3><i class="fas fa-square"></i> Свойства окна</h3>
+                            <div class="form-group">
+                                <label for="mobileWindowWidth">Ширина (м):</label>
+                                <input type="number" id="mobileWindowWidth" min="0.5" max="3.0" step="0.1" value="${selectedElementObj.width}">
+                            </div>
+                            <div class="form-group">
+                                <label for="mobileWindowHeight">Высота (м):</label>
+                                <input type="number" id="mobileWindowHeight" min="0.5" max="3.0" step="0.1" value="${selectedElementObj.height}">
+                            </div>
+                            <div class="form-group">
+                                <label for="mobileWindowSlopes">Откосы:</label>
+                                <select id="mobileWindowSlopes">
+                                    <option value="with" ${selectedElementObj.slopes === 'with' ? 'selected' : ''}>С откосами</option>
+                                    <option value="with_net" ${selectedElementObj.slopes === 'with_net' ? 'selected' : ''}>С откосами и сеткой</option>
+                                    <option value="without" ${selectedElementObj.slopes === 'without' ? 'selected' : ''}>Без откосов</option>
+                                </select>
+                            </div>
+                            <button id="mobileApplyWindowChanges" class="btn-primary"><i class="fas fa-check"></i> Применить изменения</button>
+                            <div class="divider"></div>
+                            <button class="btn-danger" id="mobileDeleteWindow"><i class="fas fa-trash"></i> Удалить окно</button>
+                        </div>
+                    `;
+                } else if (selectedElementObj.type === 'door') {
+                    panelContent.innerHTML = `
+                        <div class="property-group">
+                            <h3><i class="fas fa-door-open"></i> Свойства двери</h3>
+                            <div class="form-group">
+                                <label for="mobileDoorWidth">Ширина (м):</label>
+                                <input type="number" id="mobileDoorWidth" min="0.5" max="2.0" step="0.1" value="${selectedElementObj.width}">
+                            </div>
+                            <div class="form-group">
+                                <label for="mobileDoorHeight">Высота (м):</label>
+                                <input type="number" id="mobileDoorHeight" min="1.5" max="3.0" step="0.1" value="${selectedElementObj.height}">
+                            </div>
+                            <div class="form-group">
+                                <label for="mobileDoorSlopes">Откосы:</label>
+                                <select id="mobileDoorSlopes">
+                                    <option value="with" ${selectedElementObj.slopes === 'with' ? 'selected' : ''}>С откосами</option>
+                                    <option value="with_net" ${selectedElementObj.slopes === 'with_net' ? 'selected' : ''}>С откосами и сеткой</option>
+                                    <option value="without" ${selectedElementObj.slopes === 'without' ? 'selected' : ''}>Без откосов</option>
+                                </select>
+                            </div>
+                            <button id="mobileApplyDoorChanges" class="btn-primary"><i class="fas fa-check"></i> Применить изменения</button>
+                            <div class="divider"></div>
+                            <button class="btn-danger" id="mobileDeleteDoor"><i class="fas fa-trash"></i> Удалить дверь</button>
+                        </div>
+                    `;
                 }
-                // ... аналогично для окон и дверей
+            } else {
+                panelContent.innerHTML = '<p>Выберите элемент для редактирования свойств</p>';
             }
             break;
+            
         case 'summary':
-            // ... существующий код ...
+            panelTitle.innerHTML = '<i class="fas fa-chart-pie"></i> Сводка проекта';
+            const summaryContent = document.querySelector('.properties-panel .panel-content');
+            if (summaryContent) {
+                panelContent.innerHTML = summaryContent.innerHTML;
+            }
             break;
     }
     
@@ -886,6 +951,8 @@ function initMobileUI() {
     // Показываем мобильные элементы
     const mobileToolsContainer = document.querySelector('.mobile-tools-container');
     const fabContainer = document.getElementById('fabContainer');
+    const mobilePanelOverlay = document.getElementById('mobilePanelOverlay');
+    const mobilePanel = document.getElementById('mobilePanel');
     
     if (mobileToolsContainer) {
         mobileToolsContainer.style.display = 'block';
@@ -897,6 +964,13 @@ function initMobileUI() {
     
     // Инициализация обработчиков мобильного интерфейса
     initMobileEventHandlers();
+    
+    // Синхронизация высоты потолков
+    const ceilingHeight = document.getElementById('ceilingHeight');
+    const mobileCeilingHeight = document.getElementById('mobileCeilingHeight');
+    if (ceilingHeight && mobileCeilingHeight) {
+        mobileCeilingHeight.value = ceilingHeight.value;
+    }
 }
 
 // Инициализация обработчиков мобильного интерфейса
@@ -1060,6 +1134,136 @@ function initMobileEventHandlers() {
     }
 }
 
+function initMobilePanelEvents() {
+    // Обработчики для комнаты
+    const mobileApplyRoomChanges = document.getElementById('mobileApplyRoomChanges');
+    if (mobileApplyRoomChanges && selectedElementObj && selectedElementObj.type === 'room') {
+        mobileApplyRoomChanges.onclick = () => {
+            const newName = document.getElementById('mobileRoomName').value;
+            const newWidth = parseFloat(document.getElementById('mobileRoomWidth').value) * scale;
+            const newHeight = parseFloat(document.getElementById('mobileRoomHeight').value) * scale;
+            
+            // Сохраняем центр комнаты для плавного изменения размера
+            const centerX = selectedElementObj.x + selectedElementObj.width / 2;
+            const centerY = selectedElementObj.y + selectedElementObj.height / 2;
+            
+            selectedElementObj.name = newName;
+            selectedElementObj.width = newWidth;
+            selectedElementObj.height = newHeight;
+            
+            // Обновляем позицию для сохранения центра
+            selectedElementObj.x = centerX - newWidth / 2;
+            selectedElementObj.y = centerY - newHeight / 2;
+            
+            // Обновляем чекбоксы
+            selectedElementObj.plaster = document.getElementById('mobilePlaster').checked;
+            selectedElementObj.armoring = document.getElementById('mobileArmoring').checked;
+            selectedElementObj.puttyWallpaper = document.getElementById('mobilePuttyWallpaper').checked;
+            selectedElementObj.puttyPaint = document.getElementById('mobilePuttyPaint').checked;
+            selectedElementObj.painting = document.getElementById('mobilePainting').checked;
+            
+            updateElementList();
+            updateProjectSummary();
+            calculateCost();
+            draw(document.getElementById('editorCanvas'), document.getElementById('editorCanvas').getContext('2d'));
+            closeMobilePanel();
+            showNotification('Изменения применены');
+        };
+    }
+    
+    // Обработчики для окна
+    const mobileApplyWindowChanges = document.getElementById('mobileApplyWindowChanges');
+    if (mobileApplyWindowChanges && selectedElementObj && selectedElementObj.type === 'window') {
+        mobileApplyWindowChanges.onclick = () => {
+            selectedElementObj.width = parseFloat(document.getElementById('mobileWindowWidth').value);
+            selectedElementObj.height = parseFloat(document.getElementById('mobileWindowHeight').value);
+            selectedElementObj.slopes = document.getElementById('mobileWindowSlopes').value;
+            
+            updateElementList();
+            updateProjectSummary();
+            calculateCost();
+            draw(document.getElementById('editorCanvas'), document.getElementById('editorCanvas').getContext('2d'));
+            closeMobilePanel();
+            showNotification('Изменения применены');
+        };
+    }
+    
+    // Обработчики для двери
+    const mobileApplyDoorChanges = document.getElementById('mobileApplyDoorChanges');
+    if (mobileApplyDoorChanges && selectedElementObj && selectedElementObj.type === 'door') {
+        mobileApplyDoorChanges.onclick = () => {
+            selectedElementObj.width = parseFloat(document.getElementById('mobileDoorWidth').value);
+            selectedElementObj.height = parseFloat(document.getElementById('mobileDoorHeight').value);
+            selectedElementObj.slopes = document.getElementById('mobileDoorSlopes').value;
+            
+            updateElementList();
+            updateProjectSummary();
+            calculateCost();
+            draw(document.getElementById('editorCanvas'), document.getElementById('editorCanvas').getContext('2d'));
+            closeMobilePanel();
+            showNotification('Изменения применены');
+        };
+    }
+    
+    // Обработчики удаления
+    const mobileDeleteRoom = document.getElementById('mobileDeleteRoom');
+    if (mobileDeleteRoom) {
+        mobileDeleteRoom.onclick = () => {
+            if (selectedElementObj && selectedElementObj.type === 'room') {
+                deleteRoom(selectedElementObj);
+                closeMobilePanel();
+            }
+        };
+    }
+    
+    const mobileDeleteWindow = document.getElementById('mobileDeleteWindow');
+    if (mobileDeleteWindow) {
+        mobileDeleteWindow.onclick = () => {
+            if (selectedElementObj && selectedElementObj.type === 'window' && selectedRoom) {
+                deleteWindow(selectedRoom, selectedElementObj);
+                closeMobilePanel();
+            }
+        };
+    }
+    
+    const mobileDeleteDoor = document.getElementById('mobileDeleteDoor');
+    if (mobileDeleteDoor) {
+        mobileDeleteDoor.onclick = () => {
+            if (selectedElementObj && selectedElementObj.type === 'door' && selectedRoom) {
+                deleteDoor(selectedRoom, selectedElementObj);
+                closeMobilePanel();
+            }
+        };
+    }
+    
+    // Обработчики для инструментов в мобильной панели
+    const toolButtons = document.querySelectorAll('#mobilePanelContent .tool-btn');
+    toolButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const tool = this.dataset.tool;
+            if (tool) {
+                // Снимаем активный класс со всех кнопок
+                toolButtons.forEach(btn => btn.classList.remove('active'));
+                // Добавляем активный класс текущей кнопке
+                this.classList.add('active');
+                currentTool = tool;
+                
+                const editorCanvas = document.getElementById('editorCanvas');
+                if (currentTool === 'select') {
+                    editorCanvas.style.cursor = 'move';
+                } else if (currentTool === 'room') {
+                    editorCanvas.style.cursor = 'crosshair';
+                } else if (currentTool === 'window' || currentTool === 'door') {
+                    editorCanvas.style.cursor = 'cell';
+                }
+                
+                closeMobilePanel();
+                showNotification(`Инструмент: ${tool === 'select' ? 'Выбор' : tool === 'room' ? 'Комната' : tool === 'window' ? 'Окно' : 'Дверь'}`);
+            }
+        });
+    });
+}
+
 // Инициализация пользовательского интерфейса
 function initUI() {
     console.log('Инициализация UI');
@@ -1118,6 +1322,12 @@ function initUI() {
     window.addEventListener('resize', () => {
         if (window.innerWidth <= 576) {
             initMobileUI();
+        } else {
+            // Скрываем мобильные элементы на десктопе
+            const mobileToolsContainer = document.querySelector('.mobile-tools-container');
+            const fabContainer = document.getElementById('fabContainer');
+            if (mobileToolsContainer) mobileToolsContainer.style.display = 'none';
+            if (fabContainer) fabContainer.style.display = 'none';
         }
     });
 }

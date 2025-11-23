@@ -25,11 +25,13 @@ function handleTouchStart(e) {
     e.preventDefault();
     if (e.touches.length === 1) {
         const touch = e.touches[0];
+        const rect = e.target.getBoundingClientRect();
         const mouseEvent = new MouseEvent('mousedown', {
             clientX: touch.clientX,
-            clientY: touch.clientY
+            clientY: touch.clientY,
+            bubbles: true
         });
-        handleMouseDown(mouseEvent);
+        e.target.dispatchEvent(mouseEvent);
     }
 }
 
@@ -37,18 +39,22 @@ function handleTouchMove(e) {
     e.preventDefault();
     if (e.touches.length === 1) {
         const touch = e.touches[0];
+        const rect = e.target.getBoundingClientRect();
         const mouseEvent = new MouseEvent('mousemove', {
             clientX: touch.clientX,
-            clientY: touch.clientY
+            clientY: touch.clientY,
+            bubbles: true
         });
-        handleMouseMove(mouseEvent);
+        e.target.dispatchEvent(mouseEvent);
     }
 }
 
 function handleTouchEnd(e) {
     e.preventDefault();
-    const mouseEvent = new MouseEvent('mouseup', {});
-    handleMouseUp(mouseEvent);
+    const mouseEvent = new MouseEvent('mouseup', {
+        bubbles: true
+    });
+    e.target.dispatchEvent(mouseEvent);
 }
 
 // Изменение размера canvas

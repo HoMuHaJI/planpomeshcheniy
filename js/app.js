@@ -100,4 +100,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Инициализация кнопок отправки
     initSharingButtons();
+    
+    // Инициализация мобильного интерфейса
+    if (window.innerWidth <= 576) {
+        initMobileUI();
+    }
 });
