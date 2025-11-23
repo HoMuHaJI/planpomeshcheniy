@@ -146,41 +146,6 @@ function deleteDoor(room, door) {
     }
 }
 
-// Обновление сводки проекта
-function updateProjectSummary() {
-    let windowsCount = 0;
-    let doorsCount = 0;
-    let totalArea = 0;
-    
-    rooms.forEach(room => {
-        windowsCount += room.windows.length;
-        doorsCount += room.doors.length;
-        
-        const perimeter = ((room.width / scale) + (room.height / scale)) * 2;
-        const ceilingHeight = parseFloat(document.getElementById('ceilingHeight').value);
-        const wallsArea = perimeter * ceilingHeight;
-        
-        // Вычитаем площади окон и дверей
-        let windowsArea = 0;
-        let doorsArea = 0;
-        
-        room.windows.forEach(window => {
-            windowsArea += window.width * window.height;
-        });
-        
-        room.doors.forEach(door => {
-            doorsArea += door.width * door.height;
-        });
-        
-        totalArea += wallsArea - windowsArea - doorsArea;
-    });
-    
-    document.getElementById('roomsCount').textContent = rooms.length;
-    document.getElementById('windowsCount').textContent = windowsCount;
-    document.getElementById('doorsCount').textContent = doorsCount;
-    document.getElementById('totalArea').textContent = `${totalArea.toFixed(1)} м²`;
-}
-
 // Обновление панели свойств в зависимости от выбранного элемента
 function updatePropertiesPanel(element) {
     hideAllProperties();
@@ -198,68 +163,32 @@ function updatePropertiesPanel(element) {
         puttyPaintCheckbox.checked = element.puttyPaint;
         paintingCheckbox.checked = element.painting;
         
-        // Управление состоянием чекбокса покраски при загрузке
-        if (element.puttyWallpaper) {
-            paintingCheckbox.disabled = true;
-        } else if (element.puttyPaint) {
-            paintingCheckbox.disabled = false;
-        } else {
-            paintingCheckbox.disabled = true;
-        }
+        // Обновляем состояние чекбоксов
+        updateCheckboxStates();
         
         // Сброс состояния кнопки
-        applyRoomChangesBtn.disabled = false; // Изменено: всегда активна
+        applyRoomChangesBtn.disabled = false;
         
         // Обработчики изменений
         const roomInputs = ['roomName', 'roomWidth', 'roomHeightProp'];
         roomInputs.forEach(inputId => {
             const input = document.getElementById(inputId);
-            // Удаляем старые обработчики
-            input.removeEventListener('input', handleRoomInputChange);
-            input.removeEventListener('change', handleRoomInputChange);
-            // Добавляем новые
-            input.addEventListener('input', handleRoomInputChange);
-            input.addEventListener('change', handleRoomInputChange);
+            input.oninput = () => {
+                applyRoomChangesBtn.disabled = false;
+            };
+            input.onchange = () => {
+                applyRoomChangesBtn.disabled = false;
+            };
         });
-        
-        function handleRoomInputChange() {
-            applyRoomChangesBtn.disabled = false;
-        }
         
         // Обработчики чекбоксов
         const checkboxes = [plasterCheckbox, armoringCheckbox, puttyWallpaperCheckbox, puttyPaintCheckbox, paintingCheckbox];
         checkboxes.forEach(checkbox => {
-            checkbox.removeEventListener('change', handleCheckboxChange);
-            checkbox.addEventListener('change', handleCheckboxChange);
+            checkbox.onchange = () => {
+                updateCheckboxStates();
+                applyRoomChangesBtn.disabled = false;
+            };
         });
-        
-        function handleCheckboxChange() {
-            applyRoomChangesBtn.disabled = false;
-            
-            // Взаимное исключение для шпаклевки
-            if (this === puttyWallpaperCheckbox && this.checked) {
-                puttyPaintCheckbox.checked = false;
-                paintingCheckbox.checked = false;
-                paintingCheckbox.disabled = true;
-            } else if (this === puttyPaintCheckbox && this.checked) {
-                puttyWallpaperCheckbox.checked = false;
-                paintingCheckbox.disabled = false;
-            } else if (this === puttyWallpaperCheckbox && !this.checked) {
-                paintingCheckbox.disabled = false;
-            } else if (this === puttyPaintCheckbox && !this.checked) {
-                paintingCheckbox.checked = false;
-                paintingCheckbox.disabled = true;
-            }
-            
-            // Если сняли штукатурку, снимаем и армирование
-            if (this === plasterCheckbox && !this.checked) {
-                armoringCheckbox.checked = false;
-                puttyWallpaperCheckbox.checked = false;
-                puttyPaintCheckbox.checked = false;
-                paintingCheckbox.checked = false;
-                paintingCheckbox.disabled = true;
-            }
-        }
         
         // Обработчик кнопки применения изменений
         applyRoomChangesBtn.onclick = () => {
@@ -305,22 +234,19 @@ function updatePropertiesPanel(element) {
         document.getElementById('windowSlopes').value = element.slopes;
         
         // Сброс состояния кнопки
-        applyWindowChangesBtn.disabled = true;
+        applyWindowChangesBtn.disabled = false;
         
         // Обработчики изменений
         const windowInputs = ['windowWidth', 'windowHeight', 'windowWall', 'windowPosition', 'windowSlopes'];
         windowInputs.forEach(inputId => {
             const input = document.getElementById(inputId);
-            input.removeEventListener('input', windowInputHandler);
-            input.addEventListener('input', windowInputHandler);
+            input.oninput = () => {
+                applyWindowChangesBtn.disabled = false;
+                if (input.id === 'windowPosition') {
+                    document.getElementById('windowPositionValue').textContent = `${document.getElementById('windowPosition').value}%`;
+                }
+            };
         });
-        
-        function windowInputHandler(e) {
-            applyWindowChangesBtn.disabled = false;
-            if (e.target.id === 'windowPosition') {
-                document.getElementById('windowPositionValue').textContent = `${document.getElementById('windowPosition').value}%`;
-            }
-        }
         
         applyWindowChangesBtn.onclick = () => {
             element.width = parseFloat(document.getElementById('windowWidth').value);
@@ -352,22 +278,19 @@ function updatePropertiesPanel(element) {
         document.getElementById('doorSlopes').value = element.slopes;
         
         // Сброс состояния кнопки
-        applyDoorChangesBtn.disabled = true;
+        applyDoorChangesBtn.disabled = false;
         
         // Обработчики изменений
         const doorInputs = ['doorWidth', 'doorHeight', 'doorWall', 'doorPosition', 'doorSlopes'];
         doorInputs.forEach(inputId => {
             const input = document.getElementById(inputId);
-            input.removeEventListener('input', doorInputHandler);
-            input.addEventListener('input', doorInputHandler);
+            input.oninput = () => {
+                applyDoorChangesBtn.disabled = false;
+                if (input.id === 'doorPosition') {
+                    document.getElementById('doorPositionValue').textContent = `${document.getElementById('doorPosition').value}%`;
+                }
+            };
         });
-        
-        function doorInputHandler(e) {
-            applyDoorChangesBtn.disabled = false;
-            if (e.target.id === 'doorPosition') {
-                document.getElementById('doorPositionValue').textContent = `${document.getElementById('doorPosition').value}%`;
-            }
-        }
         
         applyDoorChangesBtn.onclick = () => {
             element.width = parseFloat(document.getElementById('doorWidth').value);
@@ -392,6 +315,55 @@ function updatePropertiesPanel(element) {
     }
     
     selectedElement.textContent = `${element.type === 'room' ? 'Комната' : element.type === 'window' ? 'Окно' : 'Дверь'}: ${escapeHTML(element.name || '')}`;
+}
+
+// Функция для обновления состояния чекбоксов отделки
+function updateCheckboxStates() {
+    // Если штукатурка не выбрана, отключаем все последующие этапы
+    if (!plasterCheckbox.checked) {
+        armoringCheckbox.checked = false;
+        armoringCheckbox.disabled = true;
+        
+        puttyWallpaperCheckbox.checked = false;
+        puttyWallpaperCheckbox.disabled = true;
+        
+        puttyPaintCheckbox.checked = false;
+        puttyPaintCheckbox.disabled = true;
+        
+        paintingCheckbox.checked = false;
+        paintingCheckbox.disabled = true;
+    } else {
+        // Штукатурка выбрана - включаем армирование
+        armoringCheckbox.disabled = false;
+        
+        // Включаем оба типа шпаклевки
+        puttyWallpaperCheckbox.disabled = false;
+        puttyPaintCheckbox.disabled = false;
+        
+        // Взаимоисключение для типов шпаклевки
+        if (puttyWallpaperCheckbox.checked && puttyPaintCheckbox.checked) {
+            puttyPaintCheckbox.checked = false;
+        }
+        
+        // Покраска доступна только если выбрана шпаклевка под покраску
+        if (puttyPaintCheckbox.checked) {
+            paintingCheckbox.disabled = false;
+        } else {
+            paintingCheckbox.checked = false;
+            paintingCheckbox.disabled = true;
+        }
+        
+        // Если выбрана шпаклевка под обои, снимаем покраску
+        if (puttyWallpaperCheckbox.checked) {
+            paintingCheckbox.checked = false;
+            paintingCheckbox.disabled = true;
+        }
+    }
+    
+    // Армирование не влияет на другие чекбоксы, но требует штукатурки
+    if (armoringCheckbox.checked && !plasterCheckbox.checked) {
+        armoringCheckbox.checked = false;
+    }
 }
 
 // Скрытие всех панелей свойств
@@ -727,7 +699,6 @@ function showMobilePanel(panelType) {
         case 'properties':
             panelTitle.innerHTML = '<i class="fas fa-cog"></i> Свойства';
             if (selectedElementObj) {
-                // Создаем содержимое свойств динамически
                 if (selectedElementObj.type === 'room') {
                     panelContent.innerHTML = `
                         <div class="property-group">
@@ -764,7 +735,7 @@ function showMobilePanel(panelType) {
                                         <label for="mobilePuttyPaint">Шпаклевка (под покраску)</label>
                                     </div>
                                     <div class="checkbox-item">
-                                        <input type="checkbox" id="mobilePainting" ${selectedElementObj.painting ? 'checked' : ''} ${selectedElementObj.puttyWallpaper ? 'disabled' : ''}>
+                                        <input type="checkbox" id="mobilePainting" ${selectedElementObj.painting ? 'checked' : ''}>
                                         <label for="mobilePainting">Покраска</label>
                                     </div>
                                 </div>
@@ -776,10 +747,45 @@ function showMobilePanel(panelType) {
                     `;
                 }
                 // ... аналогично для окон и дверей
+            } else {
+                panelContent.innerHTML = '<p>Выберите элемент для редактирования свойств</p>';
             }
             break;
         case 'summary':
-            // ... существующий код ...
+            panelTitle.innerHTML = '<i class="fas fa-chart-pie"></i> Сводка';
+            panelContent.innerHTML = `
+                <div class="property-group">
+                    <h3><i class="fas fa-chart-pie"></i> Сводка проекта</h3>
+                    <div class="summary" id="mobileProjectSummary">
+                        <div class="summary-item">
+                            <span>Комнат:</span>
+                            <span id="mobileRoomsCount">0</span>
+                        </div>
+                        <div class="summary-item">
+                            <span>Окон:</span>
+                            <span id="mobileWindowsCount">0</span>
+                        </div>
+                        <div class="summary-item">
+                            <span>Дверей:</span>
+                            <span id="mobileDoorsCount">0</span>
+                        </div>
+                        <div class="summary-item">
+                            <span>Общая площадь стен:</span>
+                            <span id="mobileTotalArea">0 м²</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="property-group">
+                    <h3><i class="fas fa-calculator"></i> Смета работ</h3>
+                    <div id="mobileEstimateResults"></div>
+                </div>
+            `;
+            // Обновляем данные
+            document.getElementById('mobileRoomsCount').textContent = document.getElementById('roomsCount').textContent;
+            document.getElementById('mobileWindowsCount').textContent = document.getElementById('windowsCount').textContent;
+            document.getElementById('mobileDoorsCount').textContent = document.getElementById('doorsCount').textContent;
+            document.getElementById('mobileTotalArea').textContent = document.getElementById('totalArea').textContent;
+            document.getElementById('mobileEstimateResults').innerHTML = document.getElementById('estimateResults').innerHTML;
             break;
     }
     
@@ -1384,21 +1390,26 @@ function handleMouseUp(e) {
     
     if (isDragging) {
         isDragging = false;
+        return; // Не создаем комнату при перетаскивании
     }
     
     if (isMovingElement) {
         isMovingElement = false;
         movingElement = null;
+        return; // Не создаем комнату при перемещении элемента
     }
     
-    if (!isDrawing) return;
+    if (!isDrawing || currentTool !== 'room') return;
     
     const rect = editorCanvas.getBoundingClientRect();
     const safeZoom = zoom > 0 ? zoom : 1;
     const x = (e.clientX - rect.left - viewOffsetX) / safeZoom;
     const y = (e.clientY - rect.top - viewOffsetY) / safeZoom;
     
-    if (currentTool === 'room') {
+    // Проверяем, что мы действительно рисовали (было движение)
+    const distance = Math.sqrt(Math.pow(x - startX, 2) + Math.pow(y - startY, 2));
+    
+    if (distance > 10) { // Минимальное расстояние для создания комнаты
         const width = Math.abs(x - startX);
         const height = Math.abs(y - startY);
         
@@ -1438,8 +1449,18 @@ function handleMouseUp(e) {
         } else {
             showNotification('Слишком маленькая комната. Минимальный размер: 1x1 метр');
         }
+    } else {
+        showNotification('Создайте комнату, протянув мышью или пальцем');
     }
     
     isDrawing = false;
     draw(editorCanvas, editorCanvas.getContext('2d'));
+}
+
+function handleTouchEnd(e) {
+    e.preventDefault();
+    // Сбрасываем состояние рисования при окончании касания
+    isDrawing = false;
+    const mouseEvent = new MouseEvent('mouseup', {});
+    handleMouseUp(mouseEvent);
 }
