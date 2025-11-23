@@ -181,3 +181,73 @@ function handleWheel(e) {
     zoomLevel.textContent = `${Math.round(zoom * 100)}%`;
     draw(editorCanvas, editorCanvas.getContext('2d'));
 }
+
+function handleMouseUp(e) {
+    const editorCanvas = document.getElementById('editorCanvas');
+    
+    if (isDragging) {
+        isDragging = false;
+    }
+    
+    if (isMovingElement) {
+        isMovingElement = false;
+        movingElement = null;
+    }
+    
+    if (!isDrawing) return;
+    
+    const rect = editorCanvas.getBoundingClientRect();
+    const safeZoom = zoom > 0 ? zoom : 1;
+    const x = (e.clientX - rect.left - viewOffsetX) / safeZoom;
+    const y = (e.clientY - rect.top - viewOffsetY) / safeZoom;
+    
+    if (currentTool === 'room') {
+        const width = Math.abs(x - startX);
+        const height = Math.abs(y - startY);
+        
+        // Минимальный размер комнаты - 1x1 метр (50x50 пикселей)
+        if (width > 50 && height > 50) {
+            const roomX = Math.min(startX, x);
+            const roomY = Math.min(startY, y);
+            
+            // Ограничиваем максимальный размер комнаты
+            const maxSize = 20 * scale; // 20 метров
+            const finalWidth = Math.min(width, maxSize);
+            const finalHeight = Math.min(height, maxSize);
+            
+            const room = {
+                id: generateId(),
+                type: 'room',
+                x: roomX,
+                y: roomY,
+                width: finalWidth,
+                height: finalHeight,
+                name: `Комната ${roomCounter}`,
+                plaster: true,
+                armoring: false,
+                puttyWallpaper: false,
+                puttyPaint: false,
+                painting: false,
+                windows: [],
+                doors: []
+            };
+            rooms.push(room);
+            roomCounter++;
+            selectRoom(room);
+            showNotification('Комната добавлена');
+            
+            // Обновляем интерфейс
+            updateElementList();
+            updateProjectSummary();
+            calculateCost();
+            
+            // Центрируем вид на новой комнате
+            centerView(editorCanvas);
+        } else {
+            showNotification('Слишком маленькая комната. Минимальный размер: 1x1 метр');
+        }
+    }
+    
+    isDrawing = false;
+    draw(editorCanvas, editorCanvas.getContext('2d'));
+}

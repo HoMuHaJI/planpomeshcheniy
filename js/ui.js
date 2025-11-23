@@ -259,6 +259,11 @@ function updatePropertiesPanel(element) {
                 paintingCheckbox.checked = false;
                 paintingCheckbox.disabled = true;
             }
+            
+            // Если выбрана шпаклевка под обои, снимаем покраску
+            if (this === puttyWallpaperCheckbox && this.checked) {
+                paintingCheckbox.checked = false;
+            }
         }
         
         // Обработчик кнопки применения изменений
@@ -841,10 +846,49 @@ function showMobilePanel(panelType) {
             
         case 'summary':
             panelTitle.innerHTML = '<i class="fas fa-chart-pie"></i> Сводка проекта';
-            const summaryContent = document.querySelector('.properties-panel .panel-content');
-            if (summaryContent) {
-                panelContent.innerHTML = summaryContent.innerHTML;
+            
+            // Создаем содержимое сводки проекта
+            let summaryHTML = `
+                <div class="property-group">
+                    <h3><i class="fas fa-chart-pie"></i> Сводка проекта</h3>
+                    <div class="summary" id="mobileProjectSummary">
+                        <div class="summary-item">
+                            <span>Комнат:</span>
+                            <span id="mobileRoomsCount">${document.getElementById('roomsCount').textContent}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span>Окон:</span>
+                            <span id="mobileWindowsCount">${document.getElementById('windowsCount').textContent}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span>Дверей:</span>
+                            <span id="mobileDoorsCount">${document.getElementById('doorsCount').textContent}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span>Общая площадь стен:</span>
+                            <span id="mobileTotalArea">${document.getElementById('totalArea').textContent}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="property-group">
+                    <h3><i class="fas fa-calculator"></i> Смета работ</h3>
+                    <div id="mobileEstimateResults">
+            `;
+            
+            // Копируем содержимое сметы из десктопной версии
+            const estimateResults = document.getElementById('estimateResults');
+            if (estimateResults) {
+                summaryHTML += estimateResults.innerHTML;
+            } else {
+                summaryHTML += '<div class="summary-item">Добавьте комнаты для расчета стоимости</div>';
             }
+            
+            summaryHTML += `
+                    </div>
+                </div>
+            `;
+            
+            panelContent.innerHTML = summaryHTML;
             break;
     }
     
@@ -869,6 +913,45 @@ function closeMobilePanel() {
 
 // Инициализация событий мобильной панели
 function initMobilePanelEvents() {
+    // Обработчики для чекбоксов отделки в мобильной версии
+    const mobilePlaster = document.getElementById('mobilePlaster');
+    const mobileArmoring = document.getElementById('mobileArmoring');
+    const mobilePuttyWallpaper = document.getElementById('mobilePuttyWallpaper');
+    const mobilePuttyPaint = document.getElementById('mobilePuttyPaint');
+    const mobilePainting = document.getElementById('mobilePainting');
+
+    if (mobilePuttyWallpaper && mobilePuttyPaint && mobilePainting) {
+        mobilePuttyWallpaper.addEventListener('change', function() {
+            if (this.checked) {
+                mobilePuttyPaint.checked = false;
+                mobilePainting.checked = false;
+                mobilePainting.disabled = true;
+            } else {
+                mobilePainting.disabled = false;
+            }
+        });
+        
+        mobilePuttyPaint.addEventListener('change', function() {
+            if (this.checked) {
+                mobilePuttyWallpaper.checked = false;
+                mobilePainting.disabled = false;
+            } else {
+                mobilePainting.checked = false;
+                mobilePainting.disabled = true;
+            }
+        });
+        
+        mobilePlaster.addEventListener('change', function() {
+            if (!this.checked) {
+                mobileArmoring.checked = false;
+                mobilePuttyWallpaper.checked = false;
+                mobilePuttyPaint.checked = false;
+                mobilePainting.checked = false;
+                mobilePainting.disabled = true;
+            }
+        });
+    }
+
     // Обработчики для чекбоксов отделки в мобильной панели
     const mobileCheckboxes = document.querySelectorAll('#mobilePanelContent input[type="checkbox"]');
     mobileCheckboxes.forEach(checkbox => {
@@ -980,11 +1063,11 @@ function initMobileEventHandlers() {
     // Обработчики для мобильных кнопок инструментов
     const mobileToolButtons = document.querySelectorAll('.mobile-tool-btn');
     mobileToolButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            const tool = button.dataset.tool;
+        button.addEventListener('click', function() {
+            const tool = this.dataset.tool;
             if (tool) {
                 mobileToolButtons.forEach(btn => btn.classList.remove('active'));
-                button.classList.add('active');
+                this.classList.add('active');
                 currentTool = tool;
                 
                 const editorCanvas = document.getElementById('editorCanvas');
@@ -1010,6 +1093,9 @@ function initMobileEventHandlers() {
     
     if (mobileNewProject) {
         mobileNewProject.addEventListener('click', () => {
+            if (rooms.length > 0 && !confirm('Вы уверены, что хотите создать новый проект? Все несохраненные данные будут потеряны.')) {
+                return;
+            }
             rooms = [];
             selectedRoom = null;
             selectedElementObj = null;
@@ -1025,6 +1111,11 @@ function initMobileEventHandlers() {
     
     if (mobileClearAll) {
         mobileClearAll.addEventListener('click', () => {
+            if (rooms.length === 0) {
+                showNotification('Нет комнат для удаления');
+                return;
+            }
+            
             if (confirm('Вы уверены, что хотите удалить все комнаты?')) {
                 rooms = [];
                 selectedRoom = null;
@@ -1044,7 +1135,7 @@ function initMobileEventHandlers() {
         mobileZoomIn.addEventListener('click', () => {
             zoom *= 1.2;
             zoom = Math.min(3, zoom);
-            zoomLevel.textContent = `${Math.round(zoom * 100)}%`;
+            if (zoomLevel) zoomLevel.textContent = `${Math.round(zoom * 100)}%`;
             draw(editorCanvas, editorCanvas.getContext('2d'));
         });
     }
@@ -1053,7 +1144,7 @@ function initMobileEventHandlers() {
         mobileZoomOut.addEventListener('click', () => {
             zoom /= 1.2;
             zoom = Math.max(0.1, zoom);
-            zoomLevel.textContent = `${Math.round(zoom * 100)}%`;
+            if (zoomLevel) zoomLevel.textContent = `${Math.round(zoom * 100)}%`;
             draw(editorCanvas, editorCanvas.getContext('2d'));
         });
     }
@@ -1091,7 +1182,11 @@ function initMobileEventHandlers() {
     
     if (fabProperties) {
         fabProperties.addEventListener('click', () => {
-            showMobilePanel('properties');
+            if (selectedElementObj) {
+                showMobilePanel('properties');
+            } else {
+                showNotification('Выберите элемент для просмотра свойств');
+            }
         });
     }
     
