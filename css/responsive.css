@@ -41,8 +41,18 @@
     }
     
     .app-container {
-        grid-template-columns: 220px 1fr 280px;
-        gap: 10px;
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto;
+        gap: 15px;
+    }
+    
+    .tools-panel, .properties-panel {
+        order: 2;
+    }
+    
+    .editor-panel {
+        order: 1;
+        min-height: 500px;
     }
     
     header {
@@ -59,13 +69,13 @@
     }
     
     .tool-btn {
-        padding: 10px 8px;
-        font-size: 12px;
-        min-height: 70px;
+        padding: 12px 10px;
+        font-size: 14px;
+        min-height: 80px;
     }
     
     .tool-btn i {
-        font-size: 18px;
+        font-size: 20px;
         margin-bottom: 5px;
     }
     
@@ -79,8 +89,8 @@
     }
     
     .editor-toolbar button {
-        padding: 8px 12px;
-        font-size: 13px;
+        padding: 10px 12px;
+        font-size: 14px;
     }
     
     .zoom-controls {
@@ -96,8 +106,8 @@
     }
     
     input, select, textarea, button {
-        padding: 10px 12px;
-        font-size: 14px;
+        padding: 12px 14px;
+        font-size: 16px; /* Увеличиваем для удобства touch */
     }
 }
 
@@ -105,14 +115,58 @@
 @media (max-width: 576px) {
     .container {
         padding: 8px;
-        overflow-x: auto;
-        min-width: 320px;
+        overflow-x: hidden;
+        min-width: auto;
     }
     
     .app-container {
-        grid-template-columns: 200px 1fr 250px;
-        gap: 8px;
-        min-width: 800px; /* Минимальная ширина для комфортного отображения */
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto;
+        gap: 12px;
+        min-width: auto;
+    }
+    
+    .tools-panel, .properties-panel {
+        order: 2;
+    }
+    
+    .editor-panel {
+        order: 1;
+        min-height: 400px;
+    }
+    
+    .collapsible-panel {
+        margin-bottom: 10px;
+    }
+    
+    .panel-header {
+        cursor: pointer;
+        position: relative;
+    }
+    
+    .panel-header::after {
+        content: '\f078';
+        font-family: 'Font Awesome 5 Free';
+        font-weight: 900;
+        position: absolute;
+        right: 20px;
+        transition: transform 0.3s ease;
+    }
+    
+    .panel-header.collapsed::after {
+        transform: rotate(-90deg);
+    }
+    
+    .panel-content {
+        max-height: 1000px;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+    }
+    
+    .panel-content.collapsed {
+        max-height: 0;
+        padding-top: 0;
+        padding-bottom: 0;
     }
     
     header {
@@ -132,25 +186,25 @@
     }
     
     h1 {
-        font-size: 1.6rem;
+        font-size: 1.8rem;
     }
     
     .tagline {
-        font-size: 1rem;
+        font-size: 1.1rem;
     }
     
     .location-badge {
-        font-size: 0.8rem;
-        padding: 4px 10px;
+        font-size: 0.9rem;
+        padding: 6px 12px;
     }
     
     .panel {
-        min-height: 300px;
+        min-height: auto;
     }
     
     .panel-header {
         padding: 15px;
-        font-size: 1rem;
+        font-size: 1.1rem;
     }
     
     .panel-content {
@@ -162,49 +216,50 @@
     }
     
     .tool-group h3 {
-        font-size: 0.9rem;
-        margin-bottom: 10px;
+        font-size: 1rem;
+        margin-bottom: 12px;
     }
     
     .tool-buttons {
-        gap: 8px;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
     }
     
     .tool-btn {
-        padding: 8px 6px;
-        font-size: 11px;
-        min-height: 60px;
+        padding: 12px 8px;
+        font-size: 12px;
+        min-height: 80px;
     }
     
     .tool-btn i {
-        font-size: 16px;
-        margin-bottom: 4px;
+        font-size: 18px;
+        margin-bottom: 6px;
     }
     
     .editor-toolbar {
-        flex-direction: row;
-        flex-wrap: wrap;
-        gap: 6px;
+        flex-direction: column;
+        gap: 8px;
         margin-bottom: 15px;
     }
     
     .editor-toolbar button {
-        padding: 8px 10px;
-        font-size: 12px;
-        flex: 1;
-        min-width: 120px;
+        padding: 12px 15px;
+        font-size: 14px;
+        width: 100%;
+        min-width: auto;
     }
     
     .zoom-controls {
-        display: flex;
-        align-items: center;
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 1fr;
         gap: 8px;
-        margin-left: auto;
+        margin-left: 0;
+        width: 100%;
     }
     
     .zoom-controls button {
-        width: 35px;
-        height: 35px;
+        width: 100%;
+        height: 45px;
         padding: 0;
         display: flex;
         align-items: center;
@@ -212,140 +267,215 @@
     }
     
     #zoomLevel {
-        font-size: 12px;
-        min-width: 45px;
+        font-size: 14px;
+        min-width: auto;
         text-align: center;
+        grid-column: span 2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--neutral-light);
+        border-radius: 8px;
     }
     
     .editor-container {
-        min-height: 400px;
+        min-height: 350px;
     }
     
     .status-bar {
-        flex-direction: row;
-        flex-wrap: wrap;
-        gap: 10px;
-        font-size: 11px;
-        padding: 8px 10px;
+        flex-direction: column;
+        gap: 8px;
+        font-size: 12px;
+        padding: 10px;
+        text-align: center;
     }
     
     .form-group {
-        margin-bottom: 12px;
+        margin-bottom: 15px;
     }
     
     input, select, textarea, button {
-        padding: 8px 10px;
-        font-size: 14px;
-        min-height: 40px;
+        padding: 12px 14px;
+        font-size: 16px;
+        min-height: 48px;
     }
     
     label {
-        font-size: 13px;
-        margin-bottom: 6px;
-    }
-    
-    .checkbox-group {
-        gap: 6px;
-    }
-    
-    .checkbox-item {
-        padding: 6px;
-        font-size: 12px;
-    }
-    
-    .element-list {
-        max-height: 150px;
-    }
-    
-    .element-item {
-        padding: 8px 10px;
-        font-size: 12px;
-    }
-    
-    .summary-item {
-        font-size: 12px;
+        font-size: 14px;
         margin-bottom: 8px;
     }
     
+    .checkbox-group {
+        gap: 8px;
+    }
+    
+    .checkbox-item {
+        padding: 10px;
+        font-size: 14px;
+    }
+    
+    .element-list {
+        max-height: 200px;
+    }
+    
+    .element-item {
+        padding: 12px 10px;
+        font-size: 14px;
+    }
+    
+    .summary-item {
+        font-size: 14px;
+        margin-bottom: 10px;
+    }
+    
     .property-group h3 {
-        font-size: 1rem;
-        margin-bottom: 12px;
+        font-size: 1.1rem;
+        margin-bottom: 15px;
     }
     
     /* Улучшение для ползунков на мобильных */
     input[type="range"] {
-        height: 6px;
-        margin: 10px 0;
+        height: 8px;
+        margin: 12px 0;
     }
     
     input[type="range"]::-webkit-slider-thumb {
-        width: 18px;
-        height: 18px;
+        width: 24px;
+        height: 24px;
     }
     
     /* Кнопки отправки сметы */
     .sharing-buttons {
         flex-direction: column;
-        gap: 8px;
+        gap: 10px;
     }
     
     .btn-whatsapp,
     .btn-copy,
     .btn-print {
-        font-size: 13px;
-        padding: 10px 15px;
+        font-size: 14px;
+        padding: 14px 20px;
+        min-height: 54px;
     }
     
     .btn-feedback {
-        font-size: 14px;
-        padding: 12px 20px;
+        font-size: 16px;
+        padding: 16px 24px;
         width: 100%;
+        min-height: 60px;
     }
     
     .feedback-section {
-        padding: 15px;
+        padding: 20px;
     }
     
     .feedback-note {
-        font-size: 12px;
+        font-size: 14px;
     }
     
     /* Модальное окно */
     .modal-content {
         width: 95%;
-        margin: 5% auto;
-        max-height: 90vh;
+        margin: 2% auto;
+        max-height: 96vh;
     }
     
     .modal-body {
-        padding: 15px;
+        padding: 20px;
     }
     
     /* Кассовый чек */
     .receipt-container {
-        margin: 10px 5px;
+        margin: 10px 0;
     }
     
     .receipt-content {
         padding: 15px;
-        font-size: 12px;
+        font-size: 14px;
     }
     
     .receipt-work-details {
         flex-direction: column;
-        gap: 3px;
+        gap: 5px;
     }
     
     .receipt-work-name,
     .receipt-work-calculation,
     .receipt-work-cost {
         text-align: left;
-        font-size: 11px;
+        font-size: 12px;
     }
     
     .receipt-section-header {
-        font-size: 13px;
-        padding: 8px;
+        font-size: 14px;
+        padding: 10px;
+    }
+    
+    /* Мобильное меню */
+    .mobile-menu-button {
+        display: block;
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        font-size: 24px;
+        z-index: 1000;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+    
+    .mobile-panel-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+    }
+    
+    .mobile-panel {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: var(--white);
+        border-radius: 20px 20px 0 0;
+        max-height: 80vh;
+        overflow-y: auto;
+        z-index: 1000;
+        transform: translateY(100%);
+        transition: transform 0.3s ease;
+    }
+    
+    .mobile-panel.active {
+        transform: translateY(0);
+    }
+    
+    .mobile-panel-header {
+        padding: 20px;
+        background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary-color) 100%);
+        color: white;
+        font-weight: 600;
+        font-size: 1.2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-radius: 20px 20px 0 0;
+    }
+    
+    .close-mobile-panel {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 24px;
+        width: auto;
+        padding: 5px;
     }
 }
 
@@ -356,27 +486,34 @@
     }
     
     .app-container {
-        grid-template-columns: 180px 1fr 220px;
-        gap: 5px;
+        gap: 8px;
     }
     
     .tool-btn {
-        font-size: 10px;
-        min-height: 55px;
-        padding: 6px 4px;
+        font-size: 11px;
+        min-height: 70px;
+        padding: 10px 6px;
     }
     
     .tool-btn i {
-        font-size: 14px;
+        font-size: 16px;
     }
     
     .editor-toolbar button {
-        font-size: 11px;
-        padding: 6px 8px;
+        font-size: 13px;
+        padding: 10px 12px;
     }
     
     .status-bar {
-        font-size: 10px;
+        font-size: 11px;
+    }
+    
+    h1 {
+        font-size: 1.6rem;
+    }
+    
+    .tagline {
+        font-size: 1rem;
     }
 }
 
@@ -404,6 +541,11 @@
     .zoom-controls button {
         min-height: 44px;
     }
+    
+    /* Убираем hover эффекты на touch устройствах */
+    .panel:hover {
+        box-shadow: var(--shadow);
+    }
 }
 
 /* Print Styles */
@@ -426,30 +568,41 @@
     .receipt-actions {
         display: none;
     }
+    
+    .mobile-menu-button {
+        display: none !important;
+    }
 }
 
 /* Поддержка landscape на мобильных */
 @media (max-width: 768px) and (orientation: landscape) {
     .editor-container {
-        min-height: 300px;
+        min-height: 250px;
     }
     
-    .app-container {
-        grid-template-columns: 200px 1fr 250px;
+    .mobile-panel {
+        max-height: 70vh;
     }
 }
 
 /* Улучшение читаемости на очень маленьких экранах */
 @media (max-width: 320px) {
-    .app-container {
-        grid-template-columns: 170px 1fr 200px;
-    }
-    
     .tool-btn span {
-        font-size: 9px;
+        font-size: 10px;
     }
     
     .panel-content {
-        padding: 8px;
+        padding: 10px;
     }
+    
+    .tool-buttons {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Скрываем мобильные элементы на десктопе */
+.mobile-menu-button,
+.mobile-panel-overlay,
+.mobile-panel {
+    display: none;
 }

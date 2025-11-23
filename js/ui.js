@@ -22,6 +22,10 @@ function updateElementList() {
         item.addEventListener('click', () => {
             selectRoom(room);
             draw(document.getElementById('editorCanvas'), document.getElementById('editorCanvas').getContext('2d'));
+            // На мобильных устройствах автоматически открываем свойства
+            if (window.innerWidth <= 576) {
+                showMobilePanel('properties');
+            }
         });
         elementList.appendChild(item);
         
@@ -41,6 +45,10 @@ function updateElementList() {
                 selectedRoom = room;
                 selectElement(window);
                 draw(document.getElementById('editorCanvas'), document.getElementById('editorCanvas').getContext('2d'));
+                // На мобильных устройствах автоматически открываем свойства
+                if (window.innerWidth <= 576) {
+                    showMobilePanel('properties');
+                }
             });
             
             const deleteBtn = windowItem.querySelector('.delete-btn');
@@ -77,6 +85,10 @@ function updateElementList() {
                 selectedRoom = room;
                 selectElement(door);
                 draw(document.getElementById('editorCanvas'), document.getElementById('editorCanvas').getContext('2d'));
+                // На мобильных устройствах автоматически открываем свойства
+                if (window.innerWidth <= 576) {
+                    showMobilePanel('properties');
+                }
             });
             
             const deleteBtn = doorItem.querySelector('.delete-btn');
@@ -97,6 +109,218 @@ function updateElementList() {
             elementList.appendChild(doorItem);
         });
     });
+}
+
+// Показ мобильной панели
+function showMobilePanel(panelType) {
+    const overlay = document.getElementById('mobilePanelOverlay');
+    const panel = document.getElementById('mobilePanel');
+    const panelContent = document.getElementById('mobilePanelContent');
+    const panelTitle = document.getElementById('mobilePanelTitle');
+    
+    // Заполняем контент в зависимости от типа панели
+    switch(panelType) {
+        case 'tools':
+            panelTitle.innerHTML = '<i class="fas fa-tools"></i> Инструменты';
+            panelContent.innerHTML = document.querySelector('.tools-panel .panel-content').innerHTML;
+            break;
+        case 'properties':
+            panelTitle.innerHTML = '<i class="fas fa-cog"></i> Свойства';
+            panelContent.innerHTML = document.querySelector('.properties-panel .panel-content').innerHTML;
+            // Обновляем свойства выбранного элемента
+            if (selectedElementObj) {
+                updatePropertiesPanel(selectedElementObj);
+            }
+            break;
+        case 'summary':
+            panelTitle.innerHTML = '<i class="fas fa-chart-pie"></i> Сводка';
+            panelContent.innerHTML = `
+                <div class="property-group">
+                    <h3><i class="fas fa-chart-pie"></i> Сводка проекта</h3>
+                    <div class="summary" id="projectSummary">
+                        <div class="summary-item">
+                            <span>Комнат:</span>
+                            <span id="roomsCount">0</span>
+                        </div>
+                        <div class="summary-item">
+                            <span>Окон:</span>
+                            <span id="windowsCount">0</span>
+                        </div>
+                        <div class="summary-item">
+                            <span>Дверей:</span>
+                            <span id="doorsCount">0</span>
+                        </div>
+                        <div class="summary-item">
+                            <span>Общая площадь стен:</span>
+                            <span id="totalArea">0 м²</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="property-group">
+                    <h3><i class="fas fa-calculator"></i> Смета работ</h3>
+                    <div id="estimateResults"></div>
+                </div>
+            `;
+            updateProjectSummary();
+            calculateCost();
+            break;
+    }
+    
+    // Показываем панель
+    overlay.style.display = 'block';
+    panel.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    
+    // Переинициализируем обработчики событий для элементов внутри панели
+    initMobilePanelEvents();
+}
+
+// Закрытие мобильной панели
+function closeMobilePanel() {
+    const overlay = document.getElementById('mobilePanelOverlay');
+    const panel = document.getElementById('mobilePanel');
+    
+    overlay.style.display = 'none';
+    panel.classList.remove('active');
+    document.body.style.overflow = 'auto';
+}
+
+// Инициализация событий мобильной панели
+function initMobilePanelEvents() {
+    // Обработчики для инструментов в мобильной панели
+    const toolButtons = document.querySelectorAll('#mobilePanelContent .tool-btn');
+    toolButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const tool = button.dataset.tool;
+            if (tool) {
+                toolButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                currentTool = tool;
+                
+                const editorCanvas = document.getElementById('editorCanvas');
+                if (currentTool === 'select') {
+                    editorCanvas.style.cursor = 'move';
+                } else if (currentTool === 'room') {
+                    editorCanvas.style.cursor = 'crosshair';
+                } else if (currentTool === 'window' || currentTool === 'door') {
+                    editorCanvas.style.cursor = 'cell';
+                }
+                
+                // Закрываем панель после выбора инструмента
+                closeMobilePanel();
+            }
+        });
+    });
+    
+    // Обработчики для кнопок в мобильной панели
+    const applyButtons = document.querySelectorAll('#mobilePanelContent #applyRoomChanges, #mobilePanelContent #applyWindowChanges, #mobilePanelContent #applyDoorChanges');
+    applyButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            closeMobilePanel();
+        });
+    });
+    
+    // Обработчики для удаления элементов
+    const deleteButtons = document.querySelectorAll('#mobilePanelContent .btn-danger');
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            closeMobilePanel();
+        });
+    });
+}
+
+// Инициализация мобильного интерфейса
+function initMobileUI() {
+    // Создаем кнопку мобильного меню
+    const mobileMenuButton = document.createElement('button');
+    mobileMenuButton.id = 'mobileMenuButton';
+    mobileMenuButton.className = 'mobile-menu-button';
+    mobileMenuButton.innerHTML = '<i class="fas fa-bars"></i>';
+    document.body.appendChild(mobileMenuButton);
+    
+    // Создаем оверлей для мобильной панели
+    const overlay = document.createElement('div');
+    overlay.id = 'mobilePanelOverlay';
+    overlay.className = 'mobile-panel-overlay';
+    document.body.appendChild(overlay);
+    
+    // Создаем мобильную панель
+    const mobilePanel = document.createElement('div');
+    mobilePanel.id = 'mobilePanel';
+    mobilePanel.className = 'mobile-panel';
+    mobilePanel.innerHTML = `
+        <div class="mobile-panel-header">
+            <span id="mobilePanelTitle">Панель</span>
+            <button class="close-mobile-panel">&times;</button>
+        </div>
+        <div class="panel-content" id="mobilePanelContent">
+            <!-- Контент будет заполнен динамически -->
+        </div>
+    `;
+    document.body.appendChild(mobilePanel);
+    
+    // Обработчики для мобильного меню
+    mobileMenuButton.addEventListener('click', () => {
+        showMobilePanel('tools');
+    });
+    
+    overlay.addEventListener('click', closeMobilePanel);
+    
+    const closeButton = mobilePanel.querySelector('.close-mobile-panel');
+    closeButton.addEventListener('click', closeMobilePanel);
+    
+    // Предотвращаем закрытие при клике на саму панель
+    mobilePanel.addEventListener('click', (e) => {
+        e.stopPropagation();
+    });
+    
+    // Создаем плавающие кнопки для быстрого доступа
+    createFloatingActionButtons();
+}
+
+// Создание плавающих кнопок действий
+function createFloatingActionButtons() {
+    const fabContainer = document.createElement('div');
+    fabContainer.id = 'fabContainer';
+    fabContainer.style.cssText = `
+        position: fixed;
+        bottom: 90px;
+        right: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        z-index: 998;
+    `;
+    
+    const buttons = [
+        { id: 'fabProperties', icon: 'fas fa-cog', title: 'Свойства', action: () => showMobilePanel('properties') },
+        { id: 'fabSummary', icon: 'fas fa-chart-pie', title: 'Сводка', action: () => showMobilePanel('summary') },
+        { id: 'fabEstimate', icon: 'fas fa-receipt', title: 'Смета', action: () => document.getElementById('receiptContainer').scrollIntoView({ behavior: 'smooth' }) }
+    ];
+    
+    buttons.forEach(btn => {
+        const button = document.createElement('button');
+        button.id = btn.id;
+        button.innerHTML = `<i class="${btn.icon}"></i>`;
+        button.title = btn.title;
+        button.style.cssText = `
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            font-size: 18px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        `;
+        button.addEventListener('click', btn.action);
+        fabContainer.appendChild(button);
+    });
+    
+    document.body.appendChild(fabContainer);
 }
 
 // Обновление сводки проекта
@@ -708,6 +932,22 @@ function initUI() {
     
     // Инициализация модального окна обратной связи
     initFeedbackModal();
+    
+    // Инициализация мобильного интерфейса
+    if (window.innerWidth <= 576) {
+        initMobileUI();
+    }
+    
+    // Обработчик изменения размера окна
+    window.addEventListener('resize', () => {
+        if (window.innerWidth <= 576 && !document.getElementById('mobileMenuButton')) {
+            initMobileUI();
+        } else if (window.innerWidth > 576 && document.getElementById('mobileMenuButton')) {
+            // Удаляем мобильные элементы на десктопе
+            const mobileElements = document.querySelectorAll('#mobileMenuButton, #mobilePanelOverlay, #mobilePanel, #fabContainer');
+            mobileElements.forEach(el => el.remove());
+        }
+    });
 }
 
 // Инициализация модального окна обратной связи
