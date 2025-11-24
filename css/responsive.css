@@ -1,4 +1,4 @@
-/* Responsive Design - Упрощенная версия */
+/* Responsive Design - Адаптивный дизайн для ПланПомещений */
 
 /* Большие экраны */
 @media (min-width: 1201px) {
@@ -11,6 +11,10 @@
 @media (max-width: 1200px) and (min-width: 993px) {
     .app-container {
         grid-template-columns: 280px 1fr 350px;
+    }
+    
+    .container {
+        padding: 20px;
     }
 }
 
@@ -31,6 +35,10 @@
     
     .tool-btn i {
         font-size: 20px;
+    }
+    
+    .panel-content {
+        padding: 15px;
     }
 }
 
@@ -109,6 +117,39 @@
         padding: 12px 14px;
         font-size: 16px;
     }
+    
+    label {
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+    
+    .checkbox-group {
+        gap: 8px;
+    }
+    
+    .checkbox-item {
+        padding: 10px;
+        font-size: 14px;
+    }
+    
+    .element-list {
+        max-height: 200px;
+    }
+    
+    .element-item {
+        padding: 12px 10px;
+        font-size: 14px;
+    }
+    
+    .summary-item {
+        font-size: 14px;
+        margin-bottom: 10px;
+    }
+    
+    .property-group h3 {
+        font-size: 1.1rem;
+        margin-bottom: 15px;
+    }
 }
 
 /* Мобильные телефоны */
@@ -161,6 +202,7 @@
         align-items: center;
         justify-content: center;
         gap: 8px;
+        -webkit-tap-highlight-color: transparent;
     }
     
     .mobile-zoom-controls {
@@ -184,6 +226,7 @@
         align-items: center;
         justify-content: center;
         gap: 8px;
+        -webkit-tap-highlight-color: transparent;
     }
     
     .mobile-tool-groups {
@@ -225,12 +268,15 @@
         min-height: 70px;
         transition: var(--transition);
         cursor: pointer;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
     }
     
     .mobile-tool-btn.active {
         background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary-color) 100%);
         color: white;
         border-color: var(--primary-color);
+        transform: scale(0.95);
     }
     
     .mobile-tool-btn i {
@@ -392,6 +438,7 @@
         width: 95%;
         margin: 2% auto;
         max-height: 96vh;
+        -webkit-overflow-scrolling: touch;
     }
     
     .modal-body {
@@ -450,12 +497,21 @@
         justify-content: center;
         transition: var(--transition);
         cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
     }
     
-    .fab-btn.properties { background: linear-gradient(135deg, #8e6bc9 0%, #7a5ab5 100%); }
-    .fab-btn.summary { background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); }
-    .fab-btn.receipt { background: linear-gradient(135deg, #ff7e5f 0%, #f85a3a 100%); }
-    .fab-btn.top { background: linear-gradient(135deg, #6c757d 0%, #495057 100%); }
+    .fab-btn.properties { 
+        background: linear-gradient(135deg, #8e6bc9 0%, #7a5ab5 100%); 
+    }
+    .fab-btn.summary { 
+        background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); 
+    }
+    .fab-btn.receipt { 
+        background: linear-gradient(135deg, #ff7e5f 0%, #f85a3a 100%); 
+    }
+    .fab-btn.top { 
+        background: linear-gradient(135deg, #6c757d 0%, #495057 100%); 
+    }
     
     /* Мобильная панель свойств */
     .mobile-panel-overlay {
@@ -482,6 +538,7 @@
         z-index: 1002;
         transform: translateY(100%);
         transition: transform 0.3s ease;
+        -webkit-overflow-scrolling: touch;
     }
     
     .mobile-panel.active {
@@ -511,35 +568,13 @@
         width: auto;
         padding: 5px;
         cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
     }
     
     .mobile-panel-content {
         padding: 20px;
         max-height: calc(80vh - 70px);
         overflow-y: auto;
-    }
-    /* Улучшаем отображение мобильных кнопок */
-    .mobile-tool-btn {
-        padding: 12px 8px;
-        background: white;
-        border: 1px solid var(--neutral-medium);
-        border-radius: 8px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 5px;
-        font-size: 12px;
-        min-height: 70px;
-        transition: var(--transition);
-        cursor: pointer;
-        touch-action: manipulation;
-    }
-    
-    .mobile-tool-btn.active {
-        background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary-color) 100%);
-        color: white;
-        border-color: var(--primary-color);
-        transform: scale(0.95);
     }
     
     /* Улучшаем отображение формы в мобильной панели */
@@ -552,7 +587,7 @@
     .mobile-panel-content textarea {
         width: 100%;
         padding: 12px;
-        font-size: 16px; /* Увеличиваем для удобства касания */
+        font-size: 16px;
         border: 1px solid var(--neutral-medium);
         border-radius: 8px;
     }
@@ -615,6 +650,31 @@
     }
 }
 
+/* Ультра-маленькие экраны */
+@media (max-width: 320px) {
+    .container {
+        padding: 4px;
+    }
+    
+    .mobile-tool-btn {
+        font-size: 10px;
+        min-height: 60px;
+        padding: 8px 4px;
+    }
+    
+    .mobile-tool-btn i {
+        font-size: 14px;
+    }
+    
+    h1 {
+        font-size: 1.4rem;
+    }
+    
+    .tagline {
+        font-size: 0.9rem;
+    }
+}
+
 /* Поддержка touch устройств */
 @media (hover: none) and (pointer: coarse) {
     .tool-btn:hover,
@@ -651,6 +711,47 @@
     }
 }
 
+/* Исправление для iOS Safari */
+@supports (-webkit-touch-callout: none) {
+    .mobile-tool-btn,
+    .tool-btn,
+    button {
+        min-height: 44px;
+    }
+    
+    input, select, textarea {
+        font-size: 16px;
+    }
+    
+    .modal-content {
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+/* Улучшение доступности для пользователей с reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Поддержка landscape на мобильных */
+@media (max-width: 768px) and (orientation: landscape) {
+    .editor-container {
+        min-height: 250px;
+    }
+    
+    .mobile-panel {
+        max-height: 70vh;
+    }
+    
+    .mobile-panel-content {
+        max-height: calc(70vh - 70px);
+    }
+}
+
 /* Print Styles */
 @media print {
     .app-container {
@@ -679,16 +780,9 @@
     .mobile-tools-container {
         display: none !important;
     }
-}
-
-/* Поддержка landscape на мобильных */
-@media (max-width: 768px) and (orientation: landscape) {
-    .editor-container {
-        min-height: 250px;
-    }
     
-    .mobile-panel {
-        max-height: 70vh;
+    .modal {
+        display: none !important;
     }
 }
 
@@ -699,5 +793,35 @@
     .mobile-panel,
     #fabContainer {
         display: none !important;
+    }
+}
+
+/* Гарантируем, что мобильные элементы скрыты на десктопе */
+.tools-panel,
+.properties-panel {
+    display: block !important;
+}
+
+/* Улучшение читаемости на темных темах */
+@media (prefers-color-scheme: dark) {
+    .panel,
+    .modal-content,
+    .receipt-container {
+        background: var(--white);
+        color: var(--text-color);
+    }
+}
+
+/* Улучшение контрастности для доступности */
+@media (prefers-contrast: high) {
+    :root {
+        --primary-color: #0044cc;
+        --primary-dark: #0033aa;
+        --text-color: #000000;
+        --neutral-medium: #666666;
+    }
+    
+    .tool-btn.active {
+        border: 2px solid var(--primary-dark);
     }
 }
