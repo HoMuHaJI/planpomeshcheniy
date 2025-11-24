@@ -367,12 +367,15 @@
                 <form id="feedbackForm">
                     <div class="form-group">
                         <label for="clientName">Ваше имя *</label>
-                        <input type="text" id="clientName" name="clientName" required placeholder="Иван Иванов">
+                        <input type="text" id="clientName" name="clientName" required placeholder="Иван Иванов" 
+                               style="font-size: 16px;" autocomplete="name">
                     </div>
 
                     <div class="form-group">
                         <label for="clientContact">Контактные данные *</label>
-                        <input type="text" id="clientContact" name="clientContact" required placeholder="Телеграм @username или номер телефона">
+                        <input type="text" id="clientContact" name="clientContact" required 
+                               placeholder="Телеграм @username или номер телефона"
+                               style="font-size: 16px;" autocomplete="tel">
                         <div class="help-text">Укажите Telegram или номер телефона для связи</div>
                     </div>
 
@@ -390,7 +393,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="totalArea">Общая площадь помещения (м²)</label>
+                        <label for="totalAreaInput">Общая площадь помещения (м²)</label>
                         <input type="number" id="totalAreaInput" name="totalArea" min="1" max="1000" placeholder="Например: 65">
                     </div>
 
