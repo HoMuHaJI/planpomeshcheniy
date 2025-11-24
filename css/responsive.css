@@ -1,4 +1,26 @@
-/* Responsive Design - Исправленная версия */
+/* Responsive Design - Полная исправленная версия */
+
+:root {
+    --primary-color: #4a6ee0;
+    --primary-light: #6a8aec;
+    --primary-dark: #3a5bc7;
+    --secondary-color: #8e6bc9;
+    --accent-color: #ff7e5f;
+    --accent-light: #ff9e87;
+    --neutral-light: #f8f9fa;
+    --neutral-medium: #e9ecef;
+    --neutral-dark: #495057;
+    --text-color: #333333;
+    --text-light: #6c757d;
+    --success-color: #28a745;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+    --white: #ffffff;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --shadow-hover: 0 6px 16px rgba(0, 0, 0, 0.12);
+    --border-radius: 10px;
+    --transition: all 0.3s ease;
+}
 
 /* Большие экраны */
 @media (min-width: 1201px) {
@@ -11,6 +33,19 @@
 @media (max-width: 1200px) and (min-width: 993px) {
     .app-container {
         grid-template-columns: 280px 1fr 350px;
+    }
+    
+    .container {
+        padding: 20px;
+    }
+    
+    .tool-btn {
+        padding: 14px 12px;
+        font-size: 14px;
+    }
+    
+    .tool-btn i {
+        font-size: 22px;
     }
 }
 
@@ -32,12 +67,24 @@
     .tool-btn i {
         font-size: 20px;
     }
+    
+    header {
+        padding: 25px;
+    }
+    
+    h1 {
+        font-size: 2.4rem;
+    }
+    
+    .tagline {
+        font-size: 1.2rem;
+    }
 }
 
 /* Планшеты и большие телефоны */
 @media (max-width: 768px) and (min-width: 577px) {
     .container {
-        padding: 10px;
+        padding: 12px;
     }
     
     .app-container {
@@ -109,6 +156,20 @@
         padding: 12px 14px;
         font-size: 16px;
     }
+    
+    .element-list {
+        max-height: 200px;
+    }
+    
+    .element-item {
+        padding: 12px 10px;
+        font-size: 14px;
+    }
+    
+    .summary-item {
+        font-size: 14px;
+        margin-bottom: 10px;
+    }
 }
 
 /* Мобильные телефоны */
@@ -136,6 +197,7 @@
         min-height: 400px;
     }
     
+    /* Мобильные инструменты */
     .mobile-tools-container {
         display: block !important;
         margin-bottom: 15px;
@@ -163,10 +225,13 @@
         justify-content: center;
         gap: 8px;
         transition: all 0.2s ease;
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
     }
     
     .mobile-top-controls button:active {
         transform: scale(0.98);
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
     }
     
     .mobile-zoom-controls {
@@ -190,10 +255,13 @@
         align-items: center;
         justify-content: center;
         transition: all 0.2s ease;
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
     }
     
     .mobile-zoom-controls button:active {
         transform: scale(0.95);
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
     }
     
     .mobile-tool-groups {
@@ -241,6 +309,7 @@
         transition: all 0.2s ease;
         cursor: pointer;
         touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
     }
     
     .mobile-tool-btn.active {
@@ -249,6 +318,10 @@
         border-color: var(--primary-color);
         transform: scale(0.98);
         box-shadow: 0 4px 12px rgba(74, 110, 224, 0.3);
+    }
+    
+    .mobile-tool-btn:active {
+        transform: scale(0.96);
     }
     
     .mobile-tool-btn i {
@@ -269,6 +342,8 @@
     .logo-icon {
         margin-right: 0;
         margin-bottom: 10px;
+        width: 60px;
+        height: 60px;
     }
     
     h1 {
@@ -309,6 +384,19 @@
         min-height: 350px;
         border: 2px solid var(--neutral-medium);
         border-radius: 10px;
+        touch-action: manipulation;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }
+    
+    #editorCanvas {
+        touch-action: manipulation;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
     }
     
     .status-bar {
@@ -330,6 +418,13 @@
         padding: 12px 14px;
         font-size: 16px;
         min-height: 48px;
+        -webkit-appearance: none;
+        border-radius: 8px;
+    }
+    
+    /* Улучшение для полей ввода на iOS */
+    input, select, textarea {
+        font-size: 16px !important; /* Предотвращает масштабирование в iOS */
     }
     
     label {
@@ -344,6 +439,15 @@
     .checkbox-item {
         padding: 10px;
         font-size: 14px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+    }
+    
+    .checkbox-item input[type="checkbox"] {
+        width: auto;
+        transform: scale(1.2);
+        margin-right: 10px;
     }
     
     .element-list {
@@ -353,6 +457,10 @@
     .element-item {
         padding: 12px 10px;
         font-size: 14px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
     }
     
     .summary-item {
@@ -369,11 +477,27 @@
     input[type="range"] {
         height: 8px;
         margin: 12px 0;
+        -webkit-appearance: none;
+        background: var(--neutral-medium);
+        border-radius: 4px;
     }
     
     input[type="range"]::-webkit-slider-thumb {
         width: 24px;
         height: 24px;
+        -webkit-appearance: none;
+        background: var(--primary-color);
+        border-radius: 50%;
+        cursor: pointer;
+    }
+    
+    input[type="range"]::-moz-range-thumb {
+        width: 24px;
+        height: 24px;
+        background: var(--primary-color);
+        border-radius: 50%;
+        cursor: pointer;
+        border: none;
     }
     
     /* Кнопки отправки сметы */
@@ -388,6 +512,7 @@
         font-size: 14px;
         padding: 14px 20px;
         min-height: 54px;
+        width: 100%;
     }
     
     .btn-feedback {
@@ -410,6 +535,7 @@
         width: 95%;
         margin: 2% auto;
         max-height: 96vh;
+        border-radius: 15px;
     }
     
     .modal-body {
@@ -443,7 +569,7 @@
         padding: 10px;
     }
     
-    /* Плавающие кнопки */
+    /* Плавающие кнопки (FAB) */
     #fabContainer {
         position: fixed;
         bottom: 20px;
@@ -458,7 +584,6 @@
         width: 50px;
         height: 50px;
         border-radius: 50%;
-        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
         color: white;
         border: none;
         font-size: 18px;
@@ -468,12 +593,26 @@
         justify-content: center;
         transition: var(--transition);
         cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
     }
     
-    .fab-btn.properties { background: linear-gradient(135deg, #8e6bc9 0%, #7a5ab5 100%); }
-    .fab-btn.summary { background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); }
-    .fab-btn.receipt { background: linear-gradient(135deg, #ff7e5f 0%, #f85a3a 100%); }
-    .fab-btn.top { background: linear-gradient(135deg, #6c757d 0%, #495057 100%); }
+    .fab-btn.properties { 
+        background: linear-gradient(135deg, #8e6bc9 0%, #7a5ab5 100%); 
+    }
+    .fab-btn.summary { 
+        background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); 
+    }
+    .fab-btn.receipt { 
+        background: linear-gradient(135deg, #ff7e5f 0%, #f85a3a 100%); 
+    }
+    .fab-btn.top { 
+        background: linear-gradient(135deg, #6c757d 0%, #495057 100%); 
+    }
+    
+    .fab-btn:active {
+        transform: scale(0.95);
+    }
     
     /* Мобильная панель свойств */
     .mobile-panel-overlay {
@@ -500,6 +639,7 @@
         z-index: 1002;
         transform: translateY(100%);
         transition: transform 0.3s ease;
+        -webkit-overflow-scrolling: touch;
     }
     
     .mobile-panel.active {
@@ -529,12 +669,14 @@
         width: auto;
         padding: 5px;
         cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
     }
     
     .mobile-panel-content {
         padding: 20px;
         max-height: calc(80vh - 70px);
         overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
     }
     
     /* Улучшаем отображение мобильной панели свойств */
@@ -580,6 +722,8 @@
         border: none;
         cursor: pointer;
         transition: all 0.2s ease;
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
     }
     
     .mobile-panel-content button:active {
@@ -607,6 +751,9 @@
         border-radius: 8px;
         background: white;
         transition: all 0.2s ease;
+        min-height: 54px;
+        display: flex;
+        align-items: center;
     }
     
     .mobile-panel-content .checkbox-item:active {
@@ -663,6 +810,10 @@
         font-size: 16px;
     }
     
+    .mobile-top-controls {
+        flex-direction: column;
+    }
+    
     .mobile-top-controls button {
         font-size: 13px;
         padding: 10px 8px;
@@ -683,18 +834,62 @@
     .mobile-tool-buttons {
         grid-template-columns: 1fr;
     }
+    
+    .mobile-panel-content {
+        padding: 15px;
+    }
+    
+    .fab-btn {
+        width: 45px;
+        height: 45px;
+        font-size: 16px;
+    }
+}
+
+/* Поддержка landscape на мобильных */
+@media (max-width: 768px) and (orientation: landscape) {
+    .editor-container {
+        min-height: 250px;
+    }
+    
+    .mobile-panel {
+        max-height: 70vh;
+    }
+    
+    .mobile-panel-content {
+        max-height: calc(70vh - 70px);
+    }
+    
+    .mobile-tools-container {
+        margin-bottom: 10px;
+    }
+    
+    .mobile-tool-groups {
+        padding: 10px;
+    }
 }
 
 /* Поддержка touch устройств */
 @media (hover: none) and (pointer: coarse) {
     .tool-btn:hover,
     .mobile-tool-btn:hover,
-    .fab-btn:hover {
+    .fab-btn:hover,
+    button:hover:not(:disabled) {
         transform: none;
     }
     
-    button:hover:not(:disabled) {
-        transform: none;
+    /* Убираем hover эффекты на touch устройствах */
+    .panel:hover {
+        box-shadow: var(--shadow);
+    }
+    
+    .tool-btn:hover {
+        background-color: var(--white);
+        border-color: var(--neutral-medium);
+    }
+    
+    .tool-btn.active:hover {
+        background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary-color) 100%);
     }
     
     /* Улучшение для касаний */
@@ -714,11 +909,6 @@
     .zoom-controls button {
         min-height: 44px;
     }
-    
-    /* Убираем hover эффекты на touch устройствах */
-    .panel:hover {
-        box-shadow: var(--shadow);
-    }
 }
 
 /* Print Styles */
@@ -736,6 +926,7 @@
         border: none;
         margin: 0;
         padding: 0;
+        max-width: none;
     }
     
     .receipt-actions {
@@ -749,16 +940,28 @@
     .mobile-tools-container {
         display: none !important;
     }
-}
-
-/* Поддержка landscape на мобильных */
-@media (max-width: 768px) and (orientation: landscape) {
-    .editor-container {
-        min-height: 250px;
+    
+    .mobile-panel-overlay,
+    .mobile-panel {
+        display: none !important;
     }
     
-    .mobile-panel {
-        max-height: 70vh;
+    /* Улучшение печати чека */
+    .receipt-content {
+        font-family: 'Courier New', monospace;
+        font-size: 12px;
+        color: black;
+    }
+    
+    .receipt-header {
+        background: white !important;
+        color: black !important;
+        border-bottom: 2px solid black;
+    }
+    
+    .receipt-total {
+        background: white !important;
+        border: 2px dashed black;
     }
 }
 
@@ -769,5 +972,140 @@
     .mobile-panel,
     #fabContainer {
         display: none !important;
+    }
+}
+
+/* Анимации для улучшения UX */
+@keyframes slideInUp {
+    from {
+        transform: translate3d(0, 100%, 0);
+        opacity: 0;
+    }
+    to {
+        transform: translate3d(0, 0, 0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutDown {
+    from {
+        transform: translate3d(0, 0, 0);
+        opacity: 1;
+    }
+    to {
+        transform: translate3d(0, 100%, 0);
+        opacity: 0;
+    }
+}
+
+.mobile-panel.active {
+    animation: slideInUp 0.3s ease-out;
+}
+
+.mobile-panel:not(.active) {
+    animation: slideOutDown 0.3s ease-in;
+}
+
+/* Улучшение доступности */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .mobile-panel {
+        transition: none;
+    }
+}
+
+/* Поддержка высококонтрастного режима */
+@media (prefers-contrast: high) {
+    :root {
+        --primary-color: #0000ff;
+        --secondary-color: #800080;
+        --accent-color: #ff0000;
+        --text-color: #000000;
+        --neutral-light: #ffffff;
+        --neutral-medium: #cccccc;
+    }
+    
+    .panel {
+        border: 1px solid var(--text-color);
+    }
+    
+    .tool-btn {
+        border: 1px solid var(--text-color);
+    }
+}
+
+/* Поддержка темной темы */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --neutral-light: #2d3748;
+        --neutral-medium: #4a5568;
+        --neutral-dark: #e2e8f0;
+        --text-color: #f7fafc;
+        --text-light: #cbd5e0;
+        --white: #1a202c;
+    }
+    
+    body {
+        background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+        color: var(--text-color);
+    }
+    
+    .panel {
+        background: var(--white);
+        color: var(--text-color);
+    }
+    
+    input, select, textarea {
+        background: var(--neutral-light);
+        color: var(--text-color);
+        border-color: var(--neutral-medium);
+    }
+    
+    .element-list {
+        background: var(--neutral-light);
+        border-color: var(--neutral-medium);
+    }
+    
+    .summary {
+        background: var(--neutral-light);
+    }
+}
+
+/* Улучшение для очень высоких экранов */
+@media (min-height: 1000px) {
+    .editor-panel {
+        min-height: 700px;
+    }
+    
+    .editor-container {
+        min-height: 600px;
+    }
+}
+
+/* Исправление для Samsung Internet */
+@supports (-webkit-touch-callout: none) {
+    .mobile-panel-content {
+        padding-bottom: 40px; /* Добавляем отступ для безопасной зоны */
+    }
+}
+
+/* Исправление для mobile Safari */
+@supports (padding: max(0px)) {
+    .mobile-panel-content {
+        padding-left: max(20px, env(safe-area-inset-left));
+        padding-right: max(20px, env(safe-area-inset-right));
+        padding-bottom: max(20px, env(safe-area-inset-bottom));
+    }
+    
+    #fabContainer {
+        bottom: max(20px, env(safe-area-inset-bottom));
+        right: max(20px, env(safe-area-inset-right));
     }
 }

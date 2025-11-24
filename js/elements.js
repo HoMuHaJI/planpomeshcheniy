@@ -2,10 +2,12 @@
 
 // Отрисовка комнаты
 function drawRoom(room, ctx) {
+    const state = PlanPomesheniy.getState();
+    
     ctx.save();
     
     // Выделение выбранной комнаты
-    if (selectedRoom && selectedRoom.id === room.id) {
+    if (state.selectedRoom && state.selectedRoom.id === room.id) {
         ctx.strokeStyle = '#4a6ee0';
         ctx.lineWidth = 3;
         ctx.fillStyle = 'rgba(74, 110, 224, 0.1)';
@@ -20,7 +22,7 @@ function drawRoom(room, ctx) {
     ctx.strokeRect(room.x, room.y, room.width, room.height);
     
     // Площадь комнаты в центре
-    const area = (room.width / scale * room.height / scale).toFixed(1);
+    const area = (room.width / state.scale * room.height / state.scale).toFixed(1);
     ctx.fillStyle = '#333';
     ctx.font = '14px Arial';
     ctx.textAlign = 'center';
@@ -32,8 +34,8 @@ function drawRoom(room, ctx) {
     ctx.fillText(escapeHTML(room.name), room.x + 5, room.y + 15);
     
     // Размеры комнаты
-    const widthMeters = (room.width / scale).toFixed(1);
-    const heightMeters = (room.height / scale).toFixed(1);
+    const widthMeters = (room.width / state.scale).toFixed(1);
+    const heightMeters = (room.height / state.scale).toFixed(1);
     ctx.fillText(`${widthMeters} x ${heightMeters} м`, room.x + 5, room.y + 30);
     
     // Отрисовка окон
@@ -51,14 +53,15 @@ function drawRoom(room, ctx) {
 
 // Отрисовка окна
 function drawWindow(room, window, ctx) {
+    const state = PlanPomesheniy.getState();
     const position = window.position / 100;
-    const width = window.width * scale;
-    const height = window.height * scale;
+    const width = window.width * state.scale;
+    const height = window.height * state.scale;
     
     ctx.save();
     
     // Выделение выбранного окна
-    if (selectedElementObj && selectedElementObj.id === window.id) {
+    if (state.selectedElementObj && state.selectedElementObj.id === window.id) {
         ctx.strokeStyle = '#4a6ee0';
         ctx.lineWidth = 2;
     } else {
@@ -119,14 +122,15 @@ function drawWindow(room, window, ctx) {
 
 // Отрисовка двери
 function drawDoor(room, door, ctx) {
+    const state = PlanPomesheniy.getState();
     const position = door.position / 100;
-    const width = door.width * scale;
-    const height = door.height * scale;
+    const width = door.width * state.scale;
+    const height = door.height * state.scale;
     
     ctx.save();
     
     // Выделение выбранной двери
-    if (selectedElementObj && selectedElementObj.id === door.id) {
+    if (state.selectedElementObj && state.selectedElementObj.id === door.id) {
         ctx.strokeStyle = '#e74c3c';
         ctx.lineWidth = 2;
     } else {
@@ -187,9 +191,11 @@ function drawDoor(room, door, ctx) {
 
 // Поиск элемента по координатам
 function findElementAt(x, y) {
+    const state = PlanPomesheniy.getState();
+    
     // Сначала проверяем окна и двери
-    for (let i = rooms.length - 1; i >= 0; i--) {
-        const room = rooms[i];
+    for (let i = state.rooms.length - 1; i >= 0; i--) {
+        const room = state.rooms[i];
         
         // Проверяем окна
         for (let j = room.windows.length - 1; j >= 0; j--) {
@@ -232,10 +238,11 @@ function isPointNearElement(room, element, x, y) {
 
 // Получение экранных координат элемента
 function getElementScreenPosition(room, element) {
+    const state = PlanPomesheniy.getState();
     const wall = element.wall;
     const position = element.position / 100;
-    const width = element.width * scale;
-    const height = element.height * scale;
+    const width = element.width * state.scale;
+    const height = element.height * state.scale;
     
     let x, y;
     
@@ -263,8 +270,10 @@ function getElementScreenPosition(room, element) {
 
 // Поиск комнаты по координатам
 function findRoomAt(x, y) {
-    for (let i = rooms.length - 1; i >= 0; i--) {
-        const room = rooms[i];
+    const state = PlanPomesheniy.getState();
+    
+    for (let i = state.rooms.length - 1; i >= 0; i--) {
+        const room = state.rooms[i];
         if (x >= room.x && x <= room.x + room.width &&
             y >= room.y && y <= room.y + room.height) {
             return room;
@@ -310,30 +319,38 @@ function findNearestWall(room, x, y) {
 
 // Выбор комнаты
 function selectRoom(room) {
-    selectedRoom = room;
-    selectedElementObj = room;
+    PlanPomesheniy.setSelectedRoom(room);
+    PlanPomesheniy.setSelectedElementObj(room);
     updatePropertiesPanel(room);
     updateElementList();
-    selectedElement.textContent = `Комната: ${escapeHTML(room.name)}`;
+    const selectedElement = getElementSafe('selectedElement');
+    if (selectedElement) {
+        selectedElement.textContent = `Комната: ${escapeHTML(room.name)}`;
+    }
 }
 
 // Выбор элемента
 function selectElement(element) {
-    selectedElementObj = element;
+    PlanPomesheniy.setSelectedElementObj(element);
     updatePropertiesPanel(element);
     updateElementList();
     
-    if (element.type === 'window') {
-        selectedElement.textContent = `Окно: ${element.width}x${element.height} м`;
-    } else if (element.type === 'door') {
-        selectedElement.textContent = `Дверь: ${element.width}x${element.height} м`;
+    const selectedElement = getElementSafe('selectedElement');
+    if (selectedElement) {
+        if (element.type === 'window') {
+            selectedElement.textContent = `Окно: ${element.width}x${element.height} м`;
+        } else if (element.type === 'door') {
+            selectedElement.textContent = `Дверь: ${element.width}x${element.height} м`;
+        }
     }
 }
 
 // Добавление элемента в комнату
 function addElementToRoom(type, room, wall, position) {
+    const state = PlanPomesheniy.getState();
+    
     // Ограничиваем позицию, чтобы элемент не выходил за границы стены
-    const elementWidth = (type === 'window' ? 1.2 : 0.9) * scale;
+    const elementWidth = (type === 'window' ? 1.2 : 0.9) * state.scale;
     let roomDimension;
     
     if (wall === 'top' || wall === 'bottom') {
@@ -368,5 +385,8 @@ function addElementToRoom(type, room, wall, position) {
     updateElementList();
     updateProjectSummary();
     calculateCost();
-    draw(document.getElementById('editorCanvas'), document.getElementById('editorCanvas').getContext('2d'));
+    const editorCanvas = getElementSafe('editorCanvas');
+    if (editorCanvas) {
+        draw(editorCanvas, editorCanvas.getContext('2d'));
+    }
 }
