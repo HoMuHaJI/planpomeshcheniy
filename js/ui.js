@@ -1686,6 +1686,7 @@ function handleMouseMove(e) {
 // Обработка отпускания мыши
 function handleMouseUp(e) {
     const editorCanvas = document.getElementById('editorCanvas');
+    const { x, y } = getMouseCoordinates(e, editorCanvas);
     
     if (isDragging) {
         isDragging = false;
@@ -1697,11 +1698,6 @@ function handleMouseUp(e) {
     }
     
     if (!isDrawing) return;
-    
-    const rect = editorCanvas.getBoundingClientRect();
-    const safeZoom = zoom > 0 ? zoom : 1;
-    const x = (e.clientX - rect.left - viewOffsetX) / safeZoom;
-    const y = (e.clientY - rect.top - viewOffsetY) / safeZoom;
     
     if (currentTool === 'room') {
         const width = Math.abs(x - startX);

@@ -20,41 +20,57 @@ function initCanvas(editorCanvas, ctx) {
     window.addEventListener('resize', () => resizeCanvas(editorCanvas));
 }
 
+// Получение координат касания относительно canvas
+function getTouchCoordinates(e, editorCanvas) {
+    const rect = editorCanvas.getBoundingClientRect();
+    const touch = e.touches[0];
+    return {
+        clientX: touch.clientX,
+        clientY: touch.clientY,
+        rect: rect
+    };
+}
+
 // Обработчики сенсорных событий
 function handleTouchStart(e) {
     e.preventDefault();
-    if (e.touches.length === 1) {
-        const touch = e.touches[0];
-        const rect = e.target.getBoundingClientRect();
-        const mouseEvent = new MouseEvent('mousedown', {
-            clientX: touch.clientX,
-            clientY: touch.clientY,
-            bubbles: true
-        });
-        e.target.dispatchEvent(mouseEvent);
-    }
+    const editorCanvas = document.getElementById('editorCanvas');
+    const { clientX, clientY, rect } = getTouchCoordinates(e, editorCanvas);
+    
+    // Создаем искусственное mouse событие с правильными координатами
+    const mouseEvent = new MouseEvent('mousedown', {
+        clientX: clientX,
+        clientY: clientY,
+        bubbles: true
+    });
+    
+    // Сохраняем rect в событии для использования в обработчике
+    mouseEvent._rect = rect;
+    editorCanvas.dispatchEvent(mouseEvent);
 }
 
 function handleTouchMove(e) {
     e.preventDefault();
-    if (e.touches.length === 1) {
-        const touch = e.touches[0];
-        const rect = e.target.getBoundingClientRect();
-        const mouseEvent = new MouseEvent('mousemove', {
-            clientX: touch.clientX,
-            clientY: touch.clientY,
-            bubbles: true
-        });
-        e.target.dispatchEvent(mouseEvent);
-    }
+    const editorCanvas = document.getElementById('editorCanvas');
+    const { clientX, clientY, rect } = getTouchCoordinates(e, editorCanvas);
+    
+    const mouseEvent = new MouseEvent('mousemove', {
+        clientX: clientX,
+        clientY: clientY,
+        bubbles: true
+    });
+    
+    mouseEvent._rect = rect;
+    editorCanvas.dispatchEvent(mouseEvent);
 }
 
 function handleTouchEnd(e) {
     e.preventDefault();
+    const editorCanvas = document.getElementById('editorCanvas');
     const mouseEvent = new MouseEvent('mouseup', {
         bubbles: true
     });
-    e.target.dispatchEvent(mouseEvent);
+    editorCanvas.dispatchEvent(mouseEvent);
 }
 
 // Изменение размера canvas
@@ -156,6 +172,16 @@ function centerView(editorCanvas) {
     draw(editorCanvas, editorCanvas.getContext('2d'));
 }
 
+// Получение координат мыши с учетом трансформаций
+function getMouseCoordinates(e, editorCanvas) {
+    // Используем сохраненный rect из touch событий или получаем новый
+    const rect = e._rect || editorCanvas.getBoundingClientRect();
+    const safeZoom = zoom > 0 ? zoom : 1;
+    const x = (e.clientX - rect.left - viewOffsetX) / safeZoom;
+    const y = (e.clientY - rect.top - viewOffsetY) / safeZoom;
+    return { x, y, rect };
+}
+
 // Обработка колесика мыши для масштабирования
 function handleWheel(e) {
     e.preventDefault();
@@ -182,8 +208,114 @@ function handleWheel(e) {
     draw(editorCanvas, editorCanvas.getContext('2d'));
 }
 
+// Обработка нажатия мыши
+function handleMouseDown(e) {
+    const editorCanvas = document.getElementById('editorCanvas');
+    const { x, y, rect } = getMouseCoordinates(e, editorCanvas);
+    
+    // Сохраняем rect для использования в move/up событиях
+    e._rect = rect;
+    
+    if (currentTool === 'select') {
+        const element = findElementAt(x, y);
+        if (element) {
+            if (element.type === 'room') {
+                selectRoom(element);
+                isDragging = true;
+                dragStartX = e.clientX;
+                dragStartY = e.clientY;
+                dragOffsetX = x - element.x;
+                dragOffsetY = y - element.y;
+            } else if (element.type === 'window' || element.type === 'door') {
+                selectElement(element);
+                isMovingElement = true;
+                movingElement = element;
+            }
+        } else {
+            selectedRoom = null;
+            selectedElementObj = null;
+            hideAllProperties();
+        }
+    } else if (currentTool === 'room') {
+        isDrawing = true;
+        startX = x;
+        startY = y;
+    } else if (currentTool === 'window' || currentTool === 'door') {
+        const room = findRoomAt(x, y);
+        if (room) {
+            selectRoom(room);
+            const wallInfo = findNearestWall(room, x, y);
+            if (wallInfo) {
+                addElementToRoom(currentTool, room, wallInfo.wall, wallInfo.position);
+            }
+        } else {
+            showNotification('Кликните внутри комнаты для добавления элемента');
+        }
+    }
+    
+    draw(editorCanvas, editorCanvas.getContext('2d'));
+}
+
+// Обработка перемещения мыши
+function handleMouseMove(e) {
+    const editorCanvas = document.getElementById('editorCanvas');
+    const { x, y, rect } = getMouseCoordinates(e, editorCanvas);
+    
+    // Сохраняем rect для использования в up событиях
+    e._rect = rect;
+    
+    // Обновление позиции курсора
+    if (cursorPosition) {
+        cursorPosition.textContent = `X: ${(x / scale).toFixed(2)}, Y: ${(y / scale).toFixed(2)}`;
+    }
+    
+    // Перемещение комнаты
+    if (isDragging && selectedRoom) {
+        const newX = x - dragOffsetX;
+        const newY = y - dragOffsetY;
+        selectedRoom.x = newX;
+        selectedRoom.y = newY;
+        draw(editorCanvas, editorCanvas.getContext('2d'));
+    }
+    
+    // Перемещение элемента по стене
+    if (isMovingElement && movingElement && selectedRoom) {
+        const wallInfo = findNearestWall(selectedRoom, x, y);
+        if (wallInfo && wallInfo.wall === movingElement.wall) {
+            const elementWidth = movingElement.width * scale;
+            let roomDimension;
+            if (movingElement.wall === 'top' || movingElement.wall === 'bottom') {
+                roomDimension = selectedRoom.width;
+            } else {
+                roomDimension = selectedRoom.height;
+            }
+            const maxPosition = 100 - (elementWidth / roomDimension * 100);
+            const clampedPosition = Math.max(0, Math.min(maxPosition, wallInfo.position));
+            movingElement.position = clampedPosition;
+            updatePropertiesPanel(movingElement);
+            draw(editorCanvas, editorCanvas.getContext('2d'));
+        }
+    }
+    
+    // Отрисовка временной комнаты при рисовании
+    if (isDrawing && currentTool === 'room') {
+        draw(editorCanvas, editorCanvas.getContext('2d'));
+        const ctx = editorCanvas.getContext('2d');
+        ctx.save();
+        ctx.translate(viewOffsetX, viewOffsetY);
+        ctx.scale(zoom, zoom);
+        ctx.strokeStyle = '#4a6ee0';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+        ctx.strokeRect(startX, startY, x - startX, y - startY);
+        ctx.setLineDash([]);
+        ctx.restore();
+    }
+}
+
 function handleMouseUp(e) {
     const editorCanvas = document.getElementById('editorCanvas');
+    const { x, y } = getMouseCoordinates(e, editorCanvas);
     
     if (isDragging) {
         isDragging = false;
@@ -195,11 +327,6 @@ function handleMouseUp(e) {
     }
     
     if (!isDrawing) return;
-    
-    const rect = editorCanvas.getBoundingClientRect();
-    const safeZoom = zoom > 0 ? zoom : 1;
-    const x = (e.clientX - rect.left - viewOffsetX) / safeZoom;
-    const y = (e.clientY - rect.top - viewOffsetY) / safeZoom;
     
     if (currentTool === 'room') {
         const width = Math.abs(x - startX);
