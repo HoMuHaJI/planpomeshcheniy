@@ -17,6 +17,7 @@ let dragStartX, dragStartY;
 let dragOffsetX, dragOffsetY;
 let isMovingElement = false;
 let movingElement = null;
+window.editorCanvas = null;
 
 // Цены за работы (руб.)
 const prices = {
@@ -36,6 +37,26 @@ const prices = {
     // Дополнительные работы
     sanding: { square: 80, linear: 56 } // Зашкуривание (погонный метр = 70% от квадратного)
 };
+
+// Вспомогательные функции для безопасной работы с DOM
+function safeGetElement(id) {
+    const element = document.getElementById(id);
+    if (!element) {
+        console.warn(`Element with id '${id}' not found`);
+    }
+    return element;
+}
+
+function throttle(func, limit) {
+    let inThrottle;
+    return function(...args) {
+        if (!inThrottle) {
+            func.apply(this, args);
+            inThrottle = true;
+            setTimeout(() => inThrottle = false, limit);
+        }
+    }
+}
 
 // Функция экранирования HTML для защиты от XSS
 function escapeHTML(str) {
@@ -58,8 +79,11 @@ function generateId() {
 
 // Показ уведомлений
 function showNotification(message) {
-    const notification = document.getElementById('notification');
-    const notificationText = document.getElementById('notificationText');
+    const notification = safeGetElement('notification');
+    const notificationText = safeGetElement('notificationText');
+    
+    if (!notification || !notificationText) return;
+    
     notificationText.textContent = escapeHTML(message);
     notification.classList.add('show');
     setTimeout(() => {
@@ -67,42 +91,172 @@ function showNotification(message) {
     }, 3000);
 }
 
+// Функция для получения canvas контекста с обработкой ошибок
+function getCanvasContext(editorCanvas) {
+    try {
+        if (!editorCanvas || !editorCanvas.getContext) {
+            return null;
+        }
+        return editorCanvas.getContext('2d');
+    } catch (error) {
+        console.error('Error getting canvas context:', error);
+        return null;
+    }
+}
+
 // Инициализация приложения
-document.addEventListener('DOMContentLoaded', function() {
-    // Проверка поддержки Canvas
-    const editorCanvas = document.getElementById('editorCanvas');
-    const canvasFallback = document.getElementById('canvasFallback');
-    
-    if (!editorCanvas || !editorCanvas.getContext) {
-        canvasFallback.style.display = 'block';
-        editorCanvas.style.display = 'none';
-        return;
+function initializeApp() {
+    try {
+        // Проверка поддержки Canvas
+        const editorCanvas = safeGetElement('editorCanvas');
+        const canvasFallback = safeGetElement('canvasFallback');
+        
+        if (!editorCanvas) {
+            if (canvasFallback) {
+                canvasFallback.style.display = 'block';
+            }
+            showNotification('Ошибка инициализации редактора');
+            return;
+        }
+        
+        const ctx = getCanvasContext(editorCanvas);
+        
+        if (!ctx) {
+            if (canvasFallback) {
+                canvasFallback.style.display = 'block';
+            }
+            editorCanvas.style.display = 'none';
+            showNotification('Браузер не поддерживает Canvas');
+            return;
+        }
+        
+        // Сохраняем ссылку на canvas глобально
+        window.editorCanvas = editorCanvas;
+        
+        // Инициализация модулей с проверкой их существования
+        if (typeof initCanvas === 'function') {
+            initCanvas(editorCanvas, ctx);
+        } else {
+            console.error('initCanvas function not found');
+        }
+        
+        if (typeof initUI === 'function') {
+            initUI();
+        } else {
+            console.error('initUI function not found');
+        }
+        
+        if (typeof initEventListeners === 'function') {
+            initEventListeners();
+        } else {
+            console.error('initEventListeners function not found');
+        }
+        
+        // Обновление интерфейса
+        if (typeof updateElementList === 'function') {
+            updateElementList();
+        }
+        
+        if (typeof updateProjectSummary === 'function') {
+            updateProjectSummary();
+        }
+        
+        if (typeof calculateCost === 'function') {
+            calculateCost();
+        }
+        
+        if (typeof centerView === 'function') {
+            centerView(editorCanvas);
+        }
+        
+        // Инициализация кнопок отправки
+        if (typeof initSharingButtons === 'function') {
+            initSharingButtons();
+        }
+        
+        // Инициализация мобильного интерфейса
+        if (window.innerWidth <= 576 && typeof initMobileUI === 'function') {
+            initMobileUI();
+        }
+        
+        console.log('App initialized successfully');
+        
+    } catch (error) {
+        console.error('Error initializing app:', error);
+        showNotification('Ошибка загрузки приложения');
+    }
+}
+
+// Обработчик изменения размера окна с throttle
+const throttledResize = throttle(function() {
+    const editorCanvas = window.editorCanvas;
+    if (editorCanvas && typeof resizeCanvas === 'function') {
+        resizeCanvas(editorCanvas);
     }
     
-    const ctx = editorCanvas.getContext('2d');
-    
-    if (!ctx) {
-        canvasFallback.style.display = 'block';
-        editorCanvas.style.display = 'none';
-        return;
-    }
-    
-    // Инициализация модулей
-    initCanvas(editorCanvas, ctx);
-    initUI();
-    initEventListeners();
-    
-    // Обновление интерфейса
-    updateElementList();
-    updateProjectSummary();
-    calculateCost();
-    centerView(editorCanvas);
-    
-    // Инициализация кнопок отправки
-    initSharingButtons();
-    
-    // Инициализация мобильного интерфейса
-    if (window.innerWidth <= 576) {
+    // Переинициализация мобильного интерфейса при изменении размера
+    if (window.innerWidth <= 576 && typeof initMobileUI === 'function') {
         initMobileUI();
+    } else {
+        // Скрываем мобильные элементы на десктопе
+        const mobileToolsContainer = document.querySelector('.mobile-tools-container');
+        const fabContainer = safeGetElement('fabContainer');
+        if (mobileToolsContainer) mobileToolsContainer.style.display = 'none';
+        if (fabContainer) fabContainer.style.display = 'none';
+    }
+}, 250);
+
+// Глобальные функции для доступа из других модулей
+window.getEditorState = function() {
+    return {
+        currentTool,
+        rooms,
+        selectedRoom,
+        selectedElementObj,
+        scale,
+        zoom,
+        viewOffsetX,
+        viewOffsetY
+    };
+};
+
+window.setEditorState = function(newState) {
+    if (newState.currentTool !== undefined) currentTool = newState.currentTool;
+    if (newState.rooms !== undefined) rooms = newState.rooms;
+    if (newState.selectedRoom !== undefined) selectedRoom = newState.selectedRoom;
+    if (newState.selectedElementObj !== undefined) selectedElementObj = newState.selectedElementObj;
+    if (newState.scale !== undefined) scale = newState.scale;
+    if (newState.zoom !== undefined) zoom = newState.zoom;
+    if (newState.viewOffsetX !== undefined) viewOffsetX = newState.viewOffsetX;
+    if (newState.viewOffsetY !== undefined) viewOffsetY = newState.viewOffsetY;
+};
+
+// Экспорт функций для использования в других модулях
+window.safeGetElement = safeGetElement;
+window.showNotification = showNotification;
+window.escapeHTML = escapeHTML;
+window.generateId = generateId;
+
+// Инициализация при загрузке DOM
+document.addEventListener('DOMContentLoaded', function() {
+    // Добавляем обработчик изменения размера окна
+    window.addEventListener('resize', throttledResize);
+    
+    // Запускаем инициализацию
+    initializeApp();
+});
+
+// Обработчик ошибок для отлова непредвиденных ошибок
+window.addEventListener('error', function(e) {
+    console.error('Global error:', e.error);
+    showNotification('Произошла непредвиденная ошибка');
+});
+
+// Предотвращение выхода из страницы с несохраненными изменениями
+window.addEventListener('beforeunload', function(e) {
+    if (rooms.length > 0) {
+        const confirmationMessage = 'У вас есть несохраненные изменения. Вы уверены, что хотите покинуть страницу?';
+        e.returnValue = confirmationMessage;
+        return confirmationMessage;
     }
 });
