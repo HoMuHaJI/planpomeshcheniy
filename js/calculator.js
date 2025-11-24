@@ -2,27 +2,16 @@
 
 // Расчет стоимости работ и формирование кассового чека
 function calculateCost() {
-    const state = PlanPomesheniy.getState();
-    const prices = PlanPomesheniy.getPrices();
-    
-    const ceilingHeightInput = getElementSafe('ceilingHeight');
-    const ceilingHeight = ceilingHeightInput ? parseFloat(ceilingHeightInput.value) : 2.5;
-    
+    const ceilingHeight = parseFloat(document.getElementById('ceilingHeight').value);
     let totalCost = 0;
     let estimateHTML = '';
     
-    const receiptContainer = getElementSafe('receiptContainer');
-    const receiptContent = getElementSafe('receiptContent');
-    const estimateResults = getElementSafe('estimateResults');
-    
-    if (state.rooms.length === 0) {
+    if (rooms.length === 0) {
         estimateHTML = '<div class="summary-item">Добавьте комнаты для расчета стоимости</div>';
-        if (receiptContainer) {
-            receiptContainer.style.display = 'none';
-        }
+        receiptContainer.style.display = 'none';
         
         // Скрываем кнопки отправки, если нет комнат
-        const receiptActions = getElementSafe('receiptActions');
+        const receiptActions = document.getElementById('receiptActions');
         if (receiptActions) {
             receiptActions.style.display = 'none';
         }
@@ -44,8 +33,8 @@ function calculateCost() {
             <div class="receipt-line" style="border-bottom: 2px dashed #000; margin-bottom: 15px;"></div>
         `;
         
-        state.rooms.forEach(room => {
-            const perimeter = ((room.width / state.scale) + (room.height / state.scale)) * 2;
+        rooms.forEach(room => {
+            const perimeter = ((room.width / scale) + (room.height / scale)) * 2;
             const wallsArea = perimeter * ceilingHeight;
             
             // Вычитаем площади окон и дверей
@@ -86,7 +75,7 @@ function calculateCost() {
             // Добавляем заголовок комнаты в чек
             receiptHTML += `
                 <div class="receipt-room-header">
-                    ${escapeHTML(room.name)} (${(room.width / state.scale).toFixed(1)}x${(room.height / state.scale).toFixed(1)} м)
+                    ${escapeHTML(room.name)} (${(room.width / scale).toFixed(1)}x${(room.height / scale).toFixed(1)} м)
                 </div>
             `;
             
@@ -423,27 +412,20 @@ function calculateCost() {
             </div>
         `;
         
-        if (receiptContent) {
-            receiptContent.innerHTML = receiptHTML;
-        }
-        if (receiptContainer) {
-            receiptContainer.style.display = 'block';
-        }
+        receiptContent.innerHTML = receiptHTML;
+        receiptContainer.style.display = 'block';
         
         // Показываем кнопки отправки
         showSharingButtons();
     }
     
-    if (estimateResults) {
-        estimateResults.innerHTML = estimateHTML;
-    }
+    document.getElementById('estimateResults').innerHTML = estimateHTML;
 }
 
 // Функция для показа кнопок отправки
 function showSharingButtons() {
-    const state = PlanPomesheniy.getState();
-    const receiptActions = getElementSafe('receiptActions');
-    if (receiptActions && state.rooms.length > 0) {
+    const receiptActions = document.getElementById('receiptActions');
+    if (receiptActions && rooms.length > 0) {
         receiptActions.style.display = 'block';
     }
 }

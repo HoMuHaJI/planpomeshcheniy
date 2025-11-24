@@ -1,41 +1,29 @@
 // Функции для работы с пользовательским интерфейсом
 
-// Глобальные переменные для DOM элементов
-let roomProperties, doorProperties, windowProperties;
-let applyRoomChangesBtn, applyWindowChangesBtn, applyDoorChangesBtn;
-let plasterCheckbox, armoringCheckbox, puttyWallpaperCheckbox, puttyPaintCheckbox, paintingCheckbox;
-
 // Обновление списка элементов
 function updateElementList() {
-    const elementList = getElementSafe('elementList');
-    if (!elementList) return;
-    
-    const state = PlanPomesheniy.getState();
-    
+    const elementList = document.getElementById('elementList');
     elementList.innerHTML = '';
     
-    if (state.rooms.length === 0) {
+    if (rooms.length === 0) {
         elementList.innerHTML = '<div class="element-item">Нет элементов</div>';
         return;
     }
     
-    state.rooms.forEach(room => {
+    rooms.forEach(room => {
         const item = document.createElement('div');
         item.className = 'element-item';
-        if (state.selectedRoom && state.selectedRoom.id === room.id) {
+        if (selectedRoom && selectedRoom.id === room.id) {
             item.classList.add('selected');
         }
         item.innerHTML = `
-            <span>${escapeHTML(room.name)} (${(room.width / state.scale).toFixed(1)}x${(room.height / state.scale).toFixed(1)} м)</span>
+            <span>${escapeHTML(room.name)} (${(room.width / scale).toFixed(1)}x${(room.height / scale).toFixed(1)} м)</span>
             <button class="delete-btn" data-id="${room.id}" data-type="room"><i class="fas fa-trash"></i></button>
         `;
         item.addEventListener('click', (e) => {
             if (e.target.classList.contains('delete-btn') || e.target.parentElement?.classList.contains('delete-btn')) return;
             selectRoom(room);
-            const editorCanvas = getElementSafe('editorCanvas');
-            if (editorCanvas) {
-                draw(editorCanvas, editorCanvas.getContext('2d'));
-            }
+            draw(document.getElementById('editorCanvas'), document.getElementById('editorCanvas').getContext('2d'));
             if (window.innerWidth <= 576) {
                 showMobilePanel('properties');
             }
@@ -53,7 +41,7 @@ function updateElementList() {
         room.windows.forEach(window => {
             const windowItem = document.createElement('div');
             windowItem.className = 'element-item';
-            if (state.selectedElementObj && state.selectedElementObj.id === window.id) {
+            if (selectedElementObj && selectedElementObj.id === window.id) {
                 windowItem.classList.add('selected');
             }
             windowItem.innerHTML = `
@@ -62,12 +50,9 @@ function updateElementList() {
             `;
             windowItem.addEventListener('click', (e) => {
                 if (e.target.classList.contains('delete-btn') || e.target.parentElement?.classList.contains('delete-btn')) return;
-                PlanPomesheniy.setSelectedRoom(room);
+                selectedRoom = room;
                 selectElement(window);
-                const editorCanvas = getElementSafe('editorCanvas');
-                if (editorCanvas) {
-                    draw(editorCanvas, editorCanvas.getContext('2d'));
-                }
+                draw(document.getElementById('editorCanvas'), document.getElementById('editorCanvas').getContext('2d'));
                 if (window.innerWidth <= 576) {
                     showMobilePanel('properties');
                 }
@@ -86,7 +71,7 @@ function updateElementList() {
         room.doors.forEach(door => {
             const doorItem = document.createElement('div');
             doorItem.className = 'element-item';
-            if (state.selectedElementObj && state.selectedElementObj.id === door.id) {
+            if (selectedElementObj && selectedElementObj.id === door.id) {
                 doorItem.classList.add('selected');
             }
             doorItem.innerHTML = `
@@ -95,12 +80,9 @@ function updateElementList() {
             `;
             doorItem.addEventListener('click', (e) => {
                 if (e.target.classList.contains('delete-btn') || e.target.parentElement?.classList.contains('delete-btn')) return;
-                PlanPomesheniy.setSelectedRoom(room);
+                selectedRoom = room;
                 selectElement(door);
-                const editorCanvas = getElementSafe('editorCanvas');
-                if (editorCanvas) {
-                    draw(editorCanvas, editorCanvas.getContext('2d'));
-                }
+                draw(document.getElementById('editorCanvas'), document.getElementById('editorCanvas').getContext('2d'));
                 if (window.innerWidth <= 576) {
                     showMobilePanel('properties');
                 }
@@ -120,20 +102,16 @@ function updateElementList() {
 // Функции удаления элементов
 function deleteRoom(room) {
     if (confirm(`Удалить комнату "${room.name}"?`)) {
-        PlanPomesheniy.removeRoom(room.id);
-        const state = PlanPomesheniy.getState();
-        if (state.selectedRoom && state.selectedRoom.id === room.id) {
-            PlanPomesheniy.setSelectedRoom(null);
-            PlanPomesheniy.setSelectedElementObj(null);
+        rooms = rooms.filter(r => r.id !== room.id);
+        if (selectedRoom && selectedRoom.id === room.id) {
+            selectedRoom = null;
+            selectedElementObj = null;
             hideAllProperties();
         }
         updateElementList();
         updateProjectSummary();
         calculateCost();
-        const editorCanvas = getElementSafe('editorCanvas');
-        if (editorCanvas) {
-            centerView(editorCanvas);
-        }
+        centerView(editorCanvas);
         showNotification('Комната удалена');
     }
 }
@@ -141,18 +119,14 @@ function deleteRoom(room) {
 function deleteWindow(room, window) {
     if (confirm('Удалить окно?')) {
         room.windows = room.windows.filter(w => w.id !== window.id);
-        const state = PlanPomesheniy.getState();
-        if (state.selectedElementObj && state.selectedElementObj.id === window.id) {
-            PlanPomesheniy.setSelectedElementObj(null);
+        if (selectedElementObj && selectedElementObj.id === window.id) {
+            selectedElementObj = null;
             hideAllProperties();
         }
         updateElementList();
         updateProjectSummary();
         calculateCost();
-        const editorCanvas = getElementSafe('editorCanvas');
-        if (editorCanvas) {
-            draw(editorCanvas, editorCanvas.getContext('2d'));
-        }
+        draw(document.getElementById('editorCanvas'), document.getElementById('editorCanvas').getContext('2d'));
         showNotification('Окно удалено');
     }
 }
@@ -160,37 +134,30 @@ function deleteWindow(room, window) {
 function deleteDoor(room, door) {
     if (confirm('Удалить дверь?')) {
         room.doors = room.doors.filter(d => d.id !== door.id);
-        const state = PlanPomesheniy.getState();
-        if (state.selectedElementObj && state.selectedElementObj.id === door.id) {
-            PlanPomesheniy.setSelectedElementObj(null);
+        if (selectedElementObj && selectedElementObj.id === door.id) {
+            selectedElementObj = null;
             hideAllProperties();
         }
         updateElementList();
         updateProjectSummary();
         calculateCost();
-        const editorCanvas = getElementSafe('editorCanvas');
-        if (editorCanvas) {
-            draw(editorCanvas, editorCanvas.getContext('2d'));
-        }
+        draw(document.getElementById('editorCanvas'), document.getElementById('editorCanvas').getContext('2d'));
         showNotification('Дверь удалена');
     }
 }
 
 // Обновление сводки проекта
 function updateProjectSummary() {
-    const state = PlanPomesheniy.getState();
-    
     let windowsCount = 0;
     let doorsCount = 0;
     let totalArea = 0;
     
-    state.rooms.forEach(room => {
+    rooms.forEach(room => {
         windowsCount += room.windows.length;
         doorsCount += room.doors.length;
         
-        const perimeter = ((room.width / state.scale) + (room.height / state.scale)) * 2;
-        const ceilingHeightInput = getElementSafe('ceilingHeight');
-        const ceilingHeight = ceilingHeightInput ? parseFloat(ceilingHeightInput.value) : 2.5;
+        const perimeter = ((room.width / scale) + (room.height / scale)) * 2;
+        const ceilingHeight = parseFloat(document.getElementById('ceilingHeight').value);
         const wallsArea = perimeter * ceilingHeight;
         
         // Вычитаем площади окон и дверей
@@ -208,117 +175,239 @@ function updateProjectSummary() {
         totalArea += wallsArea - windowsArea - doorsArea;
     });
     
-    const roomsCountElem = getElementSafe('roomsCount');
-    const windowsCountElem = getElementSafe('windowsCount');
-    const doorsCountElem = getElementSafe('doorsCount');
-    const totalAreaElem = getElementSafe('totalArea');
-    
-    if (roomsCountElem) roomsCountElem.textContent = state.rooms.length;
-    if (windowsCountElem) windowsCountElem.textContent = windowsCount;
-    if (doorsCountElem) doorsCountElem.textContent = doorsCount;
-    if (totalAreaElem) totalAreaElem.textContent = `${totalArea.toFixed(1)} м²`;
+    document.getElementById('roomsCount').textContent = rooms.length;
+    document.getElementById('windowsCount').textContent = windowsCount;
+    document.getElementById('doorsCount').textContent = doorsCount;
+    document.getElementById('totalArea').textContent = `${totalArea.toFixed(1)} м²`;
 }
 
 // Обновление панели свойств в зависимости от выбранного элемента
 function updatePropertiesPanel(element) {
     hideAllProperties();
     
-    if (!element) return;
-    
     if (element.type === 'room') {
-        if (roomProperties) roomProperties.style.display = 'block';
-        const roomName = getElementSafe('roomName');
-        const roomWidth = getElementSafe('roomWidth');
-        const roomHeightProp = getElementSafe('roomHeightProp');
-        
-        if (roomName) roomName.value = element.name;
-        if (roomWidth) roomWidth.value = (element.width / state.scale).toFixed(1);
-        if (roomHeightProp) roomHeightProp.value = (element.height / state.scale).toFixed(1);
+        roomProperties.style.display = 'block';
+        document.getElementById('roomName').value = element.name;
+        document.getElementById('roomWidth').value = (element.width / scale).toFixed(1);
+        document.getElementById('roomHeightProp').value = (element.height / scale).toFixed(1);
         
         // Установка чекбоксов отделки
-        if (plasterCheckbox) plasterCheckbox.checked = element.plaster;
-        if (armoringCheckbox) armoringCheckbox.checked = element.armoring;
-        if (puttyWallpaperCheckbox) puttyWallpaperCheckbox.checked = element.puttyWallpaper;
-        if (puttyPaintCheckbox) puttyPaintCheckbox.checked = element.puttyPaint;
-        if (paintingCheckbox) paintingCheckbox.checked = element.painting;
+        plasterCheckbox.checked = element.plaster;
+        armoringCheckbox.checked = element.armoring;
+        puttyWallpaperCheckbox.checked = element.puttyWallpaper;
+        puttyPaintCheckbox.checked = element.puttyPaint;
+        paintingCheckbox.checked = element.painting;
         
         // Управление состоянием чекбокса покраски при загрузке
-        if (paintingCheckbox) {
-            if (element.puttyWallpaper) {
+        if (element.puttyWallpaper) {
+            paintingCheckbox.disabled = true;
+        } else if (element.puttyPaint) {
+            paintingCheckbox.disabled = false;
+        } else {
+            paintingCheckbox.disabled = true;
+        }
+        
+        // Сброс состояния кнопки
+        applyRoomChangesBtn.disabled = false; // Изменено: всегда активна
+        
+        // Обработчики изменений
+        const roomInputs = ['roomName', 'roomWidth', 'roomHeightProp'];
+        roomInputs.forEach(inputId => {
+            const input = document.getElementById(inputId);
+            // Удаляем старые обработчики
+            input.removeEventListener('input', handleRoomInputChange);
+            input.removeEventListener('change', handleRoomInputChange);
+            // Добавляем новые
+            input.addEventListener('input', handleRoomInputChange);
+            input.addEventListener('change', handleRoomInputChange);
+        });
+        
+        function handleRoomInputChange() {
+            applyRoomChangesBtn.disabled = false;
+        }
+        
+        // Обработчики чекбоксов
+        const checkboxes = [plasterCheckbox, armoringCheckbox, puttyWallpaperCheckbox, puttyPaintCheckbox, paintingCheckbox];
+        checkboxes.forEach(checkbox => {
+            checkbox.removeEventListener('change', handleCheckboxChange);
+            checkbox.addEventListener('change', handleCheckboxChange);
+        });
+        
+        function handleCheckboxChange() {
+            applyRoomChangesBtn.disabled = false;
+            
+            // Взаимное исключение для шпаклевки
+            if (this === puttyWallpaperCheckbox && this.checked) {
+                puttyPaintCheckbox.checked = false;
+                paintingCheckbox.checked = false;
                 paintingCheckbox.disabled = true;
-            } else if (element.puttyPaint) {
+            } else if (this === puttyPaintCheckbox && this.checked) {
+                puttyWallpaperCheckbox.checked = false;
                 paintingCheckbox.disabled = false;
-            } else {
+            } else if (this === puttyWallpaperCheckbox && !this.checked) {
+                paintingCheckbox.disabled = false;
+            } else if (this === puttyPaintCheckbox && !this.checked) {
+                paintingCheckbox.checked = false;
+                paintingCheckbox.disabled = true;
+            }
+            
+            // Если сняли штукатурку, снимаем и армирование
+            if (this === plasterCheckbox && !this.checked) {
+                armoringCheckbox.checked = false;
+                puttyWallpaperCheckbox.checked = false;
+                puttyPaintCheckbox.checked = false;
+                paintingCheckbox.checked = false;
                 paintingCheckbox.disabled = true;
             }
         }
         
-        // Сброс состояния кнопки
-        if (applyRoomChangesBtn) applyRoomChangesBtn.disabled = false;
+        // Обработчик кнопки применения изменений
+        applyRoomChangesBtn.onclick = () => {
+            const newWidth = parseFloat(document.getElementById('roomWidth').value) * scale;
+            const newHeight = parseFloat(document.getElementById('roomHeightProp').value) * scale;
+            
+            // Сохраняем центр комнаты для плавного изменения размера
+            const centerX = element.x + element.width / 2;
+            const centerY = element.y + element.height / 2;
+            
+            element.name = document.getElementById('roomName').value;
+            element.width = newWidth;
+            element.height = newHeight;
+            
+            // Обновляем позицию для сохранения центра
+            element.x = centerX - newWidth / 2;
+            element.y = centerY - newHeight / 2;
+            
+            element.plaster = plasterCheckbox.checked;
+            element.armoring = armoringCheckbox.checked;
+            element.puttyWallpaper = puttyWallpaperCheckbox.checked;
+            element.puttyPaint = puttyPaintCheckbox.checked;
+            element.painting = paintingCheckbox.checked;
+            
+            applyRoomChangesBtn.disabled = true;
+            updateElementList();
+            updateProjectSummary();
+            calculateCost();
+            draw(document.getElementById('editorCanvas'), document.getElementById('editorCanvas').getContext('2d'));
+            showNotification('Изменения применены');
+        };
         
+        document.getElementById('deleteRoom').onclick = () => {
+            deleteRoom(element);
+        };
     } else if (element.type === 'window') {
-        if (windowProperties) windowProperties.style.display = 'block';
-        const windowWidth = getElementSafe('windowWidth');
-        const windowHeight = getElementSafe('windowHeight');
-        const windowWall = getElementSafe('windowWall');
-        const windowPosition = getElementSafe('windowPosition');
-        const windowPositionValue = getElementSafe('windowPositionValue');
-        const windowSlopes = getElementSafe('windowSlopes');
-        
-        if (windowWidth) windowWidth.value = element.width;
-        if (windowHeight) windowHeight.value = element.height;
-        if (windowWall) windowWall.value = element.wall;
-        if (windowPosition) windowPosition.value = element.position;
-        if (windowPositionValue) windowPositionValue.textContent = `${element.position}%`;
-        if (windowSlopes) windowSlopes.value = element.slopes;
+        windowProperties.style.display = 'block';
+        document.getElementById('windowWidth').value = element.width;
+        document.getElementById('windowHeight').value = element.height;
+        document.getElementById('windowWall').value = element.wall;
+        document.getElementById('windowPosition').value = element.position;
+        document.getElementById('windowPositionValue').textContent = `${element.position}%`;
+        document.getElementById('windowSlopes').value = element.slopes;
         
         // Сброс состояния кнопки
-        if (applyWindowChangesBtn) applyWindowChangesBtn.disabled = true;
+        applyWindowChangesBtn.disabled = true;
         
+        // Обработчики изменений
+        const windowInputs = ['windowWidth', 'windowHeight', 'windowWall', 'windowPosition', 'windowSlopes'];
+        windowInputs.forEach(inputId => {
+            const input = document.getElementById(inputId);
+            input.removeEventListener('input', windowInputHandler);
+            input.addEventListener('input', windowInputHandler);
+        });
+        
+        function windowInputHandler(e) {
+            applyWindowChangesBtn.disabled = false;
+            if (e.target.id === 'windowPosition') {
+                document.getElementById('windowPositionValue').textContent = `${document.getElementById('windowPosition').value}%`;
+            }
+        }
+        
+        applyWindowChangesBtn.onclick = () => {
+            element.width = parseFloat(document.getElementById('windowWidth').value);
+            element.height = parseFloat(document.getElementById('windowHeight').value);
+            element.wall = document.getElementById('windowWall').value;
+            element.position = parseInt(document.getElementById('windowPosition').value);
+            element.slopes = document.getElementById('windowSlopes').value;
+            
+            applyWindowChangesBtn.disabled = true;
+            updateElementList();
+            updateProjectSummary();
+            calculateCost();
+            draw(document.getElementById('editorCanvas'), document.getElementById('editorCanvas').getContext('2d'));
+            showNotification('Изменения применены');
+        };
+        
+        document.getElementById('deleteWindow').onclick = () => {
+            if (selectedRoom) {
+                deleteWindow(selectedRoom, element);
+            }
+        };
     } else if (element.type === 'door') {
-        if (doorProperties) doorProperties.style.display = 'block';
-        const doorWidth = getElementSafe('doorWidth');
-        const doorHeight = getElementSafe('doorHeight');
-        const doorWall = getElementSafe('doorWall');
-        const doorPosition = getElementSafe('doorPosition');
-        const doorPositionValue = getElementSafe('doorPositionValue');
-        const doorSlopes = getElementSafe('doorSlopes');
-        
-        if (doorWidth) doorWidth.value = element.width;
-        if (doorHeight) doorHeight.value = element.height;
-        if (doorWall) doorWall.value = element.wall;
-        if (doorPosition) doorPosition.value = element.position;
-        if (doorPositionValue) doorPositionValue.textContent = `${element.position}%`;
-        if (doorSlopes) doorSlopes.value = element.slopes;
+        doorProperties.style.display = 'block';
+        document.getElementById('doorWidth').value = element.width;
+        document.getElementById('doorHeight').value = element.height;
+        document.getElementById('doorWall').value = element.wall;
+        document.getElementById('doorPosition').value = element.position;
+        document.getElementById('doorPositionValue').textContent = `${element.position}%`;
+        document.getElementById('doorSlopes').value = element.slopes;
         
         // Сброс состояния кнопки
-        if (applyDoorChangesBtn) applyDoorChangesBtn.disabled = true;
+        applyDoorChangesBtn.disabled = true;
+        
+        // Обработчики изменений
+        const doorInputs = ['doorWidth', 'doorHeight', 'doorWall', 'doorPosition', 'doorSlopes'];
+        doorInputs.forEach(inputId => {
+            const input = document.getElementById(inputId);
+            input.removeEventListener('input', doorInputHandler);
+            input.addEventListener('input', doorInputHandler);
+        });
+        
+        function doorInputHandler(e) {
+            applyDoorChangesBtn.disabled = false;
+            if (e.target.id === 'doorPosition') {
+                document.getElementById('doorPositionValue').textContent = `${document.getElementById('doorPosition').value}%`;
+            }
+        }
+        
+        applyDoorChangesBtn.onclick = () => {
+            element.width = parseFloat(document.getElementById('doorWidth').value);
+            element.height = parseFloat(document.getElementById('doorHeight').value);
+            element.wall = document.getElementById('doorWall').value;
+            element.position = parseInt(document.getElementById('doorPosition').value);
+            element.slopes = document.getElementById('doorSlopes').value;
+            
+            applyDoorChangesBtn.disabled = true;
+            updateElementList();
+            updateProjectSummary();
+            calculateCost();
+            draw(document.getElementById('editorCanvas'), document.getElementById('editorCanvas').getContext('2d'));
+            showNotification('Изменения применены');
+        };
+        
+        document.getElementById('deleteDoor').onclick = () => {
+            if (selectedRoom) {
+                deleteDoor(selectedRoom, element);
+            }
+        };
     }
     
-    const selectedElement = getElementSafe('selectedElement');
-    if (selectedElement) {
-        selectedElement.textContent = `${element.type === 'room' ? 'Комната' : element.type === 'window' ? 'Окно' : 'Дверь'}: ${escapeHTML(element.name || '')}`;
-    }
+    selectedElement.textContent = `${element.type === 'room' ? 'Комната' : element.type === 'window' ? 'Окно' : 'Дверь'}: ${escapeHTML(element.name || '')}`;
 }
 
 // Скрытие всех панелей свойств
 function hideAllProperties() {
-    if (roomProperties) roomProperties.style.display = 'none';
-    if (doorProperties) doorProperties.style.display = 'none';
-    if (windowProperties) windowProperties.style.display = 'none';
-    
-    const selectedElement = getElementSafe('selectedElement');
-    if (selectedElement) {
-        selectedElement.textContent = 'Не выбран';
-    }
+    roomProperties.style.display = 'none';
+    doorProperties.style.display = 'none';
+    windowProperties.style.display = 'none';
+    selectedElement.textContent = 'Не выбран';
 }
 
 // Функции для отправки сметы
 function initSharingButtons() {
-    const sendWhatsAppBtn = getElementSafe('sendWhatsApp');
-    const copyReceiptBtn = getElementSafe('copyReceipt');
-    const printReceiptBtn = getElementSafe('printReceipt');
-    const feedbackBtn = getElementSafe('feedbackBtn');
+    const sendWhatsAppBtn = document.getElementById('sendWhatsApp');
+    const copyReceiptBtn = document.getElementById('copyReceipt');
+    const printReceiptBtn = document.getElementById('printReceipt');
+    const feedbackBtn = document.getElementById('feedbackBtn');
     
     if (sendWhatsAppBtn) {
         sendWhatsAppBtn.addEventListener('click', shareToWhatsApp);
@@ -339,25 +428,20 @@ function initSharingButtons() {
 
 // Функция для получения текстового представления сметы
 function getReceiptText() {
-    const state = PlanPomesheniy.getState();
-    const prices = PlanPomesheniy.getPrices();
-    
     let text = `🧾 СМЕТА РАБОТ\n`;
     text += `📅 ${new Date().toLocaleDateString()}\n`;
     text += `📍 Расчет для г. Симферополь\n\n`;
     
     let totalCost = 0;
     
-    const ceilingHeightInput = getElementSafe('ceilingHeight');
-    const ceilingHeight = ceilingHeightInput ? parseFloat(ceilingHeightInput.value) : 2.5;
-    
-    state.rooms.forEach(room => {
-        const roomArea = (room.width / state.scale * room.height / state.scale).toFixed(1);
-        text += `🏠 ${escapeHTML(room.name)} (${(room.width / state.scale).toFixed(1)}×${(room.height / state.scale).toFixed(1)} м)\n`;
+    rooms.forEach(room => {
+        const roomArea = (room.width / scale * room.height / scale).toFixed(1);
+        text += `🏠 ${escapeHTML(room.name)} (${(room.width / scale).toFixed(1)}×${(room.height / scale).toFixed(1)} м)\n`;
         text += `📐 Площадь: ${roomArea} м²\n`;
         text += `━━━━━━━━━━━━━━━━━━━━\n`;
         
-        const perimeter = ((room.width / state.scale) + (room.height / state.scale)) * 2;
+        const ceilingHeight = parseFloat(document.getElementById('ceilingHeight').value);
+        const perimeter = ((room.width / scale) + (room.height / scale)) * 2;
         const wallsArea = perimeter * ceilingHeight;
         
         let windowsArea = 0;
@@ -505,18 +589,11 @@ function getReceiptText() {
     text += `════════════════════════════\n\n`;
     
     text += `Общая информация:\n`;
-    text += `• Комнат: ${state.rooms.length}\n`;
-    
-    let windowsCount = 0;
-    let doorsCount = 0;
-    state.rooms.forEach(room => {
-        windowsCount += room.windows.length;
-        doorsCount += room.doors.length;
-    });
-    
-    text += `• Окон: ${windowsCount}\n`;
-    text += `• Дверей: ${doorsCount}\n`;
-    text += `• Высота потолков: ${ceilingHeight} м\n\n`;
+    text += `• Комнат: ${document.getElementById('roomsCount').textContent}\n`;
+    text += `• Окон: ${document.getElementById('windowsCount').textContent}\n`;
+    text += `• Дверей: ${document.getElementById('doorsCount').textContent}\n`;
+    text += `• Общая площадь стен: ${document.getElementById('totalArea').textContent}\n`;
+    text += `• Высота потолков: ${document.getElementById('ceilingHeight').value} м\n\n`;
     
     text += `Детализация сметы:\n`;
     text += `• Штукатурка: ${prices.plaster.square} руб/м²\n`;
@@ -553,7 +630,7 @@ function copyReceiptToClipboard() {
     });
 }
 
-// Функция для печати сметы
+// Функция для печати смета
 function printReceipt() {
     window.print();
     showNotification('Подготовка к печати сметы');
@@ -561,37 +638,33 @@ function printReceipt() {
 
 // Функции для модального окна обратной связи
 function openFeedbackModal() {
-    const modal = getElementSafe('feedbackModal');
-    if (modal) {
-        modal.style.display = 'block';
-        document.body.style.overflow = 'hidden';
-    }
+    const modal = document.getElementById('feedbackModal');
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
 }
 
 function closeFeedbackModal() {
-    const modal = getElementSafe('feedbackModal');
-    if (modal) {
-        modal.style.display = 'none';
-        document.body.style.overflow = 'auto';
-    }
+    const modal = document.getElementById('feedbackModal');
+    modal.style.display = 'none';
+    document.body.style.overflow = 'auto';
 }
 
 // Функция для отправки формы обратной связи
 async function submitFeedbackForm(formData) {
-    // В реальном приложении используйте серверный endpoint
-    // Это временное решение для демонстрации
+    const TELEGRAM_BOT_TOKEN = '8142957488:AAGDsEIsGdtrCX-ZyvOD7nJjaVVD3_YIFks';
+    const TELEGRAM_CHAT_ID = '-1001701431569';
     
     const receiptText = getReceiptText();
     
     const message = `
-📋 НОВАЯ ЗАЯВКА НА КОНСУЛЬТАЦИЮ
+📋 *НОВАЯ ЗАЯВКА НА КОНСУЛЬТАЦИЮ*
 
-👤 Клиент: ${formData.clientName}
-📞 Контакты: ${formData.clientContact}
-🏠 Тип помещения: ${formData.propertyType}
-📏 Площадь: ${formData.totalArea || 'Не указана'} м²
+👤 *Клиент:* ${formData.clientName}
+📞 *Контакты:* ${formData.clientContact}
+🏠 *Тип помещения:* ${formData.propertyType}
+📏 *Площадь:* ${formData.totalArea || 'Не указана'} м²
 
-💬 Дополнительная информация:
+💬 *Дополнительная информация:*
 ${formData.additionalInfo || 'Не указана'}
 
 ━━━━━━━━━━━━━━━━━━━━
@@ -599,17 +672,596 @@ ${receiptText}
     `;
     
     try {
-        // Временное решение - в реальном приложении замените на вызов вашего серверного API
-        console.log('Заявка на консультацию:', message);
+        const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                chat_id: TELEGRAM_CHAT_ID,
+                text: message,
+                parse_mode: 'Markdown'
+            })
+        });
         
-        // Имитация успешной отправки
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        return true;
+        const result = await response.json();
         
+        if (!result.ok) {
+            console.error('Ошибка Telegram API:', result);
+            const responsePlain = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    chat_id: TELEGRAM_CHAT_ID,
+                    text: message.replace(/\*/g, ''),
+                    parse_mode: null
+                })
+            });
+            
+            const resultPlain = await responsePlain.json();
+            return resultPlain.ok;
+        }
+        
+        return result.ok;
     } catch (error) {
         console.error('Ошибка отправки заявки:', error);
         return false;
     }
+}
+
+// Показ мобильной панели
+function showMobilePanel(panelType) {
+    const overlay = document.getElementById('mobilePanelOverlay');
+    const panel = document.getElementById('mobilePanel');
+    const panelContent = document.getElementById('mobilePanelContent');
+    const panelTitle = document.getElementById('mobilePanelTitle');
+    
+    if (!overlay || !panel || !panelContent) {
+        console.error('Мобильные элементы не найдены');
+        return;
+    }
+    
+    // Заполняем контент в зависимости от типа панели
+    switch(panelType) {
+        case 'tools':
+            panelTitle.innerHTML = '<i class="fas fa-tools"></i> Инструменты';
+            // Копируем содержимое из десктопной панели инструментов
+            const toolsContent = document.querySelector('.tools-panel .panel-content');
+            if (toolsContent) {
+                panelContent.innerHTML = toolsContent.innerHTML;
+            }
+            break;
+            
+        case 'properties':
+            panelTitle.innerHTML = '<i class="fas fa-cog"></i> Свойства';
+            if (selectedElementObj) {
+                if (selectedElementObj.type === 'room') {
+                    panelContent.innerHTML = `
+                        <div class="property-group">
+                            <h3><i class="fas fa-door-open"></i> Свойства комнаты</h3>
+                            <div class="form-group">
+                                <label for="mobileRoomName">Название:</label>
+                                <input type="text" id="mobileRoomName" value="${escapeHTML(selectedElementObj.name)}">
+                            </div>
+                            <div class="form-group">
+                                <label for="mobileRoomWidth">Ширина (м):</label>
+                                <input type="number" id="mobileRoomWidth" min="1.0" max="20.0" step="0.1" value="${(selectedElementObj.width / scale).toFixed(1)}">
+                            </div>
+                            <div class="form-group">
+                                <label for="mobileRoomHeight">Длина (м):</label>
+                                <input type="number" id="mobileRoomHeight" min="1.0" max="20.0" step="0.1" value="${(selectedElementObj.height / scale).toFixed(1)}">
+                            </div>
+                            <div class="form-group">
+                                <label>Отделка стен:</label>
+                                <div class="checkbox-group">
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="mobilePlaster" ${selectedElementObj.plaster ? 'checked' : ''}>
+                                        <label for="mobilePlaster">Стартовая штукатурка</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="mobileArmoring" ${selectedElementObj.armoring ? 'checked' : ''}>
+                                        <label for="mobileArmoring">Армирование сеткой</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="mobilePuttyWallpaper" ${selectedElementObj.puttyWallpaper ? 'checked' : ''}>
+                                        <label for="mobilePuttyWallpaper">Шпаклевка (под обои)</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="mobilePuttyPaint" ${selectedElementObj.puttyPaint ? 'checked' : ''}>
+                                        <label for="mobilePuttyPaint">Шпаклевка (под покраску)</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="mobilePainting" ${selectedElementObj.painting ? 'checked' : ''} ${selectedElementObj.puttyWallpaper ? 'disabled' : ''}>
+                                        <label for="mobilePainting">Покраска</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <button id="mobileApplyRoomChanges" class="btn-primary"><i class="fas fa-check"></i> Применить изменения</button>
+                            <div class="divider"></div>
+                            <button class="btn-danger" id="mobileDeleteRoom"><i class="fas fa-trash"></i> Удалить комнату</button>
+                        </div>
+                    `;
+                } else if (selectedElementObj.type === 'window') {
+                    panelContent.innerHTML = `
+                        <div class="property-group">
+                            <h3><i class="fas fa-square"></i> Свойства окна</h3>
+                            <div class="form-group">
+                                <label for="mobileWindowWidth">Ширина (м):</label>
+                                <input type="number" id="mobileWindowWidth" min="0.5" max="3.0" step="0.1" value="${selectedElementObj.width}">
+                            </div>
+                            <div class="form-group">
+                                <label for="mobileWindowHeight">Высота (м):</label>
+                                <input type="number" id="mobileWindowHeight" min="0.5" max="3.0" step="0.1" value="${selectedElementObj.height}">
+                            </div>
+                            <div class="form-group">
+                                <label for="mobileWindowSlopes">Откосы:</label>
+                                <select id="mobileWindowSlopes">
+                                    <option value="with" ${selectedElementObj.slopes === 'with' ? 'selected' : ''}>С откосами</option>
+                                    <option value="with_net" ${selectedElementObj.slopes === 'with_net' ? 'selected' : ''}>С откосами и сеткой</option>
+                                    <option value="without" ${selectedElementObj.slopes === 'without' ? 'selected' : ''}>Без откосов</option>
+                                </select>
+                            </div>
+                            <button id="mobileApplyWindowChanges" class="btn-primary"><i class="fas fa-check"></i> Применить изменения</button>
+                            <div class="divider"></div>
+                            <button class="btn-danger" id="mobileDeleteWindow"><i class="fas fa-trash"></i> Удалить окно</button>
+                        </div>
+                    `;
+                } else if (selectedElementObj.type === 'door') {
+                    panelContent.innerHTML = `
+                        <div class="property-group">
+                            <h3><i class="fas fa-door-open"></i> Свойства двери</h3>
+                            <div class="form-group">
+                                <label for="mobileDoorWidth">Ширина (м):</label>
+                                <input type="number" id="mobileDoorWidth" min="0.5" max="2.0" step="0.1" value="${selectedElementObj.width}">
+                            </div>
+                            <div class="form-group">
+                                <label for="mobileDoorHeight">Высота (м):</label>
+                                <input type="number" id="mobileDoorHeight" min="1.5" max="3.0" step="0.1" value="${selectedElementObj.height}">
+                            </div>
+                            <div class="form-group">
+                                <label for="mobileDoorSlopes">Откосы:</label>
+                                <select id="mobileDoorSlopes">
+                                    <option value="with" ${selectedElementObj.slopes === 'with' ? 'selected' : ''}>С откосами</option>
+                                    <option value="with_net" ${selectedElementObj.slopes === 'with_net' ? 'selected' : ''}>С откосами и сеткой</option>
+                                    <option value="without" ${selectedElementObj.slopes === 'without' ? 'selected' : ''}>Без откосов</option>
+                                </select>
+                            </div>
+                            <button id="mobileApplyDoorChanges" class="btn-primary"><i class="fas fa-check"></i> Применить изменения</button>
+                            <div class="divider"></div>
+                            <button class="btn-danger" id="mobileDeleteDoor"><i class="fas fa-trash"></i> Удалить дверь</button>
+                        </div>
+                    `;
+                }
+            } else {
+                panelContent.innerHTML = '<p>Выберите элемент для редактирования свойств</p>';
+            }
+            break;
+            
+        case 'summary':
+            panelTitle.innerHTML = '<i class="fas fa-chart-pie"></i> Сводка проекта';
+            const summaryContent = document.querySelector('.properties-panel .panel-content');
+            if (summaryContent) {
+                panelContent.innerHTML = summaryContent.innerHTML;
+            }
+            break;
+    }
+    
+    // Показываем панель
+    overlay.style.display = 'block';
+    panel.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    
+    // Переинициализируем обработчики событий для элементов внутри панели
+    initMobilePanelEvents();
+}
+
+// Закрытие мобильной панели
+function closeMobilePanel() {
+    const overlay = document.getElementById('mobilePanelOverlay');
+    const panel = document.getElementById('mobilePanel');
+    
+    overlay.style.display = 'none';
+    panel.classList.remove('active');
+    document.body.style.overflow = 'auto';
+}
+
+// Инициализация событий мобильной панели
+function initMobilePanelEvents() {
+    // Обработчики для чекбоксов отделки в мобильной панели
+    const mobileCheckboxes = document.querySelectorAll('#mobilePanelContent input[type="checkbox"]');
+    mobileCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            if (selectedElementObj && selectedElementObj.type === 'room') {
+                // Обновляем свойства комнаты
+                selectedElementObj.plaster = document.getElementById('plaster')?.checked || false;
+                selectedElementObj.armoring = document.getElementById('armoring')?.checked || false;
+                selectedElementObj.puttyWallpaper = document.getElementById('puttyWallpaper')?.checked || false;
+                selectedElementObj.puttyPaint = document.getElementById('puttyPaint')?.checked || false;
+                selectedElementObj.painting = document.getElementById('painting')?.checked || false;
+                
+                // Обновляем расчет стоимости
+                updateProjectSummary();
+                calculateCost();
+                showNotification('Изменения применены');
+            }
+        });
+    });
+
+    // Обработчики для инструментов в мобильной панели
+    const toolButtons = document.querySelectorAll('#mobilePanelContent .tool-btn');
+    toolButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const tool = button.dataset.tool;
+            if (tool) {
+                toolButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                currentTool = tool;
+                
+                const editorCanvas = document.getElementById('editorCanvas');
+                if (currentTool === 'select') {
+                    editorCanvas.style.cursor = 'move';
+                } else if (currentTool === 'room') {
+                    editorCanvas.style.cursor = 'crosshair';
+                } else if (currentTool === 'window' || currentTool === 'door') {
+                    editorCanvas.style.cursor = 'cell';
+                }
+                
+                // Закрываем панель после выбора инструмента
+                closeMobilePanel();
+            }
+        });
+    });
+    
+    // Обработчики для кнопок в мобильной панели
+    const applyButtons = document.querySelectorAll('#mobilePanelContent #applyRoomChanges, #mobilePanelContent #applyWindowChanges, #mobilePanelContent #applyDoorChanges');
+    applyButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            closeMobilePanel();
+        });
+    });
+    
+    // Обработчики для удаления элементов в мобильной панели
+    const deleteButtons = document.querySelectorAll('#mobilePanelContent .btn-danger');
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            if (selectedElementObj) {
+                if (selectedElementObj.type === 'room') {
+                    deleteRoom(selectedElementObj);
+                } else if (selectedElementObj.type === 'window') {
+                    if (selectedRoom) {
+                        deleteWindow(selectedRoom, selectedElementObj);
+                    }
+                } else if (selectedElementObj.type === 'door') {
+                    if (selectedRoom) {
+                        deleteDoor(selectedRoom, selectedElementObj);
+                    }
+                }
+                closeMobilePanel();
+            }
+        });
+    });
+}
+
+// Инициализация мобильного интерфейса
+function initMobileUI() {
+    console.log('Инициализация мобильного интерфейса');
+    
+    // Показываем мобильные элементы
+    const mobileToolsContainer = document.querySelector('.mobile-tools-container');
+    const fabContainer = document.getElementById('fabContainer');
+    const mobilePanelOverlay = document.getElementById('mobilePanelOverlay');
+    const mobilePanel = document.getElementById('mobilePanel');
+    
+    if (mobileToolsContainer) {
+        mobileToolsContainer.style.display = 'block';
+    }
+    
+    if (fabContainer) {
+        fabContainer.style.display = 'flex';
+    }
+    
+    // Инициализация обработчиков мобильного интерфейса
+    initMobileEventHandlers();
+    
+    // Синхронизация высоты потолков
+    const ceilingHeight = document.getElementById('ceilingHeight');
+    const mobileCeilingHeight = document.getElementById('mobileCeilingHeight');
+    if (ceilingHeight && mobileCeilingHeight) {
+        mobileCeilingHeight.value = ceilingHeight.value;
+    }
+}
+
+// Инициализация обработчиков мобильного интерфейса
+function initMobileEventHandlers() {
+    console.log('Инициализация мобильных обработчиков');
+    
+    // Обработчики для мобильных кнопок инструментов
+    const mobileToolButtons = document.querySelectorAll('.mobile-tool-btn');
+    mobileToolButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const tool = button.dataset.tool;
+            if (tool) {
+                mobileToolButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                currentTool = tool;
+                
+                const editorCanvas = document.getElementById('editorCanvas');
+                if (currentTool === 'select') {
+                    editorCanvas.style.cursor = 'move';
+                } else if (currentTool === 'room') {
+                    editorCanvas.style.cursor = 'crosshair';
+                } else if (currentTool === 'window' || currentTool === 'door') {
+                    editorCanvas.style.cursor = 'cell';
+                }
+                
+                showNotification(`Инструмент: ${tool === 'select' ? 'Выбор' : tool === 'room' ? 'Комната' : tool === 'window' ? 'Окно' : 'Дверь'}`);
+            }
+        });
+    });
+    
+    // Обработчики для мобильных кнопок управления
+    const mobileNewProject = document.getElementById('mobileNewProject');
+    const mobileClearAll = document.getElementById('mobileClearAll');
+    const mobileZoomIn = document.getElementById('mobileZoomIn');
+    const mobileZoomOut = document.getElementById('mobileZoomOut');
+    const mobileCenterView = document.getElementById('mobileCenterView');
+    
+    if (mobileNewProject) {
+        mobileNewProject.addEventListener('click', () => {
+            rooms = [];
+            selectedRoom = null;
+            selectedElementObj = null;
+            roomCounter = 1;
+            hideAllProperties();
+            updateElementList();
+            updateProjectSummary();
+            calculateCost();
+            centerView(editorCanvas);
+            showNotification('Новый проект создан');
+        });
+    }
+    
+    if (mobileClearAll) {
+        mobileClearAll.addEventListener('click', () => {
+            if (confirm('Вы уверены, что хотите удалить все комнаты?')) {
+                rooms = [];
+                selectedRoom = null;
+                selectedElementObj = null;
+                roomCounter = 1;
+                hideAllProperties();
+                updateElementList();
+                updateProjectSummary();
+                calculateCost();
+                centerView(editorCanvas);
+                showNotification('Все комнаты удалены');
+            }
+        });
+    }
+    
+    if (mobileZoomIn) {
+        mobileZoomIn.addEventListener('click', () => {
+            zoom *= 1.2;
+            zoom = Math.min(3, zoom);
+            zoomLevel.textContent = `${Math.round(zoom * 100)}%`;
+            draw(editorCanvas, editorCanvas.getContext('2d'));
+        });
+    }
+    
+    if (mobileZoomOut) {
+        mobileZoomOut.addEventListener('click', () => {
+            zoom /= 1.2;
+            zoom = Math.max(0.1, zoom);
+            zoomLevel.textContent = `${Math.round(zoom * 100)}%`;
+            draw(editorCanvas, editorCanvas.getContext('2d'));
+        });
+    }
+    
+    if (mobileCenterView) {
+        mobileCenterView.addEventListener('click', () => centerView(editorCanvas));
+    }
+    
+    // Обработчик изменения высоты потолков в мобильной версии
+    const mobileCeilingHeight = document.getElementById('mobileCeilingHeight');
+    if (mobileCeilingHeight) {
+        mobileCeilingHeight.addEventListener('change', function() {
+            document.getElementById('ceilingHeight').value = this.value;
+            updateProjectSummary();
+            calculateCost();
+        });
+    }
+    
+    // Синхронизация значений высоты потолков
+    const ceilingHeight = document.getElementById('ceilingHeight');
+    if (ceilingHeight) {
+        ceilingHeight.addEventListener('change', function() {
+            const mobileCeilingHeight = document.getElementById('mobileCeilingHeight');
+            if (mobileCeilingHeight) {
+                mobileCeilingHeight.value = this.value;
+            }
+        });
+    }
+    
+    // Обработчики для плавающих кнопок
+    const fabProperties = document.getElementById('fabProperties');
+    const fabSummary = document.getElementById('fabSummary');
+    const fabReceipt = document.getElementById('fabReceipt');
+    const fabTop = document.getElementById('fabTop');
+    
+    if (fabProperties) {
+        fabProperties.addEventListener('click', () => {
+            showMobilePanel('properties');
+        });
+    }
+    
+    if (fabSummary) {
+        fabSummary.addEventListener('click', () => {
+            showMobilePanel('summary');
+        });
+    }
+    
+    if (fabReceipt) {
+        fabReceipt.addEventListener('click', () => {
+            document.getElementById('receiptContainer').scrollIntoView({ behavior: 'smooth' });
+        });
+    }
+    
+    if (fabTop) {
+        fabTop.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    }
+    
+    // Обработчики для мобильной панели
+    const overlay = document.getElementById('mobilePanelOverlay');
+    const mobilePanel = document.getElementById('mobilePanel');
+    const closeButton = mobilePanel.querySelector('.close-mobile-panel');
+    
+    if (overlay) {
+        overlay.addEventListener('click', closeMobilePanel);
+    }
+    
+    if (closeButton) {
+        closeButton.addEventListener('click', closeMobilePanel);
+    }
+    
+    // Предотвращаем закрытие при клике на саму панель
+    if (mobilePanel) {
+        mobilePanel.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+    }
+}
+
+function initMobilePanelEvents() {
+    // Обработчики для комнаты
+    const mobileApplyRoomChanges = document.getElementById('mobileApplyRoomChanges');
+    if (mobileApplyRoomChanges && selectedElementObj && selectedElementObj.type === 'room') {
+        mobileApplyRoomChanges.onclick = () => {
+            const newName = document.getElementById('mobileRoomName').value;
+            const newWidth = parseFloat(document.getElementById('mobileRoomWidth').value) * scale;
+            const newHeight = parseFloat(document.getElementById('mobileRoomHeight').value) * scale;
+            
+            // Сохраняем центр комнаты для плавного изменения размера
+            const centerX = selectedElementObj.x + selectedElementObj.width / 2;
+            const centerY = selectedElementObj.y + selectedElementObj.height / 2;
+            
+            selectedElementObj.name = newName;
+            selectedElementObj.width = newWidth;
+            selectedElementObj.height = newHeight;
+            
+            // Обновляем позицию для сохранения центра
+            selectedElementObj.x = centerX - newWidth / 2;
+            selectedElementObj.y = centerY - newHeight / 2;
+            
+            // Обновляем чекбоксы
+            selectedElementObj.plaster = document.getElementById('mobilePlaster').checked;
+            selectedElementObj.armoring = document.getElementById('mobileArmoring').checked;
+            selectedElementObj.puttyWallpaper = document.getElementById('mobilePuttyWallpaper').checked;
+            selectedElementObj.puttyPaint = document.getElementById('mobilePuttyPaint').checked;
+            selectedElementObj.painting = document.getElementById('mobilePainting').checked;
+            
+            updateElementList();
+            updateProjectSummary();
+            calculateCost();
+            draw(document.getElementById('editorCanvas'), document.getElementById('editorCanvas').getContext('2d'));
+            closeMobilePanel();
+            showNotification('Изменения применены');
+        };
+    }
+    
+    // Обработчики для окна
+    const mobileApplyWindowChanges = document.getElementById('mobileApplyWindowChanges');
+    if (mobileApplyWindowChanges && selectedElementObj && selectedElementObj.type === 'window') {
+        mobileApplyWindowChanges.onclick = () => {
+            selectedElementObj.width = parseFloat(document.getElementById('mobileWindowWidth').value);
+            selectedElementObj.height = parseFloat(document.getElementById('mobileWindowHeight').value);
+            selectedElementObj.slopes = document.getElementById('mobileWindowSlopes').value;
+            
+            updateElementList();
+            updateProjectSummary();
+            calculateCost();
+            draw(document.getElementById('editorCanvas'), document.getElementById('editorCanvas').getContext('2d'));
+            closeMobilePanel();
+            showNotification('Изменения применены');
+        };
+    }
+    
+    // Обработчики для двери
+    const mobileApplyDoorChanges = document.getElementById('mobileApplyDoorChanges');
+    if (mobileApplyDoorChanges && selectedElementObj && selectedElementObj.type === 'door') {
+        mobileApplyDoorChanges.onclick = () => {
+            selectedElementObj.width = parseFloat(document.getElementById('mobileDoorWidth').value);
+            selectedElementObj.height = parseFloat(document.getElementById('mobileDoorHeight').value);
+            selectedElementObj.slopes = document.getElementById('mobileDoorSlopes').value;
+            
+            updateElementList();
+            updateProjectSummary();
+            calculateCost();
+            draw(document.getElementById('editorCanvas'), document.getElementById('editorCanvas').getContext('2d'));
+            closeMobilePanel();
+            showNotification('Изменения применены');
+        };
+    }
+    
+    // Обработчики удаления
+    const mobileDeleteRoom = document.getElementById('mobileDeleteRoom');
+    if (mobileDeleteRoom) {
+        mobileDeleteRoom.onclick = () => {
+            if (selectedElementObj && selectedElementObj.type === 'room') {
+                deleteRoom(selectedElementObj);
+                closeMobilePanel();
+            }
+        };
+    }
+    
+    const mobileDeleteWindow = document.getElementById('mobileDeleteWindow');
+    if (mobileDeleteWindow) {
+        mobileDeleteWindow.onclick = () => {
+            if (selectedElementObj && selectedElementObj.type === 'window' && selectedRoom) {
+                deleteWindow(selectedRoom, selectedElementObj);
+                closeMobilePanel();
+            }
+        };
+    }
+    
+    const mobileDeleteDoor = document.getElementById('mobileDeleteDoor');
+    if (mobileDeleteDoor) {
+        mobileDeleteDoor.onclick = () => {
+            if (selectedElementObj && selectedElementObj.type === 'door' && selectedRoom) {
+                deleteDoor(selectedRoom, selectedElementObj);
+                closeMobilePanel();
+            }
+        };
+    }
+    
+    // Обработчики для инструментов в мобильной панели
+    const toolButtons = document.querySelectorAll('#mobilePanelContent .tool-btn');
+    toolButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const tool = this.dataset.tool;
+            if (tool) {
+                // Снимаем активный класс со всех кнопок
+                toolButtons.forEach(btn => btn.classList.remove('active'));
+                // Добавляем активный класс текущей кнопке
+                this.classList.add('active');
+                currentTool = tool;
+                
+                const editorCanvas = document.getElementById('editorCanvas');
+                if (currentTool === 'select') {
+                    editorCanvas.style.cursor = 'move';
+                } else if (currentTool === 'room') {
+                    editorCanvas.style.cursor = 'crosshair';
+                } else if (currentTool === 'window' || currentTool === 'door') {
+                    editorCanvas.style.cursor = 'cell';
+                }
+                
+                closeMobilePanel();
+                showNotification(`Инструмент: ${tool === 'select' ? 'Выбор' : tool === 'room' ? 'Комната' : tool === 'window' ? 'Окно' : 'Дверь'}`);
+            }
+        });
+    });
 }
 
 // Инициализация пользовательского интерфейса
@@ -618,41 +1270,42 @@ function initUI() {
     
     // Получение ссылок на DOM элементы
     window.toolButtons = document.querySelectorAll('.tool-btn');
-    window.cursorPosition = getElementSafe('cursorPosition');
-    window.selectedElement = getElementSafe('selectedElement');
-    window.zoomLevel = getElementSafe('zoomLevel');
-    window.receiptContainer = getElementSafe('receiptContainer');
-    window.receiptContent = getElementSafe('receiptContent');
+    window.cursorPosition = document.getElementById('cursorPosition');
+    window.selectedElement = document.getElementById('selectedElement');
+    window.zoomLevel = document.getElementById('zoomLevel');
+    window.receiptContainer = document.getElementById('receiptContainer');
+    window.receiptContent = document.getElementById('receiptContent');
     
     // Панели свойств
-    roomProperties = getElementSafe('roomProperties');
-    doorProperties = getElementSafe('doorProperties');
-    windowProperties = getElementSafe('windowProperties');
+    window.roomProperties = document.getElementById('roomProperties');
+    window.doorProperties = document.getElementById('doorProperties');
+    window.windowProperties = document.getElementById('windowProperties');
+    window.costEstimate = document.getElementById('costEstimate');
     
     // Кнопки управления
-    window.newProjectBtn = getElementSafe('newProject');
-    window.clearAllBtn = getElementSafe('clearAll');
-    window.zoomInBtn = getElementSafe('zoomIn');
-    window.zoomOutBtn = getElementSafe('zoomOut');
-    window.centerViewBtn = getElementSafe('centerView');
+    window.newProjectBtn = document.getElementById('newProject');
+    window.clearAllBtn = document.getElementById('clearAll');
+    window.zoomInBtn = document.getElementById('zoomIn');
+    window.zoomOutBtn = document.getElementById('zoomOut');
+    window.centerViewBtn = document.getElementById('centerView');
     
     // Кнопки применения изменений
-    applyRoomChangesBtn = getElementSafe('applyRoomChanges');
-    applyWindowChangesBtn = getElementSafe('applyWindowChanges');
-    applyDoorChangesBtn = getElementSafe('applyDoorChanges');
+    window.applyRoomChangesBtn = document.getElementById('applyRoomChanges');
+    window.applyWindowChangesBtn = document.getElementById('applyWindowChanges');
+    window.applyDoorChangesBtn = document.getElementById('applyDoorChanges');
     
     // Элементы управления окнами и дверями
-    window.windowPositionSlider = getElementSafe('windowPosition');
-    window.windowPositionValue = getElementSafe('windowPositionValue');
-    window.doorPositionSlider = getElementSafe('doorPosition');
-    window.doorPositionValue = getElementSafe('doorPositionValue');
+    window.windowPositionSlider = document.getElementById('windowPosition');
+    window.windowPositionValue = document.getElementById('windowPositionValue');
+    window.doorPositionSlider = document.getElementById('doorPosition');
+    window.doorPositionValue = document.getElementById('doorPositionValue');
     
     // Чекбоксы отделки
-    plasterCheckbox = getElementSafe('plaster');
-    armoringCheckbox = getElementSafe('armoring');
-    puttyWallpaperCheckbox = getElementSafe('puttyWallpaper');
-    puttyPaintCheckbox = getElementSafe('puttyPaint');
-    paintingCheckbox = getElementSafe('painting');
+    window.plasterCheckbox = document.getElementById('plaster');
+    window.armoringCheckbox = document.getElementById('armoring');
+    window.puttyWallpaperCheckbox = document.getElementById('puttyWallpaper');
+    window.puttyPaintCheckbox = document.getElementById('puttyPaint');
+    window.paintingCheckbox = document.getElementById('painting');
     
     // Инициализация кнопок отправки
     initSharingButtons();
@@ -664,13 +1317,26 @@ function initUI() {
     if (window.innerWidth <= 576) {
         initMobileUI();
     }
+    
+    // Обработчик изменения размера окна
+    window.addEventListener('resize', () => {
+        if (window.innerWidth <= 576) {
+            initMobileUI();
+        } else {
+            // Скрываем мобильные элементы на десктопе
+            const mobileToolsContainer = document.querySelector('.mobile-tools-container');
+            const fabContainer = document.getElementById('fabContainer');
+            if (mobileToolsContainer) mobileToolsContainer.style.display = 'none';
+            if (fabContainer) fabContainer.style.display = 'none';
+        }
+    });
 }
 
 // Инициализация модального окна обратной связи
 function initFeedbackModal() {
-    const modal = getElementSafe('feedbackModal');
+    const modal = document.getElementById('feedbackModal');
     const closeBtn = document.querySelector('.close-modal');
-    const feedbackForm = getElementSafe('feedbackForm');
+    const feedbackForm = document.getElementById('feedbackForm');
     
     if (!modal || !closeBtn || !feedbackForm) return;
     
@@ -725,7 +1391,7 @@ function initFeedbackModal() {
 
 // Инициализация обработчиков событий
 function initEventListeners() {
-    const editorCanvas = getElementSafe('editorCanvas');
+    const editorCanvas = document.getElementById('editorCanvas');
     
     if (!editorCanvas) return;
     
@@ -735,17 +1401,14 @@ function initEventListeners() {
             button.addEventListener('click', () => {
                 toolButtons.forEach(btn => btn.classList.remove('active'));
                 button.classList.add('active');
-                const tool = button.dataset.tool;
-                if (tool) {
-                    PlanPomesheniy.setTool(tool);
-                }
+                currentTool = button.dataset.tool;
                 
                 // Изменение курсора
-                if (tool === 'select') {
+                if (currentTool === 'select') {
                     editorCanvas.style.cursor = 'move';
-                } else if (tool === 'room') {
+                } else if (currentTool === 'room') {
                     editorCanvas.style.cursor = 'crosshair';
-                } else if (tool === 'window' || tool === 'door') {
+                } else if (currentTool === 'window' || currentTool === 'door') {
                     editorCanvas.style.cursor = 'cell';
                 }
             });
@@ -755,14 +1418,10 @@ function initEventListeners() {
     // Обработчик кнопки нового проекта
     if (newProjectBtn) {
         newProjectBtn.addEventListener('click', () => {
-            const state = PlanPomesheniy.getState();
-            if (state.rooms.length > 0 && !confirm('Вы уверены, что хотите создать новый проект? Все несохраненные данные будут потеряны.')) {
-                return;
-            }
-            PlanPomesheniy.clearRooms();
-            PlanPomesheniy.setSelectedRoom(null);
-            PlanPomesheniy.setSelectedElementObj(null);
-            PlanPomesheniy.resetRoomCounter();
+            rooms = [];
+            selectedRoom = null;
+            selectedElementObj = null;
+            roomCounter = 1;
             hideAllProperties();
             updateElementList();
             updateProjectSummary();
@@ -775,17 +1434,11 @@ function initEventListeners() {
     // Обработчик кнопки очистки
     if (clearAllBtn) {
         clearAllBtn.addEventListener('click', () => {
-            const state = PlanPomesheniy.getState();
-            if (state.rooms.length === 0) {
-                showNotification('Нет комнат для удаления');
-                return;
-            }
-            
             if (confirm('Вы уверены, что хотите удалить все комнаты?')) {
-                PlanPomesheniy.clearRooms();
-                PlanPomesheniy.setSelectedRoom(null);
-                PlanPomesheniy.setSelectedElementObj(null);
-                PlanPomesheniy.resetRoomCounter();
+                rooms = [];
+                selectedRoom = null;
+                selectedElementObj = null;
+                roomCounter = 1;
                 hideAllProperties();
                 updateElementList();
                 updateProjectSummary();
@@ -799,20 +1452,18 @@ function initEventListeners() {
     // Обработчики кнопок масштабирования
     if (zoomInBtn) {
         zoomInBtn.addEventListener('click', () => {
-            const state = PlanPomesheniy.getState();
-            const newZoom = state.zoom * 1.2;
-            PlanPomesheniy.setZoom(Math.min(3, newZoom));
-            if (zoomLevel) zoomLevel.textContent = `${Math.round(state.zoom * 100)}%`;
+            zoom *= 1.2;
+            zoom = Math.min(3, zoom);
+            zoomLevel.textContent = `${Math.round(zoom * 100)}%`;
             draw(editorCanvas, editorCanvas.getContext('2d'));
         });
     }
     
     if (zoomOutBtn) {
         zoomOutBtn.addEventListener('click', () => {
-            const state = PlanPomesheniy.getState();
-            const newZoom = state.zoom / 1.2;
-            PlanPomesheniy.setZoom(Math.max(0.1, newZoom));
-            if (zoomLevel) zoomLevel.textContent = `${Math.round(state.zoom * 100)}%`;
+            zoom /= 1.2;
+            zoom = Math.max(0.1, zoom);
+            zoomLevel.textContent = `${Math.round(zoom * 100)}%`;
             draw(editorCanvas, editorCanvas.getContext('2d'));
         });
     }
@@ -823,7 +1474,7 @@ function initEventListeners() {
     }
     
     // Обработчик изменения высоты потолков
-    const ceilingHeight = getElementSafe('ceilingHeight');
+    const ceilingHeight = document.getElementById('ceilingHeight');
     if (ceilingHeight) {
         ceilingHeight.addEventListener('change', () => {
             updateProjectSummary();
@@ -832,597 +1483,173 @@ function initEventListeners() {
     }
 }
 
-// Инициализация мобильного интерфейса
-function initMobileUI() {
-    console.log('Инициализация мобильного интерфейса');
+// Обработка нажатия мыши
+function handleMouseDown(e) {
+    const editorCanvas = document.getElementById('editorCanvas');
+    const rect = editorCanvas.getBoundingClientRect();
+    const safeZoom = zoom > 0 ? zoom : 1;
+    const x = (e.clientX - rect.left - viewOffsetX) / safeZoom;
+    const y = (e.clientY - rect.top - viewOffsetY) / safeZoom;
     
-    // Показываем мобильные элементы
-    const mobileToolsContainer = document.querySelector('.mobile-tools-container');
-    const fabContainer = getElementSafe('fabContainer');
-    
-    if (mobileToolsContainer) {
-        mobileToolsContainer.style.display = 'block';
+    if (currentTool === 'select') {
+        const element = findElementAt(x, y);
+        if (element) {
+            if (element.type === 'room') {
+                selectRoom(element);
+                isDragging = true;
+                dragStartX = e.clientX;
+                dragStartY = e.clientY;
+                dragOffsetX = x - element.x;
+                dragOffsetY = y - element.y;
+            } else if (element.type === 'window' || element.type === 'door') {
+                selectElement(element);
+                isMovingElement = true;
+                movingElement = element;
+            }
+        } else {
+            selectedRoom = null;
+            selectedElementObj = null;
+            hideAllProperties();
+        }
+    } else if (currentTool === 'room') {
+        isDrawing = true;
+        startX = x;
+        startY = y;
+    } else if (currentTool === 'window' || currentTool === 'door') {
+        const room = findRoomAt(x, y);
+        if (room) {
+            selectRoom(room);
+            const wallInfo = findNearestWall(room, x, y);
+            if (wallInfo) {
+                addElementToRoom(currentTool, room, wallInfo.wall, wallInfo.position);
+            }
+        } else {
+            showNotification('Кликните внутри комнаты для добавления элемента');
+        }
     }
     
-    if (fabContainer) {
-        fabContainer.style.display = 'flex';
+    draw(editorCanvas, editorCanvas.getContext('2d'));
+}
+
+// Обработка перемещения мыши
+function handleMouseMove(e) {
+    const editorCanvas = document.getElementById('editorCanvas');
+    const rect = editorCanvas.getBoundingClientRect();
+    const safeZoom = zoom > 0 ? zoom : 1;
+    const x = (e.clientX - rect.left - viewOffsetX) / safeZoom;
+    const y = (e.clientY - rect.top - viewOffsetY) / safeZoom;
+    
+    // Обновление позиции курсора
+    if (cursorPosition) {
+        cursorPosition.textContent = `X: ${(x / scale).toFixed(2)}, Y: ${(y / scale).toFixed(2)}`;
     }
     
-    // Инициализация обработчиков мобильного интерфейса
-    initMobileEventHandlers();
+    // Перемещение комнаты
+    if (isDragging && selectedRoom) {
+        const newX = x - dragOffsetX;
+        const newY = y - dragOffsetY;
+        selectedRoom.x = newX;
+        selectedRoom.y = newY;
+        draw(editorCanvas, editorCanvas.getContext('2d'));
+    }
     
-    // Синхронизация высоты потолков
-    const ceilingHeight = getElementSafe('ceilingHeight');
-    const mobileCeilingHeight = getElementSafe('mobileCeilingHeight');
-    if (ceilingHeight && mobileCeilingHeight) {
-        mobileCeilingHeight.value = ceilingHeight.value;
+    // Перемещение элемента по стене
+    if (isMovingElement && movingElement && selectedRoom) {
+        const wallInfo = findNearestWall(selectedRoom, x, y);
+        if (wallInfo && wallInfo.wall === movingElement.wall) {
+            const elementWidth = movingElement.width * scale;
+            let roomDimension;
+            if (movingElement.wall === 'top' || movingElement.wall === 'bottom') {
+                roomDimension = selectedRoom.width;
+            } else {
+                roomDimension = selectedRoom.height;
+            }
+            const maxPosition = 100 - (elementWidth / roomDimension * 100);
+            const clampedPosition = Math.max(0, Math.min(maxPosition, wallInfo.position));
+            movingElement.position = clampedPosition;
+            updatePropertiesPanel(movingElement);
+            draw(editorCanvas, editorCanvas.getContext('2d'));
+        }
+    }
+    
+    // Отрисовка временной комнаты при рисовании
+    if (isDrawing && currentTool === 'room') {
+        draw(editorCanvas, editorCanvas.getContext('2d'));
+        const ctx = editorCanvas.getContext('2d');
+        ctx.save();
+        ctx.translate(viewOffsetX, viewOffsetY);
+        ctx.scale(zoom, zoom);
+        ctx.strokeStyle = '#4a6ee0';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+        ctx.strokeRect(startX, startY, x - startX, y - startY);
+        ctx.setLineDash([]);
+        ctx.restore();
     }
 }
 
-// Инициализация обработчиков мобильного интерфейса
-function initMobileEventHandlers() {
-    console.log('Инициализация мобильных обработчиков');
+// Обработка отпускания мыши
+function handleMouseUp(e) {
+    const editorCanvas = document.getElementById('editorCanvas');
     
-    // Обработчики для мобильных кнопок инструментов
-    const mobileToolButtons = document.querySelectorAll('.mobile-tool-btn');
-    mobileToolButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const tool = this.dataset.tool;
-            if (tool) {
-                mobileToolButtons.forEach(btn => btn.classList.remove('active'));
-                this.classList.add('active');
-                PlanPomesheniy.setTool(tool);
-                
-                const editorCanvas = getElementSafe('editorCanvas');
-                if (editorCanvas) {
-                    if (tool === 'select') {
-                        editorCanvas.style.cursor = 'move';
-                    } else if (tool === 'room') {
-                        editorCanvas.style.cursor = 'crosshair';
-                    } else if (tool === 'window' || tool === 'door') {
-                        editorCanvas.style.cursor = 'cell';
-                    }
-                }
-                
-                showNotification(`Инструмент: ${tool === 'select' ? 'Выбор' : tool === 'room' ? 'Комната' : tool === 'window' ? 'Окно' : 'Дверь'}`);
-            }
-        });
-    });
+    if (isDragging) {
+        isDragging = false;
+    }
     
-    // Обработчики для мобильных кнопок управления
-    const mobileNewProject = getElementSafe('mobileNewProject');
-    const mobileClearAll = getElementSafe('mobileClearAll');
-    const mobileZoomIn = getElementSafe('mobileZoomIn');
-    const mobileZoomOut = getElementSafe('mobileZoomOut');
-    const mobileCenterView = getElementSafe('mobileCenterView');
+    if (isMovingElement) {
+        isMovingElement = false;
+        movingElement = null;
+    }
     
-    if (mobileNewProject) {
-        mobileNewProject.addEventListener('click', () => {
-            const state = PlanPomesheniy.getState();
-            if (state.rooms.length > 0 && !confirm('Вы уверены, что хотите создать новый проект? Все несохраненные данные будут потеряны.')) {
-                return;
-            }
-            PlanPomesheniy.clearRooms();
-            PlanPomesheniy.setSelectedRoom(null);
-            PlanPomesheniy.setSelectedElementObj(null);
-            PlanPomesheniy.resetRoomCounter();
-            hideAllProperties();
+    if (!isDrawing) return;
+    
+    const rect = editorCanvas.getBoundingClientRect();
+    const safeZoom = zoom > 0 ? zoom : 1;
+    const x = (e.clientX - rect.left - viewOffsetX) / safeZoom;
+    const y = (e.clientY - rect.top - viewOffsetY) / safeZoom;
+    
+    if (currentTool === 'room') {
+        const width = Math.abs(x - startX);
+        const height = Math.abs(y - startY);
+        
+        // Минимальный размер комнаты - 1x1 метр (50x50 пикселей)
+        if (width > 50 && height > 50) {
+            const roomX = Math.min(startX, x);
+            const roomY = Math.min(startY, y);
+            
+            const room = {
+                id: generateId(),
+                type: 'room',
+                x: roomX,
+                y: roomY,
+                width: width,
+                height: height,
+                name: `Комната ${roomCounter}`,
+                plaster: true,
+                armoring: false,
+                puttyWallpaper: false,
+                puttyPaint: false,
+                painting: false,
+                windows: [],
+                doors: []
+            };
+            rooms.push(room);
+            roomCounter++;
+            selectRoom(room);
+            showNotification('Комната добавлена');
+            
+            // Обновляем интерфейс
             updateElementList();
             updateProjectSummary();
             calculateCost();
-            const editorCanvas = getElementSafe('editorCanvas');
-            if (editorCanvas) {
-                centerView(editorCanvas);
-            }
-            showNotification('Новый проект создан');
-        });
-    }
-    
-    if (mobileClearAll) {
-        mobileClearAll.addEventListener('click', () => {
-            const state = PlanPomesheniy.getState();
-            if (state.rooms.length === 0) {
-                showNotification('Нет комнат для удаления');
-                return;
-            }
             
-            if (confirm('Вы уверены, что хотите удалить все комнаты?')) {
-                PlanPomesheniy.clearRooms();
-                PlanPomesheniy.setSelectedRoom(null);
-                PlanPomesheniy.setSelectedElementObj(null);
-                PlanPomesheniy.resetRoomCounter();
-                hideAllProperties();
-                updateElementList();
-                updateProjectSummary();
-                calculateCost();
-                const editorCanvas = getElementSafe('editorCanvas');
-                if (editorCanvas) {
-                    centerView(editorCanvas);
-                }
-                showNotification('Все комнаты удалены');
-            }
-        });
+            // Центрируем вид на новой комнате
+            centerView(editorCanvas);
+        } else {
+            showNotification('Слишком маленькая комната. Минимальный размер: 1x1 метр');
+        }
     }
     
-    if (mobileZoomIn) {
-        mobileZoomIn.addEventListener('click', () => {
-            const state = PlanPomesheniy.getState();
-            const newZoom = state.zoom * 1.2;
-            PlanPomesheniy.setZoom(Math.min(3, newZoom));
-            const zoomLevel = getElementSafe('zoomLevel');
-            if (zoomLevel) zoomLevel.textContent = `${Math.round(state.zoom * 100)}%`;
-            const editorCanvas = getElementSafe('editorCanvas');
-            if (editorCanvas) {
-                draw(editorCanvas, editorCanvas.getContext('2d'));
-            }
-        });
-    }
-    
-    if (mobileZoomOut) {
-        mobileZoomOut.addEventListener('click', () => {
-            const state = PlanPomesheniy.getState();
-            const newZoom = state.zoom / 1.2;
-            PlanPomesheniy.setZoom(Math.max(0.1, newZoom));
-            const zoomLevel = getElementSafe('zoomLevel');
-            if (zoomLevel) zoomLevel.textContent = `${Math.round(state.zoom * 100)}%`;
-            const editorCanvas = getElementSafe('editorCanvas');
-            if (editorCanvas) {
-                draw(editorCanvas, editorCanvas.getContext('2d'));
-            }
-        });
-    }
-    
-    if (mobileCenterView) {
-        mobileCenterView.addEventListener('click', () => {
-            const editorCanvas = getElementSafe('editorCanvas');
-            if (editorCanvas) {
-                centerView(editorCanvas);
-            }
-        });
-    }
-    
-    // Обработчик изменения высоты потолков в мобильной версии
-    const mobileCeilingHeight = getElementSafe('mobileCeilingHeight');
-    if (mobileCeilingHeight) {
-        mobileCeilingHeight.addEventListener('change', function() {
-            const ceilingHeight = getElementSafe('ceilingHeight');
-            if (ceilingHeight) {
-                ceilingHeight.value = this.value;
-            }
-            updateProjectSummary();
-            calculateCost();
-        });
-    }
-    
-    // Синхронизация значений высоты потолков
-    const ceilingHeight = getElementSafe('ceilingHeight');
-    if (ceilingHeight) {
-        ceilingHeight.addEventListener('change', function() {
-            const mobileCeilingHeight = getElementSafe('mobileCeilingHeight');
-            if (mobileCeilingHeight) {
-                mobileCeilingHeight.value = this.value;
-            }
-        });
-    }
-    
-    // Обработчики для плавающих кнопок
-    const fabProperties = getElementSafe('fabProperties');
-    const fabSummary = getElementSafe('fabSummary');
-    const fabReceipt = getElementSafe('fabReceipt');
-    const fabTop = getElementSafe('fabTop');
-    
-    if (fabProperties) {
-        fabProperties.addEventListener('click', () => {
-            const state = PlanPomesheniy.getState();
-            if (state.selectedElementObj) {
-                showMobilePanel('properties');
-            } else {
-                showNotification('Выберите элемент для просмотра свойств');
-            }
-        });
-    }
-    
-    if (fabSummary) {
-        fabSummary.addEventListener('click', () => {
-            showMobilePanel('summary');
-        });
-    }
-    
-    if (fabReceipt) {
-        fabReceipt.addEventListener('click', () => {
-            const receiptContainer = getElementSafe('receiptContainer');
-            if (receiptContainer) {
-                receiptContainer.scrollIntoView({ behavior: 'smooth' });
-            }
-        });
-    }
-    
-    if (fabTop) {
-        fabTop.addEventListener('click', () => {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
-    }
-    
-    // Обработчики для мобильной панели
-    const overlay = getElementSafe('mobilePanelOverlay');
-    const mobilePanel = getElementSafe('mobilePanel');
-    const closeButton = mobilePanel ? mobilePanel.querySelector('.close-mobile-panel') : null;
-    
-    if (overlay) {
-        overlay.addEventListener('click', closeMobilePanel);
-    }
-    
-    if (closeButton) {
-        closeButton.addEventListener('click', closeMobilePanel);
-    }
-    
-    // Предотвращаем закрытие при клике на саму панель
-    if (mobilePanel) {
-        mobilePanel.addEventListener('click', (e) => {
-            e.stopPropagation();
-        });
-    }
-}
-
-// Показ мобильной панели
-function showMobilePanel(panelType) {
-    const overlay = getElementSafe('mobilePanelOverlay');
-    const panel = getElementSafe('mobilePanel');
-    const panelContent = getElementSafe('mobilePanelContent');
-    const panelTitle = getElementSafe('mobilePanelTitle');
-    
-    if (!overlay || !panel || !panelContent || !panelTitle) {
-        console.error('Мобильные элементы не найдены');
-        return;
-    }
-    
-    // Заполняем контент в зависимости от типа панели
-    switch(panelType) {
-        case 'tools':
-            panelTitle.innerHTML = '<i class="fas fa-tools"></i> Инструменты';
-            // Копируем содержимое из десктопной панели инструментов
-            const toolsContent = document.querySelector('.tools-panel .panel-content');
-            if (toolsContent) {
-                panelContent.innerHTML = toolsContent.innerHTML;
-            }
-            break;
-            
-        case 'properties':
-            panelTitle.innerHTML = '<i class="fas fa-cog"></i> Свойства';
-            const state = PlanPomesheniy.getState();
-            if (state.selectedElementObj) {
-                if (state.selectedElementObj.type === 'room') {
-                    panelContent.innerHTML = `
-                        <div class="property-group">
-                            <h3><i class="fas fa-door-open"></i> Свойства комнаты</h3>
-                            <div class="form-group">
-                                <label for="mobileRoomName">Название:</label>
-                                <input type="text" id="mobileRoomName" value="${escapeHTML(state.selectedElementObj.name)}">
-                            </div>
-                            <div class="form-group">
-                                <label for="mobileRoomWidth">Ширина (м):</label>
-                                <input type="number" id="mobileRoomWidth" min="1.0" max="20.0" step="0.1" value="${(state.selectedElementObj.width / state.scale).toFixed(1)}">
-                            </div>
-                            <div class="form-group">
-                                <label for="mobileRoomHeight">Длина (м):</label>
-                                <input type="number" id="mobileRoomHeight" min="1.0" max="20.0" step="0.1" value="${(state.selectedElementObj.height / state.scale).toFixed(1)}">
-                            </div>
-                            <div class="form-group">
-                                <label>Отделка стен:</label>
-                                <div class="checkbox-group">
-                                    <div class="checkbox-item">
-                                        <input type="checkbox" id="mobilePlaster" ${state.selectedElementObj.plaster ? 'checked' : ''}>
-                                        <label for="mobilePlaster">Стартовая штукатурка</label>
-                                    </div>
-                                    <div class="checkbox-item">
-                                        <input type="checkbox" id="mobileArmoring" ${state.selectedElementObj.armoring ? 'checked' : ''}>
-                                        <label for="mobileArmoring">Армирование сеткой</label>
-                                    </div>
-                                    <div class="checkbox-item">
-                                        <input type="checkbox" id="mobilePuttyWallpaper" ${state.selectedElementObj.puttyWallpaper ? 'checked' : ''}>
-                                        <label for="mobilePuttyWallpaper">Шпаклевка (под обои)</label>
-                                    </div>
-                                    <div class="checkbox-item">
-                                        <input type="checkbox" id="mobilePuttyPaint" ${state.selectedElementObj.puttyPaint ? 'checked' : ''}>
-                                        <label for="mobilePuttyPaint">Шпаклевка (под покраску)</label>
-                                    </div>
-                                    <div class="checkbox-item">
-                                        <input type="checkbox" id="mobilePainting" ${state.selectedElementObj.painting ? 'checked' : ''} ${state.selectedElementObj.puttyWallpaper ? 'disabled' : ''}>
-                                        <label for="mobilePainting">Покраска</label>
-                                    </div>
-                                </div>
-                            </div>
-                            <button id="mobileApplyRoomChanges" class="btn-primary"><i class="fas fa-check"></i> Применить изменения</button>
-                            <div class="divider"></div>
-                            <button class="btn-danger" id="mobileDeleteRoom"><i class="fas fa-trash"></i> Удалить комнату</button>
-                        </div>
-                    `;
-                } else if (state.selectedElementObj.type === 'window') {
-                    panelContent.innerHTML = `
-                        <div class="property-group">
-                            <h3><i class="fas fa-square"></i> Свойства окна</h3>
-                            <div class="form-group">
-                                <label for="mobileWindowWidth">Ширина (м):</label>
-                                <input type="number" id="mobileWindowWidth" min="0.5" max="3.0" step="0.1" value="${state.selectedElementObj.width}">
-                            </div>
-                            <div class="form-group">
-                                <label for="mobileWindowHeight">Высота (м):</label>
-                                <input type="number" id="mobileWindowHeight" min="0.5" max="3.0" step="0.1" value="${state.selectedElementObj.height}">
-                            </div>
-                            <div class="form-group">
-                                <label for="mobileWindowSlopes">Откосы:</label>
-                                <select id="mobileWindowSlopes">
-                                    <option value="with" ${state.selectedElementObj.slopes === 'with' ? 'selected' : ''}>С откосами</option>
-                                    <option value="with_net" ${state.selectedElementObj.slopes === 'with_net' ? 'selected' : ''}>С откосами и сеткой</option>
-                                    <option value="without" ${state.selectedElementObj.slopes === 'without' ? 'selected' : ''}>Без откосов</option>
-                                </select>
-                            </div>
-                            <button id="mobileApplyWindowChanges" class="btn-primary"><i class="fas fa-check"></i> Применить изменения</button>
-                            <div class="divider"></div>
-                            <button class="btn-danger" id="mobileDeleteWindow"><i class="fas fa-trash"></i> Удалить окно</button>
-                        </div>
-                    `;
-                } else if (state.selectedElementObj.type === 'door') {
-                    panelContent.innerHTML = `
-                        <div class="property-group">
-                            <h3><i class="fas fa-door-open"></i> Свойства двери</h3>
-                            <div class="form-group">
-                                <label for="mobileDoorWidth">Ширина (м):</label>
-                                <input type="number" id="mobileDoorWidth" min="0.5" max="2.0" step="0.1" value="${state.selectedElementObj.width}">
-                            </div>
-                            <div class="form-group">
-                                <label for="mobileDoorHeight">Высота (м):</label>
-                                <input type="number" id="mobileDoorHeight" min="1.5" max="3.0" step="0.1" value="${state.selectedElementObj.height}">
-                            </div>
-                            <div class="form-group">
-                                <label for="mobileDoorSlopes">Откосы:</label>
-                                <select id="mobileDoorSlopes">
-                                    <option value="with" ${state.selectedElementObj.slopes === 'with' ? 'selected' : ''}>С откосами</option>
-                                    <option value="with_net" ${state.selectedElementObj.slopes === 'with_net' ? 'selected' : ''}>С откосами и сеткой</option>
-                                    <option value="without" ${state.selectedElementObj.slopes === 'without' ? 'selected' : ''}>Без откосов</option>
-                                </select>
-                            </div>
-                            <button id="mobileApplyDoorChanges" class="btn-primary"><i class="fas fa-check"></i> Применить изменения</button>
-                            <div class="divider"></div>
-                            <button class="btn-danger" id="mobileDeleteDoor"><i class="fas fa-trash"></i> Удалить дверь</button>
-                        </div>
-                    `;
-                }
-            } else {
-                panelContent.innerHTML = '<p>Выберите элемент для редактирования свойств</p>';
-            }
-            break;
-            
-        case 'summary':
-            panelTitle.innerHTML = '<i class="fas fa-chart-pie"></i> Сводка проекта';
-            
-            // Создаем содержимое сводки проекта
-            let summaryHTML = `
-                <div class="property-group">
-                    <h3><i class="fas fa-chart-pie"></i> Сводка проекта</h3>
-                    <div class="summary" id="mobileProjectSummary">
-                        <div class="summary-item">
-                            <span>Комнат:</span>
-                            <span id="mobileRoomsCount">${document.getElementById('roomsCount') ? document.getElementById('roomsCount').textContent : '0'}</span>
-                        </div>
-                        <div class="summary-item">
-                            <span>Окон:</span>
-                            <span id="mobileWindowsCount">${document.getElementById('windowsCount') ? document.getElementById('windowsCount').textContent : '0'}</span>
-                        </div>
-                        <div class="summary-item">
-                            <span>Дверей:</span>
-                            <span id="mobileDoorsCount">${document.getElementById('doorsCount') ? document.getElementById('doorsCount').textContent : '0'}</span>
-                        </div>
-                        <div class="summary-item">
-                            <span>Общая площадь стен:</span>
-                            <span id="mobileTotalArea">${document.getElementById('totalArea') ? document.getElementById('totalArea').textContent : '0 м²'}</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="property-group">
-                    <h3><i class="fas fa-calculator"></i> Смета работ</h3>
-                    <div id="mobileEstimateResults">
-            `;
-            
-            // Копируем содержимое сметы из десктопной версии
-            const estimateResults = document.getElementById('estimateResults');
-            if (estimateResults) {
-                summaryHTML += estimateResults.innerHTML;
-            } else {
-                summaryHTML += '<div class="summary-item">Добавьте комнаты для расчета стоимости</div>';
-            }
-            
-            summaryHTML += `
-                    </div>
-                </div>
-            `;
-            
-            panelContent.innerHTML = summaryHTML;
-            break;
-    }
-    
-    // Показываем панель
-    overlay.style.display = 'block';
-    panel.classList.add('active');
-    document.body.style.overflow = 'hidden';
-    
-    // Переинициализируем обработчики событий для элементов внутри панели
-    initMobilePanelEvents();
-}
-
-// Закрытие мобильной панели
-function closeMobilePanel() {
-    const overlay = getElementSafe('mobilePanelOverlay');
-    const panel = getElementSafe('mobilePanel');
-    
-    if (overlay) overlay.style.display = 'none';
-    if (panel) panel.classList.remove('active');
-    document.body.style.overflow = 'auto';
-}
-
-// Инициализация событий мобильной панели
-function initMobilePanelEvents() {
-    // Обработчики для комнаты
-    const mobileApplyRoomChanges = getElementSafe('mobileApplyRoomChanges');
-    const state = PlanPomesheniy.getState();
-    
-    if (mobileApplyRoomChanges && state.selectedElementObj && state.selectedElementObj.type === 'room') {
-        mobileApplyRoomChanges.onclick = () => {
-            const mobileRoomName = getElementSafe('mobileRoomName');
-            const mobileRoomWidth = getElementSafe('mobileRoomWidth');
-            const mobileRoomHeight = getElementSafe('mobileRoomHeight');
-            const mobilePlaster = getElementSafe('mobilePlaster');
-            const mobileArmoring = getElementSafe('mobileArmoring');
-            const mobilePuttyWallpaper = getElementSafe('mobilePuttyWallpaper');
-            const mobilePuttyPaint = getElementSafe('mobilePuttyPaint');
-            const mobilePainting = getElementSafe('mobilePainting');
-            
-            if (mobileRoomName && mobileRoomWidth && mobileRoomHeight) {
-                const newName = mobileRoomName.value;
-                const newWidth = parseFloat(mobileRoomWidth.value) * state.scale;
-                const newHeight = parseFloat(mobileRoomHeight.value) * state.scale;
-                
-                // Сохраняем центр комнаты для плавного изменения размера
-                const centerX = state.selectedElementObj.x + state.selectedElementObj.width / 2;
-                const centerY = state.selectedElementObj.y + state.selectedElementObj.height / 2;
-                
-                state.selectedElementObj.name = newName;
-                state.selectedElementObj.width = newWidth;
-                state.selectedElementObj.height = newHeight;
-                
-                // Обновляем позицию для сохранения центра
-                state.selectedElementObj.x = centerX - newWidth / 2;
-                state.selectedElementObj.y = centerY - newHeight / 2;
-                
-                // Обновляем чекбоксы
-                if (mobilePlaster) state.selectedElementObj.plaster = mobilePlaster.checked;
-                if (mobileArmoring) state.selectedElementObj.armoring = mobileArmoring.checked;
-                if (mobilePuttyWallpaper) state.selectedElementObj.puttyWallpaper = mobilePuttyWallpaper.checked;
-                if (mobilePuttyPaint) state.selectedElementObj.puttyPaint = mobilePuttyPaint.checked;
-                if (mobilePainting) state.selectedElementObj.painting = mobilePainting.checked;
-                
-                updateElementList();
-                updateProjectSummary();
-                calculateCost();
-                const editorCanvas = getElementSafe('editorCanvas');
-                if (editorCanvas) {
-                    draw(editorCanvas, editorCanvas.getContext('2d'));
-                }
-                closeMobilePanel();
-                showNotification('Изменения применены');
-            }
-        };
-    }
-    
-    // Обработчики для окна
-    const mobileApplyWindowChanges = getElementSafe('mobileApplyWindowChanges');
-    if (mobileApplyWindowChanges && state.selectedElementObj && state.selectedElementObj.type === 'window') {
-        mobileApplyWindowChanges.onclick = () => {
-            const mobileWindowWidth = getElementSafe('mobileWindowWidth');
-            const mobileWindowHeight = getElementSafe('mobileWindowHeight');
-            const mobileWindowSlopes = getElementSafe('mobileWindowSlopes');
-            
-            if (mobileWindowWidth && mobileWindowHeight && mobileWindowSlopes) {
-                state.selectedElementObj.width = parseFloat(mobileWindowWidth.value);
-                state.selectedElementObj.height = parseFloat(mobileWindowHeight.value);
-                state.selectedElementObj.slopes = mobileWindowSlopes.value;
-                
-                updateElementList();
-                updateProjectSummary();
-                calculateCost();
-                const editorCanvas = getElementSafe('editorCanvas');
-                if (editorCanvas) {
-                    draw(editorCanvas, editorCanvas.getContext('2d'));
-                }
-                closeMobilePanel();
-                showNotification('Изменения применены');
-            }
-        };
-    }
-    
-    // Обработчики для двери
-    const mobileApplyDoorChanges = getElementSafe('mobileApplyDoorChanges');
-    if (mobileApplyDoorChanges && state.selectedElementObj && state.selectedElementObj.type === 'door') {
-        mobileApplyDoorChanges.onclick = () => {
-            const mobileDoorWidth = getElementSafe('mobileDoorWidth');
-            const mobileDoorHeight = getElementSafe('mobileDoorHeight');
-            const mobileDoorSlopes = getElementSafe('mobileDoorSlopes');
-            
-            if (mobileDoorWidth && mobileDoorHeight && mobileDoorSlopes) {
-                state.selectedElementObj.width = parseFloat(mobileDoorWidth.value);
-                state.selectedElementObj.height = parseFloat(mobileDoorHeight.value);
-                state.selectedElementObj.slopes = mobileDoorSlopes.value;
-                
-                updateElementList();
-                updateProjectSummary();
-                calculateCost();
-                const editorCanvas = getElementSafe('editorCanvas');
-                if (editorCanvas) {
-                    draw(editorCanvas, editorCanvas.getContext('2d'));
-                }
-                closeMobilePanel();
-                showNotification('Изменения применены');
-            }
-        };
-    }
-    
-    // Обработчики удаления
-    const mobileDeleteRoom = getElementSafe('mobileDeleteRoom');
-    if (mobileDeleteRoom) {
-        mobileDeleteRoom.onclick = () => {
-            if (state.selectedElementObj && state.selectedElementObj.type === 'room') {
-                deleteRoom(state.selectedElementObj);
-                closeMobilePanel();
-            }
-        };
-    }
-    
-    const mobileDeleteWindow = getElementSafe('mobileDeleteWindow');
-    if (mobileDeleteWindow) {
-        mobileDeleteWindow.onclick = () => {
-            if (state.selectedElementObj && state.selectedElementObj.type === 'window' && state.selectedRoom) {
-                deleteWindow(state.selectedRoom, state.selectedElementObj);
-                closeMobilePanel();
-            }
-        };
-    }
-    
-    const mobileDeleteDoor = getElementSafe('mobileDeleteDoor');
-    if (mobileDeleteDoor) {
-        mobileDeleteDoor.onclick = () => {
-            if (state.selectedElementObj && state.selectedElementObj.type === 'door' && state.selectedRoom) {
-                deleteDoor(state.selectedRoom, state.selectedElementObj);
-                closeMobilePanel();
-            }
-        };
-    }
-    
-    // Обработчики для инструментов в мобильной панели
-    const toolButtons = document.querySelectorAll('#mobilePanelContent .tool-btn');
-    toolButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const tool = this.dataset.tool;
-            if (tool) {
-                // Снимаем активный класс со всех кнопок
-                toolButtons.forEach(btn => btn.classList.remove('active'));
-                // Добавляем активный класс текущей кнопке
-                this.classList.add('active');
-                PlanPomesheniy.setTool(tool);
-                
-                const editorCanvas = getElementSafe('editorCanvas');
-                if (editorCanvas) {
-                    if (tool === 'select') {
-                        editorCanvas.style.cursor = 'move';
-                    } else if (tool === 'room') {
-                        editorCanvas.style.cursor = 'crosshair';
-                    } else if (tool === 'window' || tool === 'door') {
-                        editorCanvas.style.cursor = 'cell';
-                    }
-                }
-                
-                closeMobilePanel();
-                showNotification(`Инструмент: ${tool === 'select' ? 'Выбор' : tool === 'room' ? 'Комната' : tool === 'window' ? 'Окно' : 'Дверь'}`);
-            }
-        });
-    });
+    isDrawing = false;
+    draw(editorCanvas, editorCanvas.getContext('2d'));
 }
