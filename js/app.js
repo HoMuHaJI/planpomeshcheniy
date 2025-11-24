@@ -19,6 +19,16 @@ let isMovingElement = false;
 let movingElement = null;
 window.editorCanvas = null;
 
+// Добавить проверку инициализации глобальных переменных
+if (typeof window.rooms === 'undefined') window.rooms = [];
+if (typeof window.selectedRoom === 'undefined') window.selectedRoom = null;
+if (typeof window.selectedElementObj === 'undefined') window.selectedElementObj = null;
+if (typeof window.currentTool === 'undefined') window.currentTool = 'select';
+if (typeof window.isDrawing === 'undefined') window.isDrawing = false;
+if (typeof window.isDragging === 'undefined') window.isDragging = false;
+if (typeof window.isMovingElement === 'undefined') window.isMovingElement = false;
+if (typeof window.movingElement === 'undefined') window.movingElement = null;
+
 // Цены за работы (руб.)
 const prices = {
     // Стартовая штукатурка
@@ -174,10 +184,13 @@ function initializeApp() {
             initSharingButtons();
         }
         
-        // Инициализация мобильного интерфейса
-        if (window.innerWidth <= 576 && typeof initMobileUI === 'function') {
-            initMobileUI();
-        }
+        // Инициализация мобильного интерфейса с задержкой для гарантии загрузки DOM
+        setTimeout(() => {
+            if (window.innerWidth <= 576 && typeof initMobileUI === 'function') {
+                console.log('Initializing mobile UI...');
+                initMobileUI();
+            }
+        }, 100);
         
         console.log('App initialized successfully');
         
@@ -195,15 +208,18 @@ const throttledResize = throttle(function() {
     }
     
     // Переинициализация мобильного интерфейса при изменении размера
-    if (window.innerWidth <= 576 && typeof initMobileUI === 'function') {
-        initMobileUI();
-    } else {
-        // Скрываем мобильные элементы на десктопе
-        const mobileToolsContainer = document.querySelector('.mobile-tools-container');
-        const fabContainer = safeGetElement('fabContainer');
-        if (mobileToolsContainer) mobileToolsContainer.style.display = 'none';
-        if (fabContainer) fabContainer.style.display = 'none';
-    }
+    setTimeout(() => {
+        if (window.innerWidth <= 576 && typeof initMobileUI === 'function') {
+            console.log('Reinitializing mobile UI on resize...');
+            initMobileUI();
+        } else {
+            // Скрываем мобильные элементы на десктопе
+            const mobileToolsContainer = document.querySelector('.mobile-tools-container');
+            const fabContainer = safeGetElement('fabContainer');
+            if (mobileToolsContainer) mobileToolsContainer.style.display = 'none';
+            if (fabContainer) fabContainer.style.display = 'none';
+        }
+    }, 100);
 }, 250);
 
 // Глобальные функции для доступа из других модулей

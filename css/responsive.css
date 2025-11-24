@@ -796,12 +796,6 @@
     }
 }
 
-/* Гарантируем, что мобильные элементы скрыты на десктопе */
-.tools-panel,
-.properties-panel {
-    display: block !important;
-}
-
 /* Улучшение читаемости на темных темах */
 @media (prefers-color-scheme: dark) {
     .panel,

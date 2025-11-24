@@ -43,84 +43,96 @@ function getTouchDistance(touch1, touch2) {
 
 // Обработчики сенсорных событий
 function handleTouchStart(e) {
-    e.preventDefault();
-    
-    if (e.touches.length === 1) {
-        // Одиночное касание - эмуляция мыши
-        const touch = e.touches[0];
-        const mouseEvent = new MouseEvent('mousedown', {
-            clientX: touch.clientX,
-            clientY: touch.clientY,
-            bubbles: true
-        });
-        e.target.dispatchEvent(mouseEvent);
-    } else if (e.touches.length === 2) {
-        // Мультитач - начало жеста масштабирования
-        isPinching = true;
-        initialTouch1 = {
-            clientX: e.touches[0].clientX,
-            clientY: e.touches[0].clientY
-        };
-        initialTouch2 = {
-            clientX: e.touches[1].clientX,
-            clientY: e.touches[1].clientY
-        };
-        touchStartDistance = getTouchDistance(initialTouch1, initialTouch2);
+    try {
+        e.preventDefault();
+        
+        if (e.touches.length === 1) {
+            // Одиночное касание - эмуляция мыши
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('mousedown', {
+                clientX: touch.clientX,
+                clientY: touch.clientY,
+                bubbles: true
+            });
+            e.target.dispatchEvent(mouseEvent);
+        } else if (e.touches.length === 2) {
+            // Мультитач - начало жеста масштабирования
+            isPinching = true;
+            initialTouch1 = {
+                clientX: e.touches[0].clientX,
+                clientY: e.touches[0].clientY
+            };
+            initialTouch2 = {
+                clientX: e.touches[1].clientX,
+                clientY: e.touches[1].clientY
+            };
+            touchStartDistance = getTouchDistance(initialTouch1, initialTouch2);
+        }
+    } catch (error) {
+        console.error('Ошибка в handleTouchStart:', error);
     }
 }
 
 function handleTouchMove(e) {
-    e.preventDefault();
-    
-    if (e.touches.length === 1 && !isPinching) {
-        // Одиночное перемещение - эмуляция мыши
-        const touch = e.touches[0];
-        const mouseEvent = new MouseEvent('mousemove', {
-            clientX: touch.clientX,
-            clientY: touch.clientY,
-            bubbles: true
-        });
-        e.target.dispatchEvent(mouseEvent);
-    } else if (e.touches.length === 2 && isPinching) {
-        // Мультитач - обработка жеста масштабирования
-        const touch1 = {
-            clientX: e.touches[0].clientX,
-            clientY: e.touches[0].clientY
-        };
-        const touch2 = {
-            clientX: e.touches[1].clientX,
-            clientY: e.touches[1].clientY
-        };
+    try {
+        e.preventDefault();
         
-        const currentDistance = getTouchDistance(touch1, touch2);
-        const scaleChange = currentDistance / touchStartDistance;
-        
-        // Вычисляем центр между двумя точками
-        const centerX = (touch1.clientX + touch2.clientX) / 2;
-        const centerY = (touch1.clientY + touch2.clientY) / 2;
-        
-        // Применяем масштабирование относительно центра
-        handlePinchZoom(scaleChange, centerX, centerY);
-        
-        touchStartDistance = currentDistance;
+        if (e.touches.length === 1 && !isPinching) {
+            // Одиночное перемещение - эмуляция мыши
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('mousemove', {
+                clientX: touch.clientX,
+                clientY: touch.clientY,
+                bubbles: true
+            });
+            e.target.dispatchEvent(mouseEvent);
+        } else if (e.touches.length === 2 && isPinching) {
+            // Мультитач - обработка жеста масштабирования
+            const touch1 = {
+                clientX: e.touches[0].clientX,
+                clientY: e.touches[0].clientY
+            };
+            const touch2 = {
+                clientX: e.touches[1].clientX,
+                clientY: e.touches[1].clientY
+            };
+            
+            const currentDistance = getTouchDistance(touch1, touch2);
+            const scaleChange = currentDistance / touchStartDistance;
+            
+            // Вычисляем центр между двумя точками
+            const centerX = (touch1.clientX + touch2.clientX) / 2;
+            const centerY = (touch1.clientY + touch2.clientY) / 2;
+            
+            // Применяем масштабирование относительно центра
+            handlePinchZoom(scaleChange, centerX, centerY);
+            
+            touchStartDistance = currentDistance;
+        }
+    } catch (error) {
+        console.error('Ошибка в handleTouchMove:', error);
     }
 }
 
 function handleTouchEnd(e) {
-    e.preventDefault();
-    
-    if (e.touches.length === 0) {
-        // Все касания завершены
-        isPinching = false;
-        initialTouch1 = null;
-        initialTouch2 = null;
-        const mouseEvent = new MouseEvent('mouseup', {
-            bubbles: true
-        });
-        e.target.dispatchEvent(mouseEvent);
-    } else if (e.touches.length === 1) {
-        // Осталось одно касание - переключаемся в режим одиночного касания
-        isPinching = false;
+    try {
+        e.preventDefault();
+        
+        if (e.touches.length === 0) {
+            // Все касания завершены
+            isPinching = false;
+            initialTouch1 = null;
+            initialTouch2 = null;
+            const mouseEvent = new MouseEvent('mouseup', {
+                bubbles: true
+            });
+            e.target.dispatchEvent(mouseEvent);
+        } else if (e.touches.length === 1) {
+            // Осталось одно касание - переключаемся в режим одиночного касания
+            isPinching = false;
+        }
+    } catch (error) {
+        console.error('Ошибка в handleTouchEnd:', error);
     }
 }
 
