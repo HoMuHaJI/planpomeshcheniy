@@ -36,6 +36,46 @@ function drawRoom(room, ctx) {
     const heightMeters = (room.height / scale).toFixed(1);
     ctx.fillText(`${widthMeters} x ${heightMeters} м`, room.x + 5, room.y + 30);
     
+    // Индикаторы этапов работ в комнате (цветные квадратики в левом верхнем углу)
+    const indicatorSize = 8;
+    const indicatorY = room.y + 45;
+    let indicatorX = room.x + 5;
+    
+    // Цвета для этапов работ
+    const workColors = {
+        plaster: '#3498db',    // Голубой - штукатурка
+        armoring: '#e67e22',   // Оранжевый - армирование
+        puttyWallpaper: '#2ecc71', // Зеленый - шпаклевка под обои
+        puttyPaint: '#9b59b6', // Фиолетовый - шпаклевка под покраску
+        painting: '#e74c3c'    // Красный - покраска
+    };
+    
+    // Рисуем индикаторы для выбранных работ
+    if (room.plaster) {
+        ctx.fillStyle = workColors.plaster;
+        ctx.fillRect(indicatorX, indicatorY, indicatorSize, indicatorSize);
+        indicatorX += indicatorSize + 3;
+    }
+    if (room.armoring) {
+        ctx.fillStyle = workColors.armoring;
+        ctx.fillRect(indicatorX, indicatorY, indicatorSize, indicatorSize);
+        indicatorX += indicatorSize + 3;
+    }
+    if (room.puttyWallpaper) {
+        ctx.fillStyle = workColors.puttyWallpaper;
+        ctx.fillRect(indicatorX, indicatorY, indicatorSize, indicatorSize);
+        indicatorX += indicatorSize + 3;
+    }
+    if (room.puttyPaint) {
+        ctx.fillStyle = workColors.puttyPaint;
+        ctx.fillRect(indicatorX, indicatorY, indicatorSize, indicatorSize);
+        indicatorX += indicatorSize + 3;
+    }
+    if (room.painting) {
+        ctx.fillStyle = workColors.painting;
+        ctx.fillRect(indicatorX, indicatorY, indicatorSize, indicatorSize);
+    }
+    
     // Отрисовка окон
     room.windows.forEach(window => {
         drawWindow(room, window, ctx);
@@ -68,9 +108,11 @@ function drawWindow(room, window, ctx) {
     
     // Разный цвет для разных типов откосов
     if (window.slopes === 'with_net') {
-        ctx.fillStyle = 'rgba(255, 193, 7, 0.4)'; // Желтый для откосов с сеткой
+        ctx.fillStyle = 'rgba(255, 193, 7, 0.6)'; // Желтый для откосов с сеткой
+    } else if (window.slopes === 'with') {
+        ctx.fillStyle = 'rgba(74, 110, 224, 0.6)'; // Синий для обычных откосов
     } else {
-        ctx.fillStyle = 'rgba(74, 110, 224, 0.3)'; // Синий для обычных откосов
+        ctx.fillStyle = 'rgba(150, 150, 150, 0.4)'; // Серый для без откосов
     }
     
     let x, y, drawWidth, drawHeight;
@@ -114,6 +156,41 @@ function drawWindow(room, window, ctx) {
     ctx.fillRect(x, y, drawWidth, drawHeight);
     ctx.strokeRect(x, y, drawWidth, drawHeight);
     
+    // Добавляем маленький треугольник для указания типа откосов
+    ctx.fillStyle = '#333';
+    if (window.slopes === 'with_net') {
+        // Желтый треугольник для сетки
+        ctx.fillStyle = '#ffc107';
+    } else if (window.slopes === 'with') {
+        // Синий треугольник для обычных откосов
+        ctx.fillStyle = '#4a6ee0';
+    } else {
+        // Серый треугольник для отсутствия откосов
+        ctx.fillStyle = '#888';
+    }
+    
+    // Рисуем треугольник в углу окна
+    ctx.beginPath();
+    if (window.wall === 'top') {
+        ctx.moveTo(x + 2, y + 2);
+        ctx.lineTo(x + 8, y + 2);
+        ctx.lineTo(x + 2, y + 8);
+    } else if (window.wall === 'right') {
+        ctx.moveTo(x + drawWidth - 2, y + 2);
+        ctx.lineTo(x + drawWidth - 8, y + 2);
+        ctx.lineTo(x + drawWidth - 2, y + 8);
+    } else if (window.wall === 'bottom') {
+        ctx.moveTo(x + 2, y + drawHeight - 2);
+        ctx.lineTo(x + 8, y + drawHeight - 2);
+        ctx.lineTo(x + 2, y + drawHeight - 8);
+    } else if (window.wall === 'left') {
+        ctx.moveTo(x + 2, y + 2);
+        ctx.lineTo(x + 8, y + 2);
+        ctx.lineTo(x + 2, y + 8);
+    }
+    ctx.closePath();
+    ctx.fill();
+    
     ctx.restore();
 }
 
@@ -136,9 +213,11 @@ function drawDoor(room, door, ctx) {
     
     // Разный цвет для разных типов откосов
     if (door.slopes === 'with_net') {
-        ctx.fillStyle = 'rgba(255, 193, 7, 0.4)'; // Желтый для откосов с сеткой
+        ctx.fillStyle = 'rgba(255, 193, 7, 0.6)'; // Желтый для откосов с сеткой
+    } else if (door.slopes === 'with') {
+        ctx.fillStyle = 'rgba(231, 76, 60, 0.6)'; // Красный для обычных откосов
     } else {
-        ctx.fillStyle = 'rgba(231, 76, 60, 0.3)'; // Красный для обычных откосов
+        ctx.fillStyle = 'rgba(150, 150, 150, 0.4)'; // Серый для без откосов
     }
     
     let x, y, drawWidth, drawHeight;
@@ -181,6 +260,40 @@ function drawDoor(room, door, ctx) {
     
     ctx.fillRect(x, y, drawWidth, drawHeight);
     ctx.strokeRect(x, y, drawWidth, drawHeight);
+    
+    // Добавляем маленький треугольник для указания типа откосов
+    if (door.slopes === 'with_net') {
+        // Желтый треугольник для сетки
+        ctx.fillStyle = '#ffc107';
+    } else if (door.slopes === 'with') {
+        // Красный треугольник для обычных откосов
+        ctx.fillStyle = '#e74c3c';
+    } else {
+        // Серый треугольник для отсутствия откосов
+        ctx.fillStyle = '#888';
+    }
+    
+    // Рисуем треугольник в углу двери
+    ctx.beginPath();
+    if (door.wall === 'top') {
+        ctx.moveTo(x + 2, y + 2);
+        ctx.lineTo(x + 8, y + 2);
+        ctx.lineTo(x + 2, y + 8);
+    } else if (door.wall === 'right') {
+        ctx.moveTo(x + drawWidth - 2, y + 2);
+        ctx.lineTo(x + drawWidth - 8, y + 2);
+        ctx.lineTo(x + drawWidth - 2, y + 8);
+    } else if (door.wall === 'bottom') {
+        ctx.moveTo(x + 2, y + drawHeight - 2);
+        ctx.lineTo(x + 8, y + drawHeight - 2);
+        ctx.lineTo(x + 2, y + drawHeight - 8);
+    } else if (door.wall === 'left') {
+        ctx.moveTo(x + 2, y + 2);
+        ctx.lineTo(x + 8, y + 2);
+        ctx.lineTo(x + 2, y + 8);
+    }
+    ctx.closePath();
+    ctx.fill();
     
     ctx.restore();
 }

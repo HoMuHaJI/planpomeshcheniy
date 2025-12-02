@@ -17,6 +17,8 @@ let dragStartX, dragStartY;
 let dragOffsetX, dragOffsetY;
 let isMovingElement = false;
 let movingElement = null;
+let isPanning = false; // Новое: флаг для перемещения всего проекта
+let panStartX, panStartY; // Новое: начальные координаты для панорамирования
 window.editorCanvas = null;
 
 // Добавить проверку инициализации глобальных переменных
@@ -28,6 +30,7 @@ if (typeof window.isDrawing === 'undefined') window.isDrawing = false;
 if (typeof window.isDragging === 'undefined') window.isDragging = false;
 if (typeof window.isMovingElement === 'undefined') window.isMovingElement = false;
 if (typeof window.movingElement === 'undefined') window.movingElement = null;
+if (typeof window.isPanning === 'undefined') window.isPanning = false; // Новое
 
 // Цены за работы (руб.)
 const prices = {
@@ -232,7 +235,8 @@ window.getEditorState = function() {
         scale,
         zoom,
         viewOffsetX,
-        viewOffsetY
+        viewOffsetY,
+        isPanning // Новое
     };
 };
 
@@ -245,6 +249,7 @@ window.setEditorState = function(newState) {
     if (newState.zoom !== undefined) zoom = newState.zoom;
     if (newState.viewOffsetX !== undefined) viewOffsetX = newState.viewOffsetX;
     if (newState.viewOffsetY !== undefined) viewOffsetY = newState.viewOffsetY;
+    if (newState.isPanning !== undefined) isPanning = newState.isPanning; // Новое
 };
 
 // Экспорт функций для использования в других модулях

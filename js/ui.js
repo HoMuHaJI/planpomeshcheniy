@@ -20,10 +20,23 @@ function updateElementList() {
         if (selectedRoom && selectedRoom.id === room.id) {
             item.classList.add('selected');
         }
+        
+        // Создаем строку с иконками выбранных работ
+        let worksHtml = '';
+        if (room.plaster) worksHtml += '<span class="work-indicator" style="background-color: #3498db;" title="Стартовая штукатурка"></span>';
+        if (room.armoring) worksHtml += '<span class="work-indicator" style="background-color: #e67e22;" title="Армирование сеткой"></span>';
+        if (room.puttyWallpaper) worksHtml += '<span class="work-indicator" style="background-color: #2ecc71;" title="Шпаклевка под обои"></span>';
+        if (room.puttyPaint) worksHtml += '<span class="work-indicator" style="background-color: #9b59b6;" title="Шпаклевка под покраску"></span>';
+        if (room.painting) worksHtml += '<span class="work-indicator" style="background-color: #e74c3c;" title="Покраска"></span>';
+        
         item.innerHTML = `
-            <span>${escapeHTML(room.name || 'Комната')} (${(room.width / scale).toFixed(1)}x${(room.height / scale).toFixed(1)} м)</span>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span>${escapeHTML(room.name || 'Комната')} (${(room.width / scale).toFixed(1)}x${(room.height / scale).toFixed(1)} м)</span>
+                <div class="work-indicators">${worksHtml}</div>
+            </div>
             <button class="delete-btn" data-id="${room.id}" data-type="room"><i class="fas fa-trash"></i></button>
         `;
+        
         item.addEventListener('click', (e) => {
             if (e.target.classList.contains('delete-btn') || e.target.parentElement?.classList.contains('delete-btn')) return;
             selectRoom(room);
@@ -51,13 +64,27 @@ function updateElementList() {
             room.windows.forEach(window => {
                 if (!window) return;
                 
+                // Определяем цвет индикатора откосов
+                let slopesColor = '#888';
+                let slopesText = 'Без откосов';
+                if (window.slopes === 'with') {
+                    slopesColor = '#4a6ee0';
+                    slopesText = 'С откосами';
+                } else if (window.slopes === 'with_net') {
+                    slopesColor = '#ffc107';
+                    slopesText = 'С откосами и сеткой';
+                }
+                
                 const windowItem = document.createElement('div');
                 windowItem.className = 'element-item';
                 if (selectedElementObj && selectedElementObj.id === window.id) {
                     windowItem.classList.add('selected');
                 }
                 windowItem.innerHTML = `
-                    <span style="margin-left: 20px;">Окно: ${window.width}x${window.height} м (${escapeHTML(window.wall || '')})</span>
+                    <div style="display: flex; align-items: center; gap: 8px; margin-left: 20px;">
+                        <span>Окно: ${window.width}x${window.height} м</span>
+                        <span class="slopes-indicator" style="background-color: ${slopesColor};" title="${slopesText}"></span>
+                    </div>
                     <button class="delete-btn" data-id="${window.id}" data-type="window"><i class="fas fa-trash"></i></button>
                 `;
                 windowItem.addEventListener('click', (e) => {
@@ -90,13 +117,27 @@ function updateElementList() {
             room.doors.forEach(door => {
                 if (!door) return;
                 
+                // Определяем цвет индикатора откосов
+                let slopesColor = '#888';
+                let slopesText = 'Без откосов';
+                if (door.slopes === 'with') {
+                    slopesColor = '#e74c3c';
+                    slopesText = 'С откосами';
+                } else if (door.slopes === 'with_net') {
+                    slopesColor = '#ffc107';
+                    slopesText = 'С откосами и сеткой';
+                }
+                
                 const doorItem = document.createElement('div');
                 doorItem.className = 'element-item';
                 if (selectedElementObj && selectedElementObj.id === door.id) {
                     doorItem.classList.add('selected');
                 }
                 doorItem.innerHTML = `
-                    <span style="margin-left: 20px;">Дверь: ${door.width}x${door.height} м (${escapeHTML(door.wall || '')})</span>
+                    <div style="display: flex; align-items: center; gap: 8px; margin-left: 20px;">
+                        <span>Дверь: ${door.width}x${door.height} м</span>
+                        <span class="slopes-indicator" style="background-color: ${slopesColor};" title="${slopesText}"></span>
+                    </div>
                     <button class="delete-btn" data-id="${door.id}" data-type="door"><i class="fas fa-trash"></i></button>
                 `;
                 doorItem.addEventListener('click', (e) => {
@@ -265,14 +306,27 @@ function updatePropertiesPanel(element) {
         if (roomWidth) roomWidth.value = (element.width / scale).toFixed(1);
         if (roomHeightProp) roomHeightProp.value = (element.height / scale).toFixed(1);
         
-        // Установка чекбоксов отделки
-        if (plasterCheckbox) plasterCheckbox.checked = !!element.plaster;
-        if (armoringCheckbox) armoringCheckbox.checked = !!element.armoring;
-        if (puttyWallpaperCheckbox) puttyWallpaperCheckbox.checked = !!element.puttyWallpaper;
-        if (puttyPaintCheckbox) puttyPaintCheckbox.checked = !!element.puttyPaint;
+        // Установка чекбоксов отделки с цветными индикаторами
+        if (plasterCheckbox) {
+            plasterCheckbox.checked = !!element.plaster;
+            updateCheckboxColor('plaster', element.plaster ? '#3498db' : '#ccc');
+        }
+        if (armoringCheckbox) {
+            armoringCheckbox.checked = !!element.armoring;
+            updateCheckboxColor('armoring', element.armoring ? '#e67e22' : '#ccc');
+        }
+        if (puttyWallpaperCheckbox) {
+            puttyWallpaperCheckbox.checked = !!element.puttyWallpaper;
+            updateCheckboxColor('puttyWallpaper', element.puttyWallpaper ? '#2ecc71' : '#ccc');
+        }
+        if (puttyPaintCheckbox) {
+            puttyPaintCheckbox.checked = !!element.puttyPaint;
+            updateCheckboxColor('puttyPaint', element.puttyPaint ? '#9b59b6' : '#ccc');
+        }
         if (paintingCheckbox) {
             paintingCheckbox.checked = !!element.painting;
             paintingCheckbox.disabled = !!element.puttyWallpaper;
+            updateCheckboxColor('painting', element.painting ? '#e74c3c' : '#ccc');
         }
         
         // Сброс состояния кнопки
@@ -312,15 +366,31 @@ function updatePropertiesPanel(element) {
                 applyRoomChangesBtn.disabled = false;
             }
             
+            // Обновляем цвет чекбокса
+            const color = this.checked ? 
+                (this.id === 'plaster' ? '#3498db' :
+                 this.id === 'armoring' ? '#e67e22' :
+                 this.id === 'puttyWallpaper' ? '#2ecc71' :
+                 this.id === 'puttyPaint' ? '#9b59b6' :
+                 '#e74c3c') : '#ccc';
+            updateCheckboxColor(this.id, color);
+            
             // Взаимное исключение для шпаклевки
             if (this === puttyWallpaperCheckbox && this.checked) {
-                if (puttyPaintCheckbox) puttyPaintCheckbox.checked = false;
+                if (puttyPaintCheckbox) {
+                    puttyPaintCheckbox.checked = false;
+                    updateCheckboxColor('puttyPaint', '#ccc');
+                }
                 if (paintingCheckbox) {
                     paintingCheckbox.checked = false;
                     paintingCheckbox.disabled = true;
+                    updateCheckboxColor('painting', '#ccc');
                 }
             } else if (this === puttyPaintCheckbox && this.checked) {
-                if (puttyWallpaperCheckbox) puttyWallpaperCheckbox.checked = false;
+                if (puttyWallpaperCheckbox) {
+                    puttyWallpaperCheckbox.checked = false;
+                    updateCheckboxColor('puttyWallpaper', '#ccc');
+                }
                 if (paintingCheckbox) paintingCheckbox.disabled = false;
             } else if (this === puttyWallpaperCheckbox && !this.checked) {
                 if (paintingCheckbox) paintingCheckbox.disabled = false;
@@ -328,17 +398,28 @@ function updatePropertiesPanel(element) {
                 if (paintingCheckbox) {
                     paintingCheckbox.checked = false;
                     paintingCheckbox.disabled = true;
+                    updateCheckboxColor('painting', '#ccc');
                 }
             }
             
             // Если сняли штукатурку, снимаем и армирование
             if (this === plasterCheckbox && !this.checked) {
-                if (armoringCheckbox) armoringCheckbox.checked = false;
-                if (puttyWallpaperCheckbox) puttyWallpaperCheckbox.checked = false;
-                if (puttyPaintCheckbox) puttyPaintCheckbox.checked = false;
+                if (armoringCheckbox) {
+                    armoringCheckbox.checked = false;
+                    updateCheckboxColor('armoring', '#ccc');
+                }
+                if (puttyWallpaperCheckbox) {
+                    puttyWallpaperCheckbox.checked = false;
+                    updateCheckboxColor('puttyWallpaper', '#ccc');
+                }
+                if (puttyPaintCheckbox) {
+                    puttyPaintCheckbox.checked = false;
+                    updateCheckboxColor('puttyPaint', '#ccc');
+                }
                 if (paintingCheckbox) {
                     paintingCheckbox.checked = false;
                     paintingCheckbox.disabled = true;
+                    updateCheckboxColor('painting', '#ccc');
                 }
             }
         }
@@ -402,6 +483,9 @@ function updatePropertiesPanel(element) {
         if (windowPositionValue) windowPositionValue.textContent = `${element.position || 50}%`;
         if (windowSlopes) windowSlopes.value = element.slopes || 'with';
         
+        // Обновляем цвет селекта откосов
+        updateSlopesSelectColor('windowSlopes', element.slopes);
+        
         // Сброс состояния кнопки
         if (applyWindowChangesBtn) applyWindowChangesBtn.disabled = true;
         
@@ -421,6 +505,9 @@ function updatePropertiesPanel(element) {
             }
             if (e.target.id === 'windowPosition' && windowPositionValue) {
                 windowPositionValue.textContent = `${e.target.value}%`;
+            }
+            if (e.target.id === 'windowSlopes') {
+                updateSlopesSelectColor('windowSlopes', e.target.value);
             }
         }
         
@@ -469,6 +556,9 @@ function updatePropertiesPanel(element) {
         if (doorPositionValue) doorPositionValue.textContent = `${element.position || 50}%`;
         if (doorSlopes) doorSlopes.value = element.slopes || 'with';
         
+        // Обновляем цвет селекта откосов
+        updateSlopesSelectColor('doorSlopes', element.slopes);
+        
         // Сброс состояния кнопки
         if (applyDoorChangesBtn) applyDoorChangesBtn.disabled = true;
         
@@ -488,6 +578,9 @@ function updatePropertiesPanel(element) {
             }
             if (e.target.id === 'doorPosition' && doorPositionValue) {
                 doorPositionValue.textContent = `${e.target.value}%`;
+            }
+            if (e.target.id === 'doorSlopes') {
+                updateSlopesSelectColor('doorSlopes', e.target.value);
             }
         }
         
@@ -526,6 +619,30 @@ function updatePropertiesPanel(element) {
     }
 }
 
+// Обновление цвета чекбокса
+function updateCheckboxColor(checkboxId, color) {
+    const checkbox = safeGetElement(checkboxId);
+    if (checkbox) {
+        checkbox.style.accentColor = color;
+    }
+}
+
+// Обновление цвета селекта откосов
+function updateSlopesSelectColor(selectId, value) {
+    const select = safeGetElement(selectId);
+    if (!select) return;
+    
+    let color = '#888';
+    if (selectId === 'windowSlopes') {
+        color = value === 'with' ? '#4a6ee0' : value === 'with_net' ? '#ffc107' : '#888';
+    } else if (selectId === 'doorSlopes') {
+        color = value === 'with' ? '#e74c3c' : value === 'with_net' ? '#ffc107' : '#888';
+    }
+    
+    select.style.borderColor = color;
+    select.style.color = color;
+}
+
 // Скрытие всех панелей свойств
 function hideAllProperties() {
     if (roomProperties) roomProperties.style.display = 'none';
@@ -540,6 +657,7 @@ function initSharingButtons() {
     const copyReceiptBtn = safeGetElement('copyReceipt');
     const printReceiptBtn = safeGetElement('printReceipt');
     const feedbackBtn = safeGetElement('feedbackBtn');
+    const headerFeedbackBtn = safeGetElement('headerFeedbackBtn'); // Новая кнопка в шапке
     
     if (sendWhatsAppBtn) {
         sendWhatsAppBtn.addEventListener('click', shareToWhatsApp);
@@ -555,6 +673,10 @@ function initSharingButtons() {
     
     if (feedbackBtn) {
         feedbackBtn.addEventListener('click', openFeedbackModal);
+    }
+    
+    if (headerFeedbackBtn) {
+        headerFeedbackBtn.addEventListener('click', openFeedbackModal);
     }
 }
 
@@ -1442,9 +1564,16 @@ function handleMouseDown(e) {
                 movingElement = element;
             }
         } else {
+            // НОВОЕ: Если не кликнули на элемент, начинаем панорамирование (перемещение всего проекта)
+            isPanning = true;
+            panStartX = e.clientX;
+            panStartY = e.clientY;
             selectedRoom = null;
             selectedElementObj = null;
             hideAllProperties();
+            
+            // Меняем курсор на перемещение
+            editorCanvas.style.cursor = 'grabbing';
         }
     } else if (currentTool === 'room') {
         isDrawing = true;
@@ -1479,6 +1608,21 @@ function handleMouseMove(e) {
     // Обновление позиции курсора
     if (cursorPosition) {
         cursorPosition.textContent = `X: ${(x / scale).toFixed(2)}, Y: ${(y / scale).toFixed(2)}`;
+    }
+    
+    // НОВОЕ: Панорамирование всего проекта
+    if (isPanning) {
+        const dx = e.clientX - panStartX;
+        const dy = e.clientY - panStartY;
+        
+        viewOffsetX += dx;
+        viewOffsetY += dy;
+        
+        panStartX = e.clientX;
+        panStartY = e.clientY;
+        
+        draw(editorCanvas, editorCanvas.getContext('2d'));
+        return;
     }
     
     // Перемещение комнаты
@@ -1529,6 +1673,12 @@ function handleMouseMove(e) {
 function handleMouseUp(e) {
     const editorCanvas = safeGetElement('editorCanvas');
     if (!editorCanvas) return;
+    
+    // НОВОЕ: Завершаем панорамирование
+    if (isPanning) {
+        isPanning = false;
+        editorCanvas.style.cursor = 'move';
+    }
     
     if (isDragging) {
         isDragging = false;

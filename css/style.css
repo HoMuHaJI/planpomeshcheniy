@@ -40,11 +40,10 @@ body {
     padding: 20px;
 }
 
-/* Header Styles */
+/* Header Styles - ОБНОВЛЕНО */
 header {
-    text-align: center;
     margin-bottom: 30px;
-    padding: 30px;
+    padding: 25px;
     background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 100%);
     color: var(--white);
     border-radius: var(--border-radius);
@@ -65,16 +64,22 @@ header::before {
     opacity: 0.1;
 }
 
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
 .logo {
     display: flex;
     align-items: center;
-    justify-content: center;
-    margin-bottom: 15px;
+    gap: 15px;
 }
 
 .logo-icon {
     font-size: 2.5rem;
-    margin-right: 15px;
     background: rgba(255, 255, 255, 0.2);
     width: 70px;
     height: 70px;
@@ -86,18 +91,18 @@ header::before {
     backdrop-filter: blur(5px);
 }
 
-h1 {
-    font-size: 2.8rem;
-    margin-bottom: 10px;
+.logo h1 {
+    font-size: 2.2rem;
+    margin-bottom: 5px;
     font-weight: 700;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .tagline {
-    font-size: 1.4rem;
+    font-size: 1.2rem;
     max-width: 600px;
-    margin: 0 auto;
     opacity: 0.9;
+    margin-bottom: 8px;
 }
 
 .location-badge {
@@ -108,7 +113,98 @@ h1 {
     border-radius: 20px;
     font-size: 0.9rem;
     font-weight: 600;
-    margin-top: 10px;
+}
+
+/* Контакты в шапке */
+.header-contacts {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 15px;
+}
+
+.contact-buttons {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.contact-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: var(--transition);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.contact-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.contact-btn.phone {
+    background: rgba(52, 152, 219, 0.3);
+    border-color: rgba(52, 152, 219, 0.5);
+}
+
+.contact-btn.whatsapp {
+    background: rgba(37, 211, 102, 0.3);
+    border-color: rgba(37, 211, 102, 0.5);
+}
+
+.contact-btn.telegram {
+    background: rgba(0, 136, 204, 0.3);
+    border-color: rgba(0, 136, 204, 0.5);
+}
+
+.consult-btn {
+    background: linear-gradient(135deg, var(--accent-color) 0%, #f85a3a 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: var(--transition);
+    box-shadow: 0 4px 12px rgba(255, 126, 95, 0.3);
+}
+
+.consult-btn:hover {
+    background: linear-gradient(135deg, #f85a3a 0%, #e04a2d 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(255, 126, 95, 0.4);
+}
+
+/* Индикаторы работ в списке элементов */
+.work-indicators {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.work-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.slopes-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    display: inline-block;
 }
 
 /* Main App Container */
@@ -868,4 +964,40 @@ button:disabled {
 .notification.show {
     transform: translateY(0);
     opacity: 1;
+}
+
+/* Адаптивность для шапки */
+@media (max-width: 1200px) {
+    .header-container {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .header-contacts {
+        align-items: center;
+        width: 100%;
+    }
+    
+    .contact-buttons {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .contact-buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .contact-btn {
+        justify-content: center;
+    }
+    
+    .logo h1 {
+        font-size: 1.8rem;
+    }
+    
+    .tagline {
+        font-size: 1rem;
+    }
 }
