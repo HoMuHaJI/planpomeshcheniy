@@ -1,821 +1,186 @@
-/* Responsive Design - Адаптивный дизайн для ПланПомещений */
-
-/* Большие экраны */
-@media (min-width: 1201px) {
-    .app-container {
-        grid-template-columns: 300px 1fr 380px;
-    }
+:root {
+    --primary-color: #4a6ee0;
+    --primary-light: #6a8aec;
+    --primary-dark: #3a5bc7;
+    --secondary-color: #8e6bc9;
+    --accent-color: #ff7e5f;
+    --accent-light: #ff9e87;
+    --neutral-light: #f8f9fa;
+    --neutral-medium: #e9ecef;
+    --neutral-dark: #495057;
+    --text-color: #333333;
+    --text-light: #6c757d;
+    --success-color: #28a745;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+    --white: #ffffff;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --shadow-hover: 0 6px 16px rgba(0, 0, 0, 0.12);
+    --border-radius: 10px;
+    --transition: all 0.3s ease;
 }
 
-/* Стандартные десктопы */
-@media (max-width: 1200px) and (min-width: 993px) {
-    .app-container {
-        grid-template-columns: 280px 1fr 350px;
-    }
-    
-    .container {
-        padding: 20px;
-    }
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', 'Roboto', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Небольшие десктопы и планшеты в альбомной ориентации */
-@media (max-width: 992px) and (min-width: 769px) {
-    .app-container {
-        grid-template-columns: 250px 1fr 320px;
-    }
-    
-    .container {
-        padding: 15px;
-    }
-    
-    .tool-btn {
-        padding: 12px 10px;
-        font-size: 13px;
-    }
-    
-    .tool-btn i {
-        font-size: 20px;
-    }
-    
-    .panel-content {
-        padding: 15px;
-    }
+body {
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+    color: var(--text-color);
+    line-height: 1.6;
+    min-height: 100vh;
 }
 
-/* Планшеты и большие телефоны */
-@media (max-width: 768px) and (min-width: 577px) {
-    .container {
-        padding: 10px;
-    }
-    
-    .app-container {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto auto auto;
-        gap: 15px;
-    }
-    
-    .tools-panel, .properties-panel {
-        order: 2;
-    }
-    
-    .editor-panel {
-        order: 1;
-        min-height: 500px;
-    }
-    
-    header {
-        padding: 20px 15px;
-        margin-bottom: 15px;
-    }
-    
-    h1 {
-        font-size: 2rem;
-    }
-    
-    .tagline {
-        font-size: 1.1rem;
-    }
-    
-    .tool-btn {
-        padding: 12px 10px;
-        font-size: 14px;
-        min-height: 80px;
-    }
-    
-    .tool-btn i {
-        font-size: 20px;
-        margin-bottom: 5px;
-    }
-    
-    .panel-content {
-        padding: 15px;
-    }
-    
-    .editor-toolbar {
-        flex-wrap: wrap;
-        gap: 8px;
-    }
-    
-    .editor-toolbar button {
-        padding: 10px 12px;
-        font-size: 14px;
-    }
-    
-    .zoom-controls {
-        margin-left: auto;
-    }
-    
-    .status-bar {
-        font-size: 12px;
-    }
-    
-    .form-group {
-        margin-bottom: 15px;
-    }
-    
-    input, select, textarea, button {
-        padding: 12px 14px;
-        font-size: 16px;
-    }
-    
-    label {
-        font-size: 14px;
-        margin-bottom: 8px;
-    }
-    
-    .checkbox-group {
-        gap: 8px;
-    }
-    
-    .checkbox-item {
-        padding: 10px;
-        font-size: 14px;
-    }
-    
-    .element-list {
-        max-height: 200px;
-    }
-    
-    .element-item {
-        padding: 12px 10px;
-        font-size: 14px;
-    }
-    
-    .summary-item {
-        font-size: 14px;
-        margin-bottom: 10px;
-    }
-    
-    .property-group h3 {
-        font-size: 1.1rem;
-        margin-bottom: 15px;
-    }
+.container {
+    max-width: 1800px;
+    margin: 0 auto;
+    padding: 20px;
 }
 
-/* Мобильные телефоны */
-@media (max-width: 576px) {
-    .container {
-        padding: 8px;
-        overflow-x: hidden;
-        min-width: auto;
-    }
-    
-    .app-container {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto auto auto;
-        gap: 12px;
-        min-width: auto;
-    }
-    
-    .tools-panel, .properties-panel {
-        order: 2;
-        display: none !important;
-    }
-    
-    .editor-panel {
-        order: 1;
-        min-height: 400px;
-    }
-    
-    .mobile-tools-container {
-        display: block !important;
-        margin-bottom: 15px;
-    }
-    
-    .mobile-top-controls {
-        display: flex !important;
-        gap: 8px;
-        margin-bottom: 15px;
-    }
-    
-    .mobile-top-controls button {
-        flex: 1;
-        padding: 12px 10px;
-        font-size: 14px;
-        min-height: 44px;
-        background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary-color) 100%);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        -webkit-tap-highlight-color: transparent;
-    }
-    
-    .mobile-zoom-controls {
-        display: flex !important;
-        gap: 8px;
-        margin-bottom: 15px;
-        align-items: center;
-    }
-    
-    .mobile-zoom-controls button {
-        flex: 1;
-        padding: 12px;
-        font-size: 16px;
-        min-height: 44px;
-        background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary-color) 100%);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        -webkit-tap-highlight-color: transparent;
-    }
-    
-    .mobile-tool-groups {
-        background: var(--neutral-light);
-        border-radius: 10px;
-        padding: 15px;
-        margin-bottom: 15px;
-    }
-    
-    .mobile-tool-section {
-        margin-bottom: 20px;
-    }
-    
-    .mobile-tool-section h4 {
-        margin-bottom: 10px;
-        color: var(--primary-color);
-        font-size: 16px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    
-    .mobile-tool-buttons {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-    }
-    
-    .mobile-tool-btn {
-        padding: 12px 8px;
-        background: white;
-        border: 1px solid var(--neutral-medium);
-        border-radius: 8px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 5px;
-        font-size: 12px;
-        min-height: 70px;
-        transition: var(--transition);
-        cursor: pointer;
-        touch-action: manipulation;
-        -webkit-tap-highlight-color: transparent;
-    }
-    
-    .mobile-tool-btn.active {
-        background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary-color) 100%);
-        color: white;
-        border-color: var(--primary-color);
-        transform: scale(0.95);
-    }
-    
-    .mobile-tool-btn i {
-        font-size: 18px;
-    }
-    
-    header {
-        padding: 15px 10px;
-        margin-bottom: 10px;
-        text-align: center;
-    }
-    
-    .logo {
-        flex-direction: column;
-        align-items: center;
-    }
-    
-    .logo-icon {
-        margin-right: 0;
-        margin-bottom: 10px;
-    }
-    
-    h1 {
-        font-size: 1.8rem;
-    }
-    
-    .tagline {
-        font-size: 1.1rem;
-    }
-    
-    .location-badge {
-        font-size: 0.9rem;
-        padding: 6px 12px;
-    }
-    
-    .panel {
-        min-height: auto;
-    }
-    
-    .panel-header {
-        padding: 15px;
-        font-size: 1.1rem;
-    }
-    
-    .panel-content {
-        padding: 12px;
-    }
-    
-    .editor-toolbar {
-        display: none !important;
-    }
-    
-    .zoom-controls {
-        display: none !important;
-    }
-    
-    .editor-container {
-        min-height: 350px;
-        border: 2px solid var(--neutral-medium);
-        border-radius: 10px;
-    }
-    
-    .status-bar {
-        flex-direction: column;
-        gap: 8px;
-        font-size: 12px;
-        padding: 10px;
-        text-align: center;
-        background: var(--neutral-light);
-        border-radius: 8px;
-        margin-top: 10px;
-    }
-    
-    .form-group {
-        margin-bottom: 15px;
-    }
-    
-    input, select, textarea, button {
-        padding: 12px 14px;
-        font-size: 16px;
-        min-height: 48px;
-    }
-    
-    label {
-        font-size: 14px;
-        margin-bottom: 8px;
-    }
-    
-    .checkbox-group {
-        gap: 8px;
-    }
-    
-    .checkbox-item {
-        padding: 10px;
-        font-size: 14px;
-    }
-    
-    .element-list {
-        max-height: 200px;
-    }
-    
-    .element-item {
-        padding: 12px 10px;
-        font-size: 14px;
-    }
-    
-    .summary-item {
-        font-size: 14px;
-        margin-bottom: 10px;
-    }
-    
-    .property-group h3 {
-        font-size: 1.1rem;
-        margin-bottom: 15px;
-    }
-    
-    /* Улучшение для ползунков на мобильных */
-    input[type="range"] {
-        height: 8px;
-        margin: 12px 0;
-    }
-    
-    input[type="range"]::-webkit-slider-thumb {
-        width: 24px;
-        height: 24px;
-    }
-    
-    /* Кнопки отправки сметы */
-    .sharing-buttons {
-        flex-direction: column;
-        gap: 10px;
-    }
-    
-    .btn-whatsapp,
-    .btn-copy,
-    .btn-print {
-        font-size: 14px;
-        padding: 14px 20px;
-        min-height: 54px;
-    }
-    
-    .btn-feedback {
-        font-size: 16px;
-        padding: 16px 24px;
-        width: 100%;
-        min-height: 60px;
-    }
-    
-    .feedback-section {
-        padding: 20px;
-    }
-    
-    .feedback-note {
-        font-size: 14px;
-    }
-    
-    /* Модальное окно */
-    .modal-content {
-        width: 95%;
-        margin: 2% auto;
-        max-height: 96vh;
-        -webkit-overflow-scrolling: touch;
-    }
-    
-    .modal-body {
-        padding: 20px;
-    }
-    
-    /* Кассовый чек */
-    .receipt-container {
-        margin: 10px 0;
-    }
-    
-    .receipt-content {
-        padding: 15px;
-        font-size: 14px;
-    }
-    
-    .receipt-work-details {
-        flex-direction: column;
-        gap: 5px;
-    }
-    
-    .receipt-work-name,
-    .receipt-work-calculation,
-    .receipt-work-cost {
-        text-align: left;
-        font-size: 12px;
-    }
-    
-    .receipt-section-header {
-        font-size: 14px;
-        padding: 10px;
-    }
-    
-    /* Плавающие кнопки */
-    #fabContainer {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        display: flex !important;
-        flex-direction: column;
-        gap: 10px;
-        z-index: 1000;
-    }
-    
-    .fab-btn {
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-        color: white;
-        border: none;
-        font-size: 18px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: var(--transition);
-        cursor: pointer;
-        -webkit-tap-highlight-color: transparent;
-    }
-    
-    .fab-btn.properties { 
-        background: linear-gradient(135deg, #8e6bc9 0%, #7a5ab5 100%); 
-    }
-    .fab-btn.summary { 
-        background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); 
-    }
-    .fab-btn.receipt { 
-        background: linear-gradient(135deg, #ff7e5f 0%, #f85a3a 100%); 
-    }
-    .fab-btn.top { 
-        background: linear-gradient(135deg, #6c757d 0%, #495057 100%); 
-    }
-    
-    /* Мобильная панель свойств */
-    .mobile-panel-overlay {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: 1001;
-        backdrop-filter: blur(5px);
-    }
-    
-    .mobile-panel {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: var(--white);
-        border-radius: 20px 20px 0 0;
-        max-height: 80vh;
-        overflow-y: auto;
-        z-index: 1002;
-        transform: translateY(100%);
-        transition: transform 0.3s ease;
-        -webkit-overflow-scrolling: touch;
-    }
-    
-    .mobile-panel.active {
-        transform: translateY(0);
-    }
-    
-    .mobile-panel-header {
-        padding: 20px;
-        background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary-color) 100%);
-        color: white;
-        font-weight: 600;
-        font-size: 1.2rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-radius: 20px 20px 0 0;
-        position: sticky;
-        top: 0;
-        z-index: 1;
-    }
-    
-    .close-mobile-panel {
-        background: none;
-        border: none;
-        color: white;
-        font-size: 24px;
-        width: auto;
-        padding: 5px;
-        cursor: pointer;
-        -webkit-tap-highlight-color: transparent;
-    }
-    
-    .mobile-panel-content {
-        padding: 20px;
-        max-height: calc(80vh - 70px);
-        overflow-y: auto;
-    }
-    
-    /* Улучшаем отображение формы в мобильной панели */
-    .mobile-panel-content .form-group {
-        margin-bottom: 15px;
-    }
-    
-    .mobile-panel-content input,
-    .mobile-panel-content select,
-    .mobile-panel-content textarea {
-        width: 100%;
-        padding: 12px;
-        font-size: 16px;
-        border: 1px solid var(--neutral-medium);
-        border-radius: 8px;
-    }
-    
-    .mobile-panel-content button {
-        width: 100%;
-        padding: 15px;
-        font-size: 16px;
-        margin-bottom: 10px;
-    }
-    
-    /* Улучшаем отображение чекбоксов */
-    .mobile-panel-content .checkbox-item {
-        padding: 12px 10px;
-        border: 1px solid var(--neutral-medium);
-        border-radius: 8px;
-        margin-bottom: 8px;
-    }
+/* Header Styles */
+header {
+    margin-bottom: 30px;
+    padding: 25px;
+    background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 100%);
+    color: var(--white);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    position: relative;
+    overflow: hidden;
 }
 
-/* Очень маленькие телефоны */
-@media (max-width: 360px) {
-    .container {
-        padding: 5px;
-    }
-    
-    .app-container {
-        gap: 8px;
-    }
-    
-    .mobile-tool-btn {
-        font-size: 11px;
-        min-height: 65px;
-        padding: 10px 6px;
-    }
-    
-    .mobile-tool-btn i {
-        font-size: 16px;
-    }
-    
-    .mobile-top-controls button {
-        font-size: 13px;
-        padding: 10px 8px;
-    }
-    
-    .status-bar {
-        font-size: 11px;
-    }
-    
-    h1 {
-        font-size: 1.6rem;
-    }
-    
-    .tagline {
-        font-size: 1rem;
-    }
-    
-    .mobile-tool-buttons {
-        grid-template-columns: 1fr;
-    }
+header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100" opacity="0.1"><path d="M20,20 L80,20 L80,80 L20,80 Z" fill="white" stroke="white" stroke-width="2"/><path d="M30,30 L50,30 L50,50 L30,50 Z" fill="white" stroke="white" stroke-width="1"/><path d="M60,40 L70,40 L70,60 L60,60 Z" fill="white" stroke="white" stroke-width="1"/></svg>');
+    background-size: 200px;
+    opacity: 0.1;
 }
 
-/* Ультра-маленькие экраны */
-@media (max-width: 320px) {
-    .container {
-        padding: 4px;
-    }
-    
-    .mobile-tool-btn {
-        font-size: 10px;
-        min-height: 60px;
-        padding: 8px 4px;
-    }
-    
-    .mobile-tool-btn i {
-        font-size: 14px;
-    }
-    
-    h1 {
-        font-size: 1.4rem;
-    }
-    
-    .tagline {
-        font-size: 0.9rem;
-    }
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
 }
 
-/* Поддержка touch устройств */
-@media (hover: none) and (pointer: coarse) {
-    .tool-btn:hover,
-    .mobile-tool-btn:hover,
-    .fab-btn:hover {
-        transform: none;
-    }
-    
-    button:hover:not(:disabled) {
-        transform: none;
-    }
-    
-    /* Улучшение для касаний */
-    .tool-btn,
-    .mobile-tool-btn,
-    .fab-btn,
-    button,
-    .element-item {
-        -webkit-tap-highlight-color: transparent;
-        touch-action: manipulation;
-    }
-    
-    /* Увеличение области касания для важных элементов */
-    .tool-btn,
-    .mobile-tool-btn,
-    .editor-toolbar button,
-    .zoom-controls button {
-        min-height: 44px;
-    }
-    
-    /* Убираем hover эффекты на touch устройствах */
-    .panel:hover {
-        box-shadow: var(--shadow);
-    }
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 15px;
 }
 
-/* Исправление для iOS Safari */
-@supports (-webkit-touch-callout: none) {
-    .mobile-tool-btn,
-    .tool-btn,
-    button {
-        min-height: 44px;
-    }
-    
-    input, select, textarea {
-        font-size: 16px;
-    }
-    
-    .modal-content {
-        -webkit-overflow-scrolling: touch;
-    }
+.logo-icon {
+    font-size: 2.5rem;
+    background: rgba(255, 255, 255, 0.2);
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
 }
 
-/* Улучшение доступности для пользователей с reduced-motion */
-@media (prefers-reduced-motion: reduce) {
-    * {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-    }
+.logo h1 {
+    font-size: 2.2rem;
+    margin-bottom: 5px;
+    font-weight: 700;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* Поддержка landscape на мобильных */
-@media (max-width: 768px) and (orientation: landscape) {
-    .editor-container {
-        min-height: 250px;
-    }
-    
-    .mobile-panel {
-        max-height: 70vh;
-    }
-    
-    .mobile-panel-content {
-        max-height: calc(70vh - 70px);
-    }
+.tagline {
+    font-size: 1.2rem;
+    max-width: 600px;
+    opacity: 0.9;
+    margin-bottom: 8px;
 }
 
-/* Print Styles */
-@media print {
-    .app-container {
-        display: none;
-    }
-    
-    .feedback-section {
-        display: none;
-    }
-    
-    .receipt-container {
-        box-shadow: none;
-        border: none;
-        margin: 0;
-        padding: 0;
-    }
-    
-    .receipt-actions {
-        display: none;
-    }
-    
-    #fabContainer {
-        display: none !important;
-    }
-    
-    .mobile-tools-container {
-        display: none !important;
-    }
-    
-    .modal {
-        display: none !important;
-    }
+.location-badge {
+    display: inline-block;
+    background: var(--accent-color);
+    color: white;
+    padding: 6px 15px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
 }
 
-/* Скрываем мобильные элементы на десктопе */
-@media (min-width: 577px) {
-    .mobile-tools-container,
-    .mobile-panel-overlay,
-    .mobile-panel,
-    #fabContainer {
-        display: none !important;
-    }
+.header-contacts {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 15px;
 }
 
-/* Улучшение читаемости на темных темах */
-@media (prefers-color-scheme: dark) {
-    .panel,
-    .modal-content,
-    .receipt-container {
-        background: var(--white);
-        color: var(--text-color);
-    }
+.contact-buttons {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
 }
 
-/* Улучшение контрастности для доступности */
-@media (prefers-contrast: high) {
-    :root {
-        --primary-color: #0044cc;
-        --primary-dark: #0033aa;
-        --text-color: #000000;
-        --neutral-medium: #666666;
-    }
-    
-    .tool-btn.active {
-        border: 2px solid var(--primary-dark);
-    }
+.contact-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: var(--transition);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.contact-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.contact-btn.phone {
+    background: rgba(52, 152, 219, 0.3);
+    border-color: rgba(52, 152, 219, 0.5);
+}
+
+.contact-btn.whatsapp {
+    background: rgba(37, 211, 102, 0.3);
+    border-color: rgba(37, 211, 102, 0.5);
+}
+
+.contact-btn.telegram {
+    background: rgba(0, 136, 204, 0.3);
+    border-color: rgba(0, 136, 204, 0.5);
+}
+
+.consult-btn {
+    background: linear-gradient(135deg, var(--accent-color) 0%, #f85a3a 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: var(--transition);
+    box-shadow: 0 4px 12px rgba(255, 126, 95, 0.3);
+}
+
+.consult-btn:hover {
+    background: linear-gradient(135deg, #f85a3a 0%, #e04a2d 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(255, 126, 95, 0.4);
 }

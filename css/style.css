@@ -40,7 +40,7 @@ body {
     padding: 20px;
 }
 
-/* Header Styles - ОБНОВЛЕНО */
+/* Header Styles */
 header {
     margin-bottom: 30px;
     padding: 25px;
@@ -50,6 +50,7 @@ header {
     box-shadow: var(--shadow);
     position: relative;
     overflow: hidden;
+    z-index: 100;
 }
 
 header::before {
@@ -59,9 +60,10 @@ header::before {
     left: 0;
     right: 0;
     bottom: 0;
-    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100" opacity="0.1"><path d="M20,20 L80,20 L80,80 L20,80 Z" fill="white" stroke="white" stroke-width="2"/><path d="M30,30 L50,30 L50,50 L30,50 Z" fill="white" stroke="white" stroke-width="1"/><path d="M60,40 L70,40 L70,60 L60,60 Z" fill="white" stroke="white" stroke-width="1"/></svg>');
+    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="white" opacity="0.3"/></svg>');
     background-size: 200px;
     opacity: 0.1;
+    pointer-events: none;
 }
 
 .header-container {
@@ -70,6 +72,8 @@ header::before {
     align-items: center;
     flex-wrap: wrap;
     gap: 20px;
+    position: relative;
+    z-index: 10;
 }
 
 .logo {
@@ -121,6 +125,7 @@ header::before {
     flex-direction: column;
     align-items: flex-end;
     gap: 15px;
+    pointer-events: auto !important;
 }
 
 .contact-buttons {
@@ -128,6 +133,13 @@ header::before {
     gap: 12px;
     flex-wrap: wrap;
     justify-content: flex-end;
+    pointer-events: auto !important;
+}
+
+header a, header button, .contact-btn {
+    pointer-events: auto !important;
+    z-index: 10;
+    position: relative;
 }
 
 .contact-btn {
@@ -142,6 +154,7 @@ header::before {
     font-weight: 500;
     transition: var(--transition);
     border: 1px solid rgba(255, 255, 255, 0.2);
+    cursor: pointer;
 }
 
 .contact-btn:hover {
@@ -150,14 +163,18 @@ header::before {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
+.contact-btn:active {
+    transform: translateY(0);
+}
+
 .contact-btn.phone {
     background: rgba(52, 152, 219, 0.3);
     border-color: rgba(52, 152, 219, 0.5);
 }
 
-.contact-btn.whatsapp {
-    background: rgba(37, 211, 102, 0.3);
-    border-color: rgba(37, 211, 102, 0.5);
+.contact-btn.max {
+    background: rgba(138, 43, 226, 0.3);
+    border-color: rgba(138, 43, 226, 0.5);
 }
 
 .contact-btn.telegram {
@@ -178,33 +195,13 @@ header::before {
     gap: 10px;
     transition: var(--transition);
     box-shadow: 0 4px 12px rgba(255, 126, 95, 0.3);
+    pointer-events: auto !important;
 }
 
 .consult-btn:hover {
     background: linear-gradient(135deg, #f85a3a 0%, #e04a2d 100%);
     transform: translateY(-2px);
     box-shadow: 0 6px 16px rgba(255, 126, 95, 0.4);
-}
-
-/* Индикаторы работ в списке элементов */
-.work-indicators {
-    display: flex;
-    gap: 4px;
-    align-items: center;
-}
-
-.work-indicator {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    display: inline-block;
-}
-
-.slopes-indicator {
-    width: 10px;
-    height: 10px;
-    border-radius: 2px;
-    display: inline-block;
 }
 
 /* Main App Container */
@@ -215,7 +212,6 @@ header::before {
     margin-bottom: 40px;
 }
 
-/* Panel Styles */
 .panel {
     background: var(--white);
     border-radius: var(--border-radius);
@@ -247,7 +243,6 @@ header::before {
     padding: 20px;
 }
 
-/* Tool Groups */
 .tool-group {
     margin-bottom: 30px;
 }
@@ -314,37 +309,37 @@ header::before {
     min-height: 950px;
 }
 
+/* Toolbar - ТРИ СТРОКИ */
 .editor-toolbar {
     display: flex;
-    gap: 12px;
+    flex-direction: column;
+    gap: 10px;
     margin-bottom: 20px;
     padding-bottom: 20px;
     border-bottom: 1px solid var(--neutral-medium);
+}
+
+.toolbar-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+
+.toolbar-full-width {
+    width: 100%;
+    height: 48px;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.toolbar-controls {
+    justify-content: flex-end;
     flex-wrap: wrap;
 }
 
-.editor-toolbar button {
-    padding: 10px 18px;
-    border-radius: 8px;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: var(--transition);
-}
-
-.editor-toolbar button i {
-    font-size: 16px;
-}
-
-.zoom-controls {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-left: auto;
-}
-
-.zoom-controls button {
+/* Toolbar Buttons (Undo/Redo/Save/Load/Zoom) */
+.toolbar-btn {
     width: 42px;
     height: 42px;
     display: flex;
@@ -352,6 +347,61 @@ header::before {
     justify-content: center;
     padding: 0;
     border-radius: 8px;
+    background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary-color) 100%);
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.toolbar-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(74, 110, 224, 0.3);
+}
+
+.toolbar-btn:disabled {
+    background: var(--neutral-medium);
+    color: var(--text-light);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.toolbar-divider {
+    width: 1px;
+    height: 42px;
+    background: var(--neutral-medium);
+    margin: 0 5px;
+    flex-shrink: 0;
+}
+
+.zoom-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--neutral-light);
+    padding: 5px 10px;
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+.zoom-controls .toolbar-btn {
+    background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary-color) 100%);
+}
+
+.zoom-controls .toolbar-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+}
+
+#zoomLevel {
+    font-weight: 600;
+    color: var(--text-color);
+    min-width: 50px;
+    text-align: center;
+    font-size: 14px;
 }
 
 .editor-container {
@@ -391,7 +441,6 @@ header::before {
     border-radius: 8px;
 }
 
-/* Form Elements */
 .form-group {
     margin-bottom: 20px;
 }
@@ -460,7 +509,6 @@ button:disabled {
     background: linear-gradient(135deg, #1e7e34 0%, #145523 100%);
 }
 
-/* Element List */
 .element-list {
     margin-top: 10px;
     max-height: 220px;
@@ -500,7 +548,6 @@ button:disabled {
     border-radius: 6px;
 }
 
-/* Summary Styles */
 .summary {
     margin-top: 20px;
     padding: 20px;
@@ -522,7 +569,6 @@ button:disabled {
     margin-top: 12px;
 }
 
-/* Checkbox Styles */
 .checkbox-group {
     display: flex;
     flex-direction: column;
@@ -552,6 +598,26 @@ button:disabled {
     margin-bottom: 0;
     font-weight: normal;
     cursor: pointer;
+}
+
+.work-indicators {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.work-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.slopes-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    display: inline-block;
 }
 
 /* Receipt Styles */
@@ -667,7 +733,6 @@ button:disabled {
     color: var(--text-light);
 }
 
-/* Кнопки отправки сметы */
 .receipt-actions {
     padding: 20px;
     background-color: var(--neutral-light);
@@ -681,8 +746,8 @@ button:disabled {
     flex-wrap: wrap;
 }
 
-.btn-whatsapp {
-    background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+.btn-max {
+    background: linear-gradient(135deg, #8a2be2 0%, #6a1cb9 100%);
     color: white;
     border: none;
     padding: 12px 20px;
@@ -698,10 +763,10 @@ button:disabled {
     justify-content: center;
 }
 
-.btn-whatsapp:hover {
-    background: linear-gradient(135deg, #128C7E 0%, #075E54 100%);
+.btn-max:hover {
+    background: linear-gradient(135deg, #6a1cb9 0%, #551694 100%);
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(37, 211, 102, 0.3);
+    box-shadow: 0 4px 8px rgba(138, 43, 226, 0.3);
 }
 
 .btn-copy {
@@ -750,7 +815,6 @@ button:disabled {
     box-shadow: 0 4px 8px rgba(74, 110, 224, 0.3);
 }
 
-/* Кнопка обратной связи */
 .feedback-section {
     text-align: center;
     margin: 40px 0;
@@ -793,7 +857,7 @@ button:disabled {
     font-style: italic;
 }
 
-/* Модальное окно */
+/* Modal Styles */
 .modal {
     display: none;
     position: fixed;
@@ -918,31 +982,7 @@ button:disabled {
     box-shadow: 0 6px 20px rgba(0, 184, 148, 0.4);
 }
 
-/* Additional Visual Enhancements */
-.feature-badge {
-    display: inline-block;
-    background: var(--accent-color);
-    color: white;
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    margin-left: 10px;
-    vertical-align: middle;
-}
-
-.help-text {
-    font-size: 0.85rem;
-    color: var(--text-light);
-    margin-top: 5px;
-}
-
-.divider {
-    height: 1px;
-    background: var(--neutral-medium);
-    margin: 20px 0;
-}
-
+/* Notification */
 .notification {
     position: fixed;
     bottom: 20px;
@@ -966,18 +1006,92 @@ button:disabled {
     opacity: 1;
 }
 
-/* Адаптивность для шапки */
+/* Scroll to Top Button */
+.scroll-to-top {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    box-shadow: var(--shadow);
+    opacity: 0;
+    visibility: hidden;
+    transition: var(--transition);
+    z-index: 999;
+}
+
+.scroll-to-top.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.scroll-to-top:hover {
+    background: linear-gradient(135deg, var(--primary-dark) 0%, #2a4bb5 100%);
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-hover);
+}
+
+/* Print Styles */
+@media print {
+    /* Скрываем всё по умолчанию */
+    body * {
+        visibility: hidden;
+    }
+    /* Показываем только шапку, смету и секцию обратной связи */
+    header, .receipt-container, .feedback-section,
+    header *, .receipt-container *, .feedback-section * {
+        visibility: visible;
+    }
+    /* Скрываем ненужные элементы интерфейса */
+    .app-container, .panel, canvas, .toolbar, .controls, .modal, .notification,
+    .receipt-actions, .sharing-buttons, .btn-max, .btn-copy, .btn-print, .btn-feedback,
+    #loadProjectInput, #scrollToTopBtn {
+        display: none !important;
+    }
+    /* Естественное позиционирование */
+    header, .receipt-container, .feedback-section {
+        position: static;
+        margin: 0;
+        padding: 10px;
+        background: white !important;
+        color: black !important;
+        box-shadow: none;
+        border: none;
+    }
+    .receipt-content {
+        font-size: 10pt;
+        line-height: 1.4;
+    }
+    body {
+        background: white;
+        color: black;
+        margin: 0;
+        padding: 10mm;
+    }
+    @page {
+        margin: 1.5cm;
+    }
+}
+
+/* Responsive */
 @media (max-width: 1200px) {
     .header-container {
         flex-direction: column;
         text-align: center;
     }
-    
     .header-contacts {
         align-items: center;
         width: 100%;
     }
-    
     .contact-buttons {
         justify-content: center;
     }
@@ -988,15 +1102,12 @@ button:disabled {
         flex-direction: column;
         width: 100%;
     }
-    
     .contact-btn {
         justify-content: center;
     }
-    
     .logo h1 {
         font-size: 1.8rem;
     }
-    
     .tagline {
         font-size: 1rem;
     }

@@ -10,194 +10,173 @@
 </head>
 <body>
     <div class="container">
+        <!-- Шапка сайта -->
         <header>
             <div class="header-container">
                 <div class="logo">
                     <div class="logo-icon">
-                        <i class="fas fa-home"></i>
+                        <i class="fas fa-ruler-combined"></i>
                     </div>
                     <div>
                         <h1>ПланПомещений</h1>
                         <p class="tagline">Конструктор помещений и расчет стоимости ремонта</p>
-                        <div class="location-badge">
-                            <i class="fas fa-map-marker-alt"></i> Все работы производятся в Симферополе
-                        </div>
+                        <span class="location-badge">📍 Все работы производятся в Симферополе</span>
                     </div>
                 </div>
                 <div class="header-contacts">
                     <div class="contact-buttons">
-                        <a href="tel:+79781000000" class="contact-btn phone">
-                            <i class="fas fa-phone"></i> +7 (978) 100-00-00
+                        <a href="tel:+79780411642" class="contact-btn phone">
+                            <i class="fas fa-phone"></i> +7 (978) 041-16-42
                         </a>
-                        <a href="https://wa.me/79781000000" target="_blank" class="contact-btn whatsapp">
-                            <i class="fab fa-whatsapp"></i> WhatsApp
+                        <a href="https://max.ru/u/f9LHodD0cOI0eQdcNzuPqeBgkFcnHu8HCOxVa6GeAo44-4XFtTYE5GFpREc" 
+                           class="contact-btn max" target="_blank" rel="noopener noreferrer">
+                            <i class="fas fa-comment"></i> Max
                         </a>
-                        <a href="https://t.me/username" target="_blank" class="contact-btn telegram">
-                            <i class="fab fa-telegram"></i> Telegram
+                        <a href="https://t.me/Nik_Kolayk" class="contact-btn telegram" target="_blank" rel="noopener noreferrer">
+                            <i class="fab fa-telegram-plane"></i> Telegram
                         </a>
                     </div>
-                    <button class="consult-btn" id="headerFeedbackBtn">
-                        <i class="fas fa-comments"></i> Получить консультацию
+                    <button id="headerFeedbackBtn" class="consult-btn" type="button">
+                        <i class="fas fa-headset"></i> Получить консультацию
                     </button>
                 </div>
             </div>
         </header>
 
+        <!-- Основной контейнер приложения -->
         <div class="app-container">
-            <div class="panel tools-panel">
+            <!-- Левая панель: Инструменты -->
+            <div class="panel">
                 <div class="panel-header">
-                    <i class="fas fa-tools"></i>
-                    <span>Инструменты</span>
+                    <i class="fas fa-tools"></i> Инструменты
                 </div>
                 <div class="panel-content">
                     <div class="tool-group">
-                        <h3><i class="fas fa-sliders-h"></i> Основные инструменты</h3>
+                        <h3><i class="fas fa-mouse-pointer"></i> Основные инструменты</h3>
                         <div class="tool-buttons">
-                            <div class="tool-btn active" data-tool="select">
+                            <button class="tool-btn active" data-tool="select">
                                 <i class="fas fa-mouse-pointer"></i>
                                 <span>Выбор и перемещение</span>
-                            </div>
-                            <div class="tool-btn" data-tool="room">
-                                <i class="fas fa-vector-square"></i>
+                            </button>
+                            <button class="tool-btn" data-tool="room">
+                                <i class="fas fa-plus"></i>
                                 <span>Добавить комнату</span>
-                            </div>
+                            </button>
                         </div>
                     </div>
+                    
                     <div class="tool-group">
-                        <h3><i class="fas fa-door-closed"></i> Элементы комнаты</h3>
+                        <h3><i class="fas fa-door-open"></i> Элементы комнаты</h3>
                         <div class="tool-buttons">
-                            <div class="tool-btn" data-tool="window">
-                                <i class="fas fa-square"></i>
+                            <button class="tool-btn" data-tool="window">
+                                <i class="fas fa-window-maximize"></i>
                                 <span>Добавить окно</span>
-                            </div>
-                            <div class="tool-btn" data-tool="door">
-                                <i class="fas fa-door-open"></i>
+                            </button>
+                            <button class="tool-btn" data-tool="door">
+                                <i class="fas fa-door-closed"></i>
                                 <span>Добавить дверь</span>
-                            </div>
+                            </button>
                         </div>
                     </div>
+                    
                     <div class="tool-group">
-                        <h3><i class="fas fa-ruler-combined"></i> Параметры проекта</h3>
+                        <h3><i class="fas fa-sliders-h"></i> Параметры проекта</h3>
                         <div class="form-group">
                             <label for="ceilingHeight">Высота потолков (м):</label>
-                            <input type="number" id="ceilingHeight" min="2.0" max="5.0" step="0.1" value="2.5">
-                            <div class="help-text">Стандартная высота потолков 2.5-2.7 м</div>
-                        </div>
-                    </div>
-                    <div class="tool-group">
-                        <h3><i class="fas fa-list-ul"></i> Элементы проекта</h3>
-                        <div class="element-list" id="elementList">
-                            <!-- Элементы будут добавляться здесь -->
+                            <input type="number" id="ceilingHeight" value="2.5" min="2.0" max="4.0" step="0.1">
+                            <small class="help-text">Стандартная высота потолков 2.5-2.7 м</small>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <!-- Центральная панель: Редактор -->
             <div class="panel editor-panel">
                 <div class="panel-header">
-                    <i class="fas fa-edit"></i>
-                    <span>Планировка помещения</span>
+                    <i class="fas fa-drafting-compass"></i> Планировка помещения
                 </div>
                 <div class="panel-content">
-                    <!-- Мобильные инструменты -->
-                    <div class="mobile-tools-container" style="display: none;">
-                        <div class="mobile-top-controls">
-                            <button id="mobileNewProject"><i class="fas fa-file"></i> Новый проект</button>
-                            <button id="mobileClearAll"><i class="fas fa-trash"></i> Очистить все</button>
-                        </div>
-                        
-                        <div class="mobile-zoom-controls">
-                            <button id="mobileZoomOut"><i class="fas fa-search-minus"></i></button>
-                            <button id="mobileCenterView"><i class="fas fa-crosshairs"></i> Центр</button>
-                            <button id="mobileZoomIn"><i class="fas fa-search-plus"></i></button>
-                        </div>
-                        
-                        <div class="mobile-tool-groups">
-                            <div class="mobile-tool-section">
-                                <h4><i class="fas fa-sliders-h"></i> Основные инструменты</h4>
-                                <div class="mobile-tool-buttons">
-                                    <div class="mobile-tool-btn active" data-tool="select">
-                                        <i class="fas fa-mouse-pointer"></i>
-                                        <span>Выбор</span>
-                                    </div>
-                                    <div class="mobile-tool-btn" data-tool="room">
-                                        <i class="fas fa-vector-square"></i>
-                                        <span>Комната</span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="mobile-tool-section">
-                                <h4><i class="fas fa-door-closed"></i> Элементы комнаты</h4>
-                                <div class="mobile-tool-buttons">
-                                    <div class="mobile-tool-btn" data-tool="window">
-                                        <i class="fas fa-square"></i>
-                                        <span>Окно</span>
-                                    </div>
-                                    <div class="mobile-tool-btn" data-tool="door">
-                                        <i class="fas fa-door-open"></i>
-                                        <span>Дверь</span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="mobile-tool-section">
-                                <h4><i class="fas fa-ruler-combined"></i> Параметры проекта</h4>
-                                <div class="form-group">
-                                    <label for="mobileCeilingHeight">Высота потолков (м):</label>
-                                    <input type="number" id="mobileCeilingHeight" min="2.0" max="5.0" step="0.1" value="2.5">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                     <div class="editor-toolbar">
-                        <button id="newProject"><i class="fas fa-file"></i> Новый проект</button>
-                        <button id="clearAll"><i class="fas fa-trash"></i> Очистить все</button>
-                        <div class="zoom-controls">
-                            <button id="zoomOut"><i class="fas fa-search-minus"></i></button>
-                            <span id="zoomLevel">100%</span>
-                            <button id="zoomIn"><i class="fas fa-search-plus"></i></button>
-                            <button id="centerView"><i class="fas fa-crosshairs"></i></button>
+                        <!-- Первая строка: Новый проект -->
+                        <div class="toolbar-row">
+                            <button id="newProject" class="btn-success toolbar-full-width">
+                                <i class="fas fa-file"></i> Новый проект
+                            </button>
+                        </div>
+                        
+                        <!-- Вторая строка: Очистить все -->
+                        <div class="toolbar-row">
+                            <button id="clearAll" class="btn-danger toolbar-full-width">
+                                <i class="fas fa-trash"></i> Очистить все
+                            </button>
+                        </div>
+                        
+                        <!-- Третья строка: Undo/Redo, Save/Load, Zoom -->
+                        <div class="toolbar-row toolbar-controls">
+                            <button id="undoBtn" class="toolbar-btn" disabled title="Отменить (Ctrl+Z)">
+                                <i class="fas fa-undo"></i>
+                            </button>
+                            <button id="redoBtn" class="toolbar-btn" disabled title="Повторить (Ctrl+Y)">
+                                <i class="fas fa-redo"></i>
+                            </button>
+                            <div class="toolbar-divider"></div>
+                            <button id="saveProjectBtn" class="toolbar-btn" title="Сохранить проект">
+                                <i class="fas fa-save"></i>
+                            </button>
+                            <button id="loadProjectBtn" class="toolbar-btn" title="Загрузить проект">
+                                <i class="fas fa-folder-open"></i>
+                            </button>
+                            <div class="toolbar-divider"></div>
+                            <div class="zoom-controls">
+                                <button id="zoomOut" class="toolbar-btn"><i class="fas fa-search-minus"></i></button>
+                                <span id="zoomLevel">100%</span>
+                                <button id="zoomIn" class="toolbar-btn"><i class="fas fa-search-plus"></i></button>
+                                <button id="centerView" class="toolbar-btn"><i class="fas fa-compress"></i></button>
+                            </div>
                         </div>
                     </div>
+                    
                     <div class="editor-container">
                         <canvas id="editorCanvas"></canvas>
                         <div id="canvasFallback" class="canvas-not-supported" style="display: none;">
-                            <i class="fas fa-exclamation-triangle"></i> Canvas не поддерживается вашим браузером. Пожалуйста, обновите браузер.
+                            Canvas не поддерживается вашим браузером. Пожалуйста, обновите браузер.
                         </div>
                     </div>
+                    
                     <div class="status-bar">
-                        <div id="cursorPosition">X: 0, Y: 0</div>
-                        <div id="selectedElement">Не выбран</div>
-                        <div>Масштаб: 1м = 50px</div>
+                        <span id="cursorPosition">X: 0, Y: 0</span>
+                        <span id="selectedElement">Не выбран</span>
+                        <span>Масштаб: 1м = 50px</span>
                     </div>
                 </div>
             </div>
-            <div class="panel properties-panel">
+
+            <!-- Правая панель: Свойства и расчеты -->
+            <div class="panel">
                 <div class="panel-header">
-                    <i class="fas fa-cog"></i>
-                    <span>Свойства и расчеты</span>
+                    <i class="fas fa-calculator"></i> Свойства и расчеты
                 </div>
                 <div class="panel-content">
-                    <div class="property-group" id="roomProperties" style="display: none;">
-                        <h3><i class="fas fa-door-open"></i> Свойства комнаты</h3>
+                    <!-- Свойства комнаты -->
+                    <div id="roomProperties" class="tool-group" style="display: none;">
+                        <h3><i class="fas fa-home"></i> Свойства комнаты</h3>
                         <div class="form-group">
                             <label for="roomName">Название:</label>
-                            <input type="text" id="roomName" value="Комната">
+                            <input type="text" id="roomName" placeholder="Комната 1">
                         </div>
                         <div class="form-group">
                             <label for="roomWidth">Ширина (м):</label>
-                            <input type="number" id="roomWidth" min="1.0" max="20.0" step="0.1" value="4.0">
+                            <input type="number" id="roomWidth" min="1" max="50" step="0.1">
                         </div>
                         <div class="form-group">
                             <label for="roomHeightProp">Длина (м):</label>
-                            <input type="number" id="roomHeightProp" min="1.0" max="20.0" step="0.1" value="3.0">
+                            <input type="number" id="roomHeightProp" min="1" max="50" step="0.1">
                         </div>
                         <div class="form-group">
                             <label>Отделка стен:</label>
                             <div class="checkbox-group">
                                 <div class="checkbox-item">
-                                    <input type="checkbox" id="plaster" checked>
+                                    <input type="checkbox" id="plaster">
                                     <label for="plaster">Стартовая штукатурка</label>
                                 </div>
                                 <div class="checkbox-item">
@@ -218,19 +197,24 @@
                                 </div>
                             </div>
                         </div>
-                        <button id="applyRoomChanges" disabled><i class="fas fa-check"></i> Применить изменения</button>
-                        <div class="divider"></div>
-                        <button class="btn-danger" id="deleteRoom"><i class="fas fa-trash"></i> Удалить комнату</button>
+                        <button id="applyRoomChanges" class="btn-success">
+                            <i class="fas fa-check"></i> Применить изменения
+                        </button>
+                        <button id="deleteRoom" class="btn-danger" style="margin-top: 10px;">
+                            <i class="fas fa-trash"></i> Удалить комнату
+                        </button>
                     </div>
-                    <div class="property-group" id="windowProperties" style="display: none;">
-                        <h3><i class="fas fa-square"></i> Свойства окна</h3>
+
+                    <!-- Свойства окна -->
+                    <div id="windowProperties" class="tool-group" style="display: none;">
+                        <h3><i class="fas fa-window-maximize"></i> Свойства окна</h3>
                         <div class="form-group">
                             <label for="windowWidth">Ширина (м):</label>
-                            <input type="number" id="windowWidth" min="0.5" max="3.0" step="0.1" value="1.2">
+                            <input type="number" id="windowWidth" min="0.5" max="5" step="0.1">
                         </div>
                         <div class="form-group">
                             <label for="windowHeight">Высота (м):</label>
-                            <input type="number" id="windowHeight" min="0.5" max="3.0" step="0.1" value="1.5">
+                            <input type="number" id="windowHeight" min="0.5" max="3" step="0.1">
                         </div>
                         <div class="form-group">
                             <label for="windowWall">Стена:</label>
@@ -242,35 +226,40 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="windowPosition">Позиция на стене:</label>
-                            <input type="range" id="windowPosition" min="0" max="100" value="50">
-                            <div style="display: flex; justify-content: space-between;">
-                                <span>0%</span>
-                                <span id="windowPositionValue">50%</span>
-                                <span>100%</span>
-                            </div>
+                            <label for="windowLeftOffset">Отступ слева (м):</label>
+                            <input type="number" id="windowLeftOffset" min="0" max="50" step="0.01">
+                            <small class="help-text">Для нижней и левой стен отсчёт ведётся от правого/нижнего края</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="windowRightOffset">Отступ справа (м):</label>
+                            <input type="number" id="windowRightOffset" min="0" max="50" step="0.01" readonly>
                         </div>
                         <div class="form-group">
                             <label for="windowSlopes">Откосы:</label>
                             <select id="windowSlopes">
                                 <option value="with">С откосами</option>
                                 <option value="with_net">С откосами и сеткой</option>
-                                <option value="without">Без откосов</option>
+                                <option value="none">Без откосов</option>
                             </select>
                         </div>
-                        <button id="applyWindowChanges" disabled><i class="fas fa-check"></i> Применить изменения</button>
-                        <div class="divider"></div>
-                        <button class="btn-danger" id="deleteWindow"><i class="fas fa-trash"></i> Удалить окно</button>
+                        <button id="applyWindowChanges" class="btn-success">
+                            <i class="fas fa-check"></i> Применить изменения
+                        </button>
+                        <button id="deleteWindow" class="btn-danger" style="margin-top: 10px;">
+                            <i class="fas fa-trash"></i> Удалить окно
+                        </button>
                     </div>
-                    <div class="property-group" id="doorProperties" style="display: none;">
-                        <h3><i class="fas fa-door-open"></i> Свойства двери</h3>
+
+                    <!-- Свойства двери -->
+                    <div id="doorProperties" class="tool-group" style="display: none;">
+                        <h3><i class="fas fa-door-closed"></i> Свойства двери</h3>
                         <div class="form-group">
                             <label for="doorWidth">Ширина (м):</label>
-                            <input type="number" id="doorWidth" min="0.5" max="2.0" step="0.1" value="0.9">
+                            <input type="number" id="doorWidth" min="0.6" max="2" step="0.1">
                         </div>
                         <div class="form-group">
                             <label for="doorHeight">Высота (м):</label>
-                            <input type="number" id="doorHeight" min="1.5" max="3.0" step="0.1" value="2.1">
+                            <input type="number" id="doorHeight" min="1.5" max="3" step="0.1">
                         </div>
                         <div class="form-group">
                             <label for="doorWall">Стена:</label>
@@ -282,29 +271,34 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="doorPosition">Позиция на стене:</label>
-                            <input type="range" id="doorPosition" min="0" max="100" value="50">
-                            <div style="display: flex; justify-content: space-between;">
-                                <span>0%</span>
-                                <span id="doorPositionValue">50%</span>
-                                <span>100%</span>
-                            </div>
+                            <label for="doorLeftOffset">Отступ слева (м):</label>
+                            <input type="number" id="doorLeftOffset" min="0" max="50" step="0.01">
+                            <small class="help-text">Для нижней и левой стен отсчёт ведётся от правого/нижнего края</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="doorRightOffset">Отступ справа (м):</label>
+                            <input type="number" id="doorRightOffset" min="0" max="50" step="0.01" readonly>
                         </div>
                         <div class="form-group">
                             <label for="doorSlopes">Откосы:</label>
                             <select id="doorSlopes">
                                 <option value="with">С откосами</option>
                                 <option value="with_net">С откосами и сеткой</option>
-                                <option value="without">Без откосов</option>
+                                <option value="none">Без откосов</option>
                             </select>
                         </div>
-                        <button id="applyDoorChanges" disabled><i class="fas fa-check"></i> Применить изменения</button>
-                        <div class="divider"></div>
-                        <button class="btn-danger" id="deleteDoor"><i class="fas fa-trash"></i> Удалить дверь</button>
+                        <button id="applyDoorChanges" class="btn-success">
+                            <i class="fas fa-check"></i> Применить изменения
+                        </button>
+                        <button id="deleteDoor" class="btn-danger" style="margin-top: 10px;">
+                            <i class="fas fa-trash"></i> Удалить дверь
+                        </button>
                     </div>
-                    <div class="property-group" id="projectProperties">
-                        <h3><i class="fas fa-chart-pie"></i> Сводка проекта</h3>
-                        <div class="summary" id="projectSummary">
+
+                    <!-- Сводка проекта -->
+                    <div class="tool-group">
+                        <h3><i class="fas fa-chart-bar"></i> Сводка проекта</h3>
+                        <div class="summary">
                             <div class="summary-item">
                                 <span>Комнат:</span>
                                 <span id="roomsCount">0</span>
@@ -317,35 +311,34 @@
                                 <span>Дверей:</span>
                                 <span id="doorsCount">0</span>
                             </div>
-                            <div class="summary-item">
+                            <div class="summary-item total">
                                 <span>Общая площадь стен:</span>
                                 <span id="totalArea">0 м²</span>
                             </div>
                         </div>
                     </div>
-                    <div class="property-group" id="costEstimate">
-                        <h3><i class="fas fa-calculator"></i> Смета работ</h3>
-                        <div id="estimateResults">
-                            <!-- Результаты расчета будут здесь -->
-                        </div>
+
+                    <!-- Список элементов -->
+                    <div class="tool-group">
+                        <h3><i class="fas fa-list"></i> Элементы проекта</h3>
+                        <div id="elementList" class="element-list"></div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Детальная смета в виде кассового чека -->
-        <div class="receipt-container" id="receiptContainer" style="display: none;">
+        <!-- Смета работ -->
+        <div id="receiptContainer" class="receipt-container" style="display: none;">
             <div class="receipt-header">
-                <h2>Детальная смета работ</h2>
+                <h2>Смета работ</h2>
+                <p>Детальная смета работ</p>
                 <p>Расчет стоимости отделочных работ в Симферополе</p>
             </div>
-            <div class="receipt-content" id="receiptContent">
-                <!-- Содержимое чека будет сгенерировано JavaScript -->
-            </div>
-            <div class="receipt-actions" id="receiptActions" style="display: none;">
+            <div id="receiptContent" class="receipt-content"></div>
+            <div id="receiptActions" class="receipt-actions" style="display: none;">
                 <div class="sharing-buttons">
-                    <button id="sendWhatsApp" class="btn-whatsapp">
-                        <i class="fab fa-whatsapp"></i> Отправить в WhatsApp
+                    <button id="sendMax" class="btn-max">
+                        <i class="fas fa-comment"></i> Отправить в Max
                     </button>
                     <button id="copyReceipt" class="btn-copy">
                         <i class="fas fa-copy"></i> Копировать смету
@@ -357,76 +350,65 @@
             </div>
         </div>
 
-        <!-- Кнопка обратной связи -->
+        <!-- Секция обратной связи -->
         <div class="feedback-section">
-            <button id="feedbackBtn" class="btn-feedback">
-                <i class="fas fa-comments"></i> Получить консультацию специалиста
-            </button>
             <p class="feedback-note">
                 <strong>Внимание!</strong> Данная смета является информационной. 
                 Для получения консультации специалиста оставьте заявку.
             </p>
+            <button id="feedbackBtn" class="btn-feedback" type="button">
+                <i class="fas fa-headset"></i> Получить консультацию специалиста
+            </button>
         </div>
     </div>
 
     <!-- Модальное окно обратной связи -->
-    <div class="modal" id="feedbackModal">
+    <div id="feedbackModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Получить консультацию специалиста</h2>
-                <button class="close-modal">&times;</button>
+                <h2>Получить консультацию</h2>
+                <button class="close-modal" type="button">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="info-notice">
                     <i class="fas fa-info-circle"></i>
                     <p>Смета является информационной. Итоговая стоимость может отличаться в зависимости от конкретных условий работ.</p>
                 </div>
-
                 <form id="feedbackForm">
                     <div class="form-group">
                         <label for="clientName">Ваше имя *</label>
-                        <input type="text" id="clientName" name="clientName" required placeholder="Иван Иванов" 
-                               style="font-size: 16px;" autocomplete="name">
+                        <input type="text" id="clientName" name="clientName" required>
                     </div>
-
                     <div class="form-group">
                         <label for="clientContact">Контактные данные *</label>
-                        <input type="text" id="clientContact" name="clientContact" required 
-                               placeholder="Телеграм @username или номер телефона"
-                               style="font-size: 16px;" autocomplete="tel">
-                        <div class="help-text">Укажите Telegram или номер телефона для связи</div>
+                        <input type="text" id="clientContact" name="clientContact" placeholder="Укажите Telegram или номер телефона для связи" required>
                     </div>
-
                     <div class="form-group">
                         <label for="propertyType">Тип помещения *</label>
                         <select id="propertyType" name="propertyType" required>
                             <option value="">Выберите тип помещения</option>
-                            <option value="Квартира">Квартира</option>
-                            <option value="Частный дом">Частный дом</option>
-                            <option value="Коммерческое помещение">Коммерческое помещение</option>
-                            <option value="Жилое помещение">Жилое помещение</option>
-                            <option value="Нежилое помещение">Нежилое помещение</option>
-                            <option value="Другое">Другое</option>
+                            <option value="apartment">Квартира</option>
+                            <option value="house">Частный дом</option>
+                            <option value="commercial">Коммерческое помещение</option>
+                            <option value="residential">Жилое помещение</option>
+                            <option value="nonresidential">Нежилое помещение</option>
+                            <option value="other">Другое</option>
                         </select>
                     </div>
-
                     <div class="form-group">
                         <label for="totalAreaInput">Общая площадь помещения (м²)</label>
-                        <input type="number" id="totalAreaInput" name="totalArea" min="1" max="1000" placeholder="Например: 65">
+                        <input type="number" id="totalAreaInput" name="totalArea" min="1" step="0.1">
                     </div>
-
                     <div class="form-group">
                         <label for="additionalInfo">Дополнительная информация</label>
-                        <textarea id="additionalInfo" name="additionalInfo" rows="4" placeholder="Особенности помещения, пожелания по срокам, дополнительные работы..."></textarea>
+                        <textarea id="additionalInfo" name="additionalInfo" rows="4" placeholder="Опишите ваши пожелания и особенности помещения"></textarea>
                     </div>
-
-                    <div class="form-group checkbox-group">
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="agreeTerms" name="agreeTerms" required>
-                            <label for="agreeTerms">Я согласен на обработку персональных данных и получение обратной связи</label>
-                        </div>
+                    <div class="form-group">
+                        <label style="display: flex; align-items: center; gap: 8px; font-weight: normal;">
+                            <input type="checkbox" required style="width: auto;">
+                            Я согласен на обработку персональных данных и получение обратной связи
+                        </label>
                     </div>
-
                     <div class="form-actions">
                         <button type="submit" class="btn-submit">
                             <i class="fas fa-paper-plane"></i> Отправить заявку
@@ -437,39 +419,22 @@
         </div>
     </div>
 
-    <!-- Уведомление -->
-    <div class="notification" id="notification">
+    <!-- Скрытый input для загрузки файла -->
+    <input type="file" id="loadProjectInput" accept=".json" style="display: none;">
+
+    <!-- Уведомления -->
+    <div id="notification" class="notification">
         <i class="fas fa-check-circle"></i>
-        <span id="notificationText">Изменения сохранены</span>
-    </div>
-    
-    <!-- Мобильные элементы -->
-    <div class="mobile-panel-overlay" id="mobilePanelOverlay"></div>
-    <div class="mobile-panel" id="mobilePanel">
-        <div class="mobile-panel-header">
-            <span id="mobilePanelTitle">Панель</span>
-            <button class="close-mobile-panel">&times;</button>
-        </div>
-        <div class="mobile-panel-content" id="mobilePanelContent">
-            <!-- Контент будет заполнен динамически -->
-        </div>
+        <span id="notificationText"></span>
     </div>
 
-    <div id="fabContainer" style="display: none;">
-        <button id="fabProperties" class="fab-btn properties" title="Свойства">
-            <i class="fas fa-cog"></i>
-        </button>
-        <button id="fabSummary" class="fab-btn summary" title="Сводка">
-            <i class="fas fa-chart-pie"></i>
-        </button>
-        <button id="fabReceipt" class="fab-btn receipt" title="Смета">
-            <i class="fas fa-receipt"></i>
-        </button>
-        <button id="fabTop" class="fab-btn top" title="Наверх">
-            <i class="fas fa-arrow-up"></i>
-        </button>
-    </div>
-    
+    <!-- Кнопка "Вверх" -->
+    <button id="scrollToTopBtn" class="scroll-to-top" title="Наверх">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <!-- Скрипты -->
+    <script src="js/state.js"></script>
     <script src="js/app.js"></script>
     <script src="js/canvas.js"></script>
     <script src="js/elements.js"></script>

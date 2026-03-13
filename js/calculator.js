@@ -1,6 +1,5 @@
 // Функции для расчета стоимости
 
-// Вспомогательная функция для безопасного получения элементов DOM
 function safeGetElement(id) {
     const element = document.getElementById(id);
     if (!element) {
@@ -9,7 +8,6 @@ function safeGetElement(id) {
     return element;
 }
 
-// Расчет стоимости работ и формирование кассового чека
 function calculateCost() {
     try {
         const ceilingHeightInput = safeGetElement('ceilingHeight');
@@ -17,20 +15,22 @@ function calculateCost() {
         
         const ceilingHeight = parseFloat(ceilingHeightInput.value) || 2.5;
         let totalCost = 0;
-        let estimateHTML = '';
         
         if (!rooms || rooms.length === 0) {
-            estimateHTML = '<div class="summary-item">Добавьте комнаты для расчета стоимости</div>';
             const receiptContainer = safeGetElement('receiptContainer');
             if (receiptContainer) receiptContainer.style.display = 'none';
             
             const receiptActions = safeGetElement('receiptActions');
             if (receiptActions) receiptActions.style.display = 'none';
+            
+            const receiptContent = safeGetElement('receiptContent');
+            if (receiptContent) {
+                receiptContent.innerHTML = '<div class="receipt-section-header">Нет данных для расчета</div><div style="text-align:center; padding:20px;">Добавьте комнаты, чтобы увидеть смету.</div>';
+            }
         } else {
             let projectTotalCost = 0;
             let receiptHTML = '';
             
-            // Заголовок чека
             receiptHTML += `
                 <div class="receipt-line" style="text-align: center; font-weight: bold;">
                     <div>СМЕТА РАБОТ</div>
@@ -50,7 +50,6 @@ function calculateCost() {
                 const perimeter = ((room.width / scale) + (room.height / scale)) * 2;
                 const wallsArea = perimeter * ceilingHeight;
                 
-                // Вычитаем площади окон и дверей
                 let windowsArea = 0;
                 let doorsArea = 0;
                 let slopesLinear = 0;
@@ -61,10 +60,8 @@ function calculateCost() {
                         if (!window || !window.width || !window.height) return;
                         windowsArea += window.width * window.height;
                         if (window.slopes === 'with') {
-                            // Для окон: 3 стороны (две боковые и верхняя)
                             slopesLinear += (window.width + window.height * 2);
                         } else if (window.slopes === 'with_net') {
-                            // Для окон с сеткой: 3 стороны (две боковые и верхняя)
                             slopesLinear += (window.width + window.height * 2);
                             slopesLinearWithNet += (window.width + window.height * 2);
                         }
@@ -76,10 +73,8 @@ function calculateCost() {
                         if (!door || !door.width || !door.height) return;
                         doorsArea += door.width * door.height;
                         if (door.slopes === 'with') {
-                            // Для дверей: 3 стороны (две боковые и верхняя)
                             slopesLinear += (door.width + door.height * 2);
                         } else if (door.slopes === 'with_net') {
-                            // Для дверей с сеткой: 3 стороны (две боковые и верхняя)
                             slopesLinear += (door.width + door.height * 2);
                             slopesLinearWithNet += (door.width + door.height * 2);
                         }
@@ -88,10 +83,8 @@ function calculateCost() {
                 
                 const netWallsArea = Math.max(0, wallsArea - windowsArea - doorsArea);
                 
-                // Расчет стоимости для комнаты
                 let roomCost = 0;
                 
-                // Добавляем заголовок комнаты в чек
                 receiptHTML += `
                     <div class="receipt-room-header">
                         ${escapeHTML(room.name || 'Комната')} (${(room.width / scale).toFixed(1)}x${(room.height / scale).toFixed(1)} м)
@@ -106,7 +99,6 @@ function calculateCost() {
                             <div class="receipt-section-header">СТАРТОВАЯ ШТУКАТУРКА</div>
                     `;
                     
-                    // Грунтовка стен
                     const primerWallsCost = netWallsArea * prices.primer.square;
                     plasterCost += primerWallsCost;
                     receiptHTML += `
@@ -120,7 +112,6 @@ function calculateCost() {
                         <div class="receipt-divider"></div>
                     `;
                     
-                    // Штукатурка стен
                     const plasterWallsCost = netWallsArea * prices.plaster.square;
                     plasterCost += plasterWallsCost;
                     receiptHTML += `
@@ -134,9 +125,7 @@ function calculateCost() {
                         <div class="receipt-divider"></div>
                     `;
                     
-                    // Работы по откосам (только если есть окна/двери с откосами)
                     if (slopesLinear > 0) {
-                        // Грунтовка откосов
                         const primerSlopesCost = slopesLinear * prices.primer.linear;
                         plasterCost += primerSlopesCost;
                         receiptHTML += `
@@ -150,7 +139,6 @@ function calculateCost() {
                             <div class="receipt-divider"></div>
                         `;
                         
-                        // Штукатурка откосов
                         const plasterSlopesCost = slopesLinear * prices.plaster.linear;
                         plasterCost += plasterSlopesCost;
                         receiptHTML += `
@@ -164,7 +152,6 @@ function calculateCost() {
                             <div class="receipt-divider"></div>
                         `;
                         
-                        // Установка уголков
                         const cornerCost = slopesLinear * prices.corner.linear;
                         plasterCost += cornerCost;
                         receiptHTML += `
@@ -197,7 +184,6 @@ function calculateCost() {
                             <div class="receipt-section-header">АРМИРОВАНИЕ СЕТКОЙ</div>
                     `;
                     
-                    // Армирование стен
                     const armoringWallsCost = netWallsArea * prices.armoring.square;
                     armoringCost += armoringWallsCost;
                     receiptHTML += `
@@ -211,7 +197,6 @@ function calculateCost() {
                         <div class="receipt-divider"></div>
                     `;
                     
-                    // Армирование откосов (только с сеткой)
                     if (slopesLinearWithNet > 0) {
                         const armoringSlopesCost = slopesLinearWithNet * prices.armoring.linear;
                         armoringCost += armoringSlopesCost;
@@ -249,7 +234,6 @@ function calculateCost() {
                             <div class="receipt-section-header">ФИНИШНАЯ ШПАКЛЕВКА ${puttyName.toUpperCase()}</div>
                     `;
                     
-                    // Шпаклевка стен
                     const puttyWallsCost = netWallsArea * puttyPrice.square;
                     puttyCost += puttyWallsCost;
                     receiptHTML += `
@@ -263,9 +247,7 @@ function calculateCost() {
                         <div class="receipt-divider"></div>
                     `;
                     
-                    // Работы по откосам (только если есть окна/двери с откосами)
                     if (slopesLinear > 0) {
-                        // Шпаклевка откосов
                         const puttySlopesCost = slopesLinear * puttyPrice.linear;
                         puttyCost += puttySlopesCost;
                         receiptHTML += `
@@ -280,7 +262,6 @@ function calculateCost() {
                         `;
                     }
                     
-                    // Зашкуривание стен
                     const sandingWallsCost = netWallsArea * prices.sanding.square;
                     puttyCost += sandingWallsCost;
                     receiptHTML += `
@@ -294,7 +275,6 @@ function calculateCost() {
                         <div class="receipt-divider"></div>
                     `;
                     
-                    // Зашкуривание откосов (только если есть окна/двери с откосами)
                     if (slopesLinear > 0) {
                         const sandingSlopesCost = slopesLinear * prices.sanding.linear;
                         puttyCost += sandingSlopesCost;
@@ -328,7 +308,6 @@ function calculateCost() {
                             <div class="receipt-section-header">ПОКРАСКА В 2 СЛОЯ</div>
                     `;
                     
-                    // Грунтовка перед покраской
                     const paintingPrimerCost = netWallsArea * prices.primer.square;
                     paintingCost += paintingPrimerCost;
                     receiptHTML += `
@@ -342,7 +321,6 @@ function calculateCost() {
                         <div class="receipt-divider"></div>
                     `;
                     
-                    // Грунтовка откосов перед покраской (только если есть окна/двери с откосами)
                     if (slopesLinear > 0) {
                         const paintingPrimerSlopesCost = slopesLinear * prices.primer.linear;
                         paintingCost += paintingPrimerSlopesCost;
@@ -358,7 +336,6 @@ function calculateCost() {
                         `;
                     }
                     
-                    // Покраска стен
                     const paintingWallsCost = netWallsArea * prices.painting.square;
                     paintingCost += paintingWallsCost;
                     receiptHTML += `
@@ -372,7 +349,6 @@ function calculateCost() {
                         <div class="receipt-divider"></div>
                     `;
                     
-                    // Покраска откосов (только если есть окна/двери с откосами)
                     if (slopesLinear > 0) {
                         const paintingSlopesCost = slopesLinear * prices.painting.linear;
                         paintingCost += paintingSlopesCost;
@@ -398,7 +374,6 @@ function calculateCost() {
                     roomCost += paintingCost;
                 }
                 
-                // Итог по комнате
                 receiptHTML += `
                     <div class="receipt-line" style="border-top: 2px dashed #000; margin-top: 10px; padding-top: 10px;">
                         <div style="font-weight: bold;">ИТОГО ПО КОМНАТЕ:</div>
@@ -408,18 +383,10 @@ function calculateCost() {
                 `;
                 
                 totalCost += roomCost;
-                
-                estimateHTML += `
-                    <div class="summary-item">
-                        <span>${escapeHTML(room.name || 'Комната')}:</span>
-                        <span>${roomCost.toFixed(2)} руб.</span>
-                    </div>
-                `;
             });
             
             projectTotalCost = totalCost;
             
-            // Итоговая стоимость в чеке
             receiptHTML += `
                 <div class="receipt-total">
                     <div>ОБЩАЯ СТОИМОСТЬ РАБОТ</div>
@@ -436,12 +403,9 @@ function calculateCost() {
             if (receiptContent) receiptContent.innerHTML = receiptHTML;
             if (receiptContainer) receiptContainer.style.display = 'block';
             
-            // Показываем кнопки отправки
-            showSharingButtons();
+            const receiptActions = safeGetElement('receiptActions');
+            if (receiptActions) receiptActions.style.display = 'block';
         }
-        
-        const estimateResults = safeGetElement('estimateResults');
-        if (estimateResults) estimateResults.innerHTML = estimateHTML;
         
     } catch (error) {
         console.error('Error calculating cost:', error);
@@ -449,15 +413,6 @@ function calculateCost() {
     }
 }
 
-// Функция для показа кнопок отправки
-function showSharingButtons() {
-    const receiptActions = safeGetElement('receiptActions');
-    if (receiptActions && rooms && rooms.length > 0) {
-        receiptActions.style.display = 'block';
-    }
-}
-
-// Функция для получения текстового представления сметы
 function getReceiptText() {
     try {
         let text = `🧾 СМЕТА РАБОТ\n`;
@@ -518,7 +473,6 @@ function getReceiptText() {
             const netWallsArea = Math.max(0, wallsArea - windowsArea - doorsArea);
             let roomCost = 0;
             
-            // Стартовая штукатурка
             if (room.plaster) {
                 text += `СТАРТОВАЯ ШТУКАТУРКА:\n`;
                 let plasterCost = 0;
@@ -549,7 +503,6 @@ function getReceiptText() {
                 roomCost += plasterCost;
             }
             
-            // Армирование сеткой
             if (room.armoring) {
                 text += `АРМИРОВАНИЕ СЕТКОЙ:\n`;
                 let armoringCost = 0;
@@ -568,7 +521,6 @@ function getReceiptText() {
                 roomCost += armoringCost;
             }
             
-            // Финишная шпаклевка
             if (room.puttyWallpaper || room.puttyPaint) {
                 const puttyType = room.puttyWallpaper ? 'wallpaper' : 'paint';
                 const puttyName = room.puttyWallpaper ? 'под обои' : 'под покраску';
@@ -599,7 +551,6 @@ function getReceiptText() {
                 roomCost += puttyCost;
             }
             
-            // Покраска
             if (room.painting) {
                 text += `ПОКРАСКА В 2 СЛОЯ:\n`;
                 let paintingCost = 0;

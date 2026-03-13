@@ -1,0 +1,9 @@
+https://raw.githubusercontent.com/HoMuHaJI/planpomeshcheniy/refs/heads/main/index.html
+https://raw.githubusercontent.com/HoMuHaJI/planpomeshcheniy/refs/heads/main/README.md
+https://raw.githubusercontent.com/HoMuHaJI/planpomeshcheniy/refs/heads/main/js/app.js
+https://raw.githubusercontent.com/HoMuHaJI/planpomeshcheniy/refs/heads/main/js/calculator.js
+https://raw.githubusercontent.com/HoMuHaJI/planpomeshcheniy/refs/heads/main/js/canvas.js
+https://raw.githubusercontent.com/HoMuHaJI/planpomeshcheniy/refs/heads/main/js/elements.js
+https://raw.githubusercontent.com/HoMuHaJI/planpomeshcheniy/refs/heads/main/js/ui.js
+https://raw.githubusercontent.com/HoMuHaJI/planpomeshcheniy/refs/heads/main/css/responsive.css
+https://raw.githubusercontent.com/HoMuHaJI/planpomeshcheniy/refs/heads/main/css/style.css
