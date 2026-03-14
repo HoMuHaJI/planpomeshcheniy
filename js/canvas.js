@@ -1,210 +1,148 @@
-// Функции для работы с Canvas
+// canvas.js – функции для работы с Canvas и обработчики мыши
 
-// Инициализация canvas
 function initCanvas(editorCanvas, ctx) {
-    // Сохраняем ссылку на canvas глобально
     window.editorCanvas = editorCanvas;
     window.canvasContext = ctx;
-    
+
     resizeCanvas(editorCanvas);
     draw(editorCanvas, ctx);
-    
-    // Обработчики событий мыши
+
     editorCanvas.addEventListener('mousedown', handleMouseDown);
     editorCanvas.addEventListener('mousemove', handleMouseMove);
     editorCanvas.addEventListener('mouseup', handleMouseUp);
     editorCanvas.addEventListener('wheel', handleWheel);
-    
-    // Обработчик изменения размера окна
+
     window.addEventListener('resize', () => resizeCanvas(editorCanvas));
-    
-    // Предотвращение контекстного меню на canvas
+
     editorCanvas.addEventListener('contextmenu', (e) => e.preventDefault());
 }
 
-// Изменение размера canvas
 function resizeCanvas(editorCanvas) {
     const container = editorCanvas.parentElement;
     if (!container) return;
-    
-    // Сохраняем предыдущие размеры
+
     const previousWidth = editorCanvas.width;
     const previousHeight = editorCanvas.height;
-    
-    // Устанавливаем новые размеры
+
     editorCanvas.width = container.clientWidth;
     editorCanvas.height = container.clientHeight;
-    
-    // Корректируем смещение для сохранения видимой области
+
     if (previousWidth > 0 && previousHeight > 0) {
         const scaleX = editorCanvas.width / previousWidth;
         const scaleY = editorCanvas.height / previousHeight;
-        viewOffsetX *= scaleX;
-        viewOffsetY *= scaleY;
+        window.viewOffsetX *= scaleX;
+        window.viewOffsetY *= scaleY;
     }
-    
+
     draw(editorCanvas, editorCanvas.getContext('2d'));
 }
 
-// Отрисовка сетки
 function drawGrid(editorCanvas, ctx) {
-    const gridSize = scale;
+    const gridSize = window.scale;
     const gridColor = 'rgba(200, 200, 200, 0.2)';
     const minorGridColor = 'rgba(200, 200, 200, 0.1)';
-    
+
     ctx.save();
-    
-    // Мелкая сетка (каждые 10 пикселей)
+
     ctx.strokeStyle = minorGridColor;
     ctx.lineWidth = 0.5;
     const minorGridSize = 10;
-    
-    // Вертикальные линии мелкой сетки
+
     for (let x = 0; x <= editorCanvas.width; x += minorGridSize) {
         ctx.beginPath();
         ctx.moveTo(x, 0);
         ctx.lineTo(x, editorCanvas.height);
         ctx.stroke();
     }
-    
-    // Горизонтальные линии мелкой сетки
     for (let y = 0; y <= editorCanvas.height; y += minorGridSize) {
         ctx.beginPath();
         ctx.moveTo(0, y);
         ctx.lineTo(editorCanvas.width, y);
         ctx.stroke();
     }
-    
-    // Основная сетка (1 метр = 50 пикселей)
+
     ctx.strokeStyle = gridColor;
     ctx.lineWidth = 1;
-    
-    // Вертикальные линии основной сетки
+
     for (let x = 0; x <= editorCanvas.width; x += gridSize) {
         ctx.beginPath();
         ctx.moveTo(x, 0);
         ctx.lineTo(x, editorCanvas.height);
         ctx.stroke();
     }
-    
-    // Горизонтальные линии основной сетки
     for (let y = 0; y <= editorCanvas.height; y += gridSize) {
         ctx.beginPath();
         ctx.moveTo(0, y);
         ctx.lineTo(editorCanvas.width, y);
         ctx.stroke();
     }
-    
-    // Подписи к сетке (каждые 2 метра)
+
     ctx.fillStyle = 'rgba(150, 150, 150, 0.5)';
     ctx.font = '10px Arial';
     ctx.textAlign = 'center';
-    
+
     for (let x = gridSize * 2; x < editorCanvas.width; x += gridSize * 2) {
-        ctx.fillText(`${x / scale}m`, x, 15);
+        ctx.fillText(`${x / window.scale}m`, x, 15);
     }
-    
     for (let y = gridSize * 2; y < editorCanvas.height; y += gridSize * 2) {
-        ctx.fillText(`${y / scale}m`, 15, y);
+        ctx.fillText(`${y / window.scale}m`, 15, y);
     }
-    
+
     ctx.restore();
 }
 
-// Отрисовка сцены
 function draw(editorCanvas, ctx) {
     if (!editorCanvas || !ctx) return;
-    
-    // Очищаем canvas
+
     ctx.clearRect(0, 0, editorCanvas.width, editorCanvas.height);
-    
-    // Рисуем фон
+
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, editorCanvas.width, editorCanvas.height);
-    
-    // Рисуем сетку
+
     drawGrid(editorCanvas, ctx);
-    
-    // Сохраняем контекст и применяем трансформации
+
     ctx.save();
-    ctx.translate(viewOffsetX, viewOffsetY);
-    ctx.scale(zoom, zoom);
-    
-    // Отрисовка комнат
-    if (rooms && rooms.length > 0) {
-        rooms.forEach(room => {
-            if (room && typeof drawRoom === 'function') {
-                drawRoom(room, ctx);
-            }
+    ctx.translate(window.viewOffsetX, window.viewOffsetY);
+    ctx.scale(window.zoom, window.zoom);
+
+    if (window.rooms && window.rooms.length > 0) {
+        window.rooms.forEach(room => {
+            if (room && typeof drawRoom === 'function') drawRoom(room, ctx);
         });
     } else {
-        // Отображение подсказки, если комнат нет
         ctx.save();
-        ctx.setTransform(1, 0, 0, 1, 0, 0); // Сбрасываем трансформации
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
         ctx.font = '16px Arial';
         ctx.textAlign = 'center';
         ctx.fillText('Используйте инструмент "Комната" для создания помещений', editorCanvas.width / 2, editorCanvas.height / 2);
         ctx.restore();
     }
-    
-    // Восстанавливаем контекст
-    ctx.restore();
-    
-    // Отладочная информация (только в режиме разработки)
-    if (window.DEBUG_MODE) {
-        drawDebugInfo(editorCanvas, ctx);
-    }
-}
 
-// Отладочная информация
-function drawDebugInfo(editorCanvas, ctx) {
-    ctx.save();
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-    ctx.font = '12px monospace';
-    ctx.textAlign = 'left';
-    
-    const debugInfo = [
-        `Zoom: ${zoom.toFixed(2)}`,
-        `Offset: (${viewOffsetX.toFixed(0)}, ${viewOffsetY.toFixed(0)})`,
-        `Rooms: ${rooms ? rooms.length : 0}`,
-        `Tool: ${currentTool}`,
-        `Scale: 1m = ${scale}px`
-    ];
-    
-    debugInfo.forEach((info, index) => {
-        ctx.fillText(info, 10, 20 + index * 15);
-    });
-    
     ctx.restore();
 }
 
-// Центрирование вида на всех комнатах
 function centerView(editorCanvas) {
     if (!editorCanvas) return;
-    
-    if (!rooms || rooms.length === 0) {
-        // Если комнат нет, центрируем по умолчанию
-        viewOffsetX = editorCanvas.width / 2;
-        viewOffsetY = editorCanvas.height / 2;
-        zoom = 1;
-        
+
+    if (!window.rooms || window.rooms.length === 0) {
+        window.viewOffsetX = editorCanvas.width / 2;
+        window.viewOffsetY = editorCanvas.height / 2;
+        window.zoom = 1;
+
         const zoomLevel = document.getElementById('zoomLevel');
-        if (zoomLevel) {
-            zoomLevel.textContent = `${Math.round(zoom * 100)}%`;
-        }
-        
+        if (zoomLevel) zoomLevel.textContent = `${Math.round(window.zoom * 100)}%`;
+
         draw(editorCanvas, editorCanvas.getContext('2d'));
         return;
     }
-    
+
     try {
-        // Находим границы всех комнат
         let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
         let hasValidRooms = false;
-        
-        rooms.forEach(room => {
-            if (room && typeof room.x === 'number' && typeof room.y === 'number' && 
+
+        window.rooms.forEach(room => {
+            if (room && typeof room.x === 'number' && typeof room.y === 'number' &&
                 typeof room.width === 'number' && typeof room.height === 'number') {
                 minX = Math.min(minX, room.x);
                 minY = Math.min(minY, room.y);
@@ -213,152 +151,319 @@ function centerView(editorCanvas) {
                 hasValidRooms = true;
             }
         });
-        
+
         if (!hasValidRooms) return;
-        
-        // Добавляем отступы
+
         const padding = 50;
         minX -= padding;
         minY -= padding;
         maxX += padding;
         maxY += padding;
-        
+
         const width = maxX - minX;
         const height = maxY - minY;
-        
-        // Вычисляем масштаб для вмещения всех комнат
+
         const scaleX = editorCanvas.width / width;
         const scaleY = editorCanvas.height / height;
-        zoom = Math.min(scaleX, scaleY, 1);
-        
-        // Ограничиваем минимальный и максимальный масштаб
-        zoom = Math.max(0.1, Math.min(3, zoom));
-        
-        // Центрируем
-        viewOffsetX = (editorCanvas.width - width * zoom) / 2 - minX * zoom;
-        viewOffsetY = (editorCanvas.height - height * zoom) / 2 - minY * zoom;
-        
-        // Обновляем интерфейс
+        window.zoom = Math.min(scaleX, scaleY, 1);
+        window.zoom = Math.max(0.1, Math.min(3, window.zoom));
+
+        window.viewOffsetX = (editorCanvas.width - width * window.zoom) / 2 - minX * window.zoom;
+        window.viewOffsetY = (editorCanvas.height - height * window.zoom) / 2 - minY * window.zoom;
+
         const zoomLevel = document.getElementById('zoomLevel');
-        if (zoomLevel) {
-            zoomLevel.textContent = `${Math.round(zoom * 100)}%`;
-        }
-        
+        if (zoomLevel) zoomLevel.textContent = `${Math.round(window.zoom * 100)}%`;
+
         draw(editorCanvas, editorCanvas.getContext('2d'));
     } catch (error) {
         console.error('Error in centerView:', error);
     }
 }
 
-// Обработка колесика мыши для масштабирования
 function handleWheel(e) {
     e.preventDefault();
-    
+
     const editorCanvas = window.editorCanvas;
     if (!editorCanvas) return;
-    
+
     const rect = editorCanvas.getBoundingClientRect();
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
     const zoomIntensity = 0.001;
     const delta = -Math.sign(e.deltaY) * Math.min(1, Math.abs(e.deltaY));
-    
-    // Вычисляем мировые координаты мыши до масштабирования
-    const worldX = (mouseX - viewOffsetX) / zoom;
-    const worldY = (mouseY - viewOffsetY) / zoom;
-    
-    // Изменяем масштаб с плавностью
+
+    const worldX = (mouseX - window.viewOffsetX) / window.zoom;
+    const worldY = (mouseY - window.viewOffsetY) / window.zoom;
+
     const zoomFactor = 1 + delta * zoomIntensity * 50;
-    const newZoom = zoom * zoomFactor;
-    
-    // Ограничиваем масштаб
-    zoom = Math.max(0.1, Math.min(3, newZoom));
-    
-    // Вычисляем новые смещения для сохранения позиции под курсором
-    viewOffsetX = mouseX - worldX * zoom;
-    viewOffsetY = mouseY - worldY * zoom;
-    
-    // Обновляем интерфейс
+    const newZoom = window.zoom * zoomFactor;
+
+    window.zoom = Math.max(0.1, Math.min(3, newZoom));
+
+    window.viewOffsetX = mouseX - worldX * window.zoom;
+    window.viewOffsetY = mouseY - worldY * window.zoom;
+
     const zoomLevel = document.getElementById('zoomLevel');
-    if (zoomLevel) {
-        zoomLevel.textContent = `${Math.round(zoom * 100)}%`;
-    }
-    
+    if (zoomLevel) zoomLevel.textContent = `${Math.round(window.zoom * 100)}%`;
+
     draw(editorCanvas, editorCanvas.getContext('2d'));
 }
 
-// Функция для сброса вида
 function resetView() {
     const editorCanvas = window.editorCanvas;
-    if (editorCanvas) {
-        centerView(editorCanvas);
-    }
+    if (editorCanvas) centerView(editorCanvas);
 }
 
-// Функция для установки конкретного масштаба
 function setZoom(newZoom, focusX = null, focusY = null) {
     const editorCanvas = window.editorCanvas;
     if (!editorCanvas) return;
-    
-    const oldZoom = zoom;
-    zoom = Math.max(0.1, Math.min(3, newZoom));
-    
+
+    const oldZoom = window.zoom;
+    window.zoom = Math.max(0.1, Math.min(3, newZoom));
+
     if (focusX !== null && focusY !== null) {
-        // Масштабирование относительно конкретной точки
-        const worldX = (focusX - viewOffsetX) / oldZoom;
-        const worldY = (focusY - viewOffsetY) / oldZoom;
-        viewOffsetX = focusX - worldX * zoom;
-        viewOffsetY = focusY - worldY * zoom;
+        const worldX = (focusX - window.viewOffsetX) / oldZoom;
+        const worldY = (focusY - window.viewOffsetY) / oldZoom;
+        window.viewOffsetX = focusX - worldX * window.zoom;
+        window.viewOffsetY = focusY - worldY * window.zoom;
     }
-    
-    // Обновляем интерфейс
+
     const zoomLevel = document.getElementById('zoomLevel');
-    if (zoomLevel) {
-        zoomLevel.textContent = `${Math.round(zoom * 100)}%`;
-    }
-    
+    if (zoomLevel) zoomLevel.textContent = `${Math.round(window.zoom * 100)}%`;
+
     draw(editorCanvas, editorCanvas.getContext('2d'));
 }
 
-// Функция для панорамирования к определенной точке
 function panTo(x, y, animate = false) {
     const editorCanvas = window.editorCanvas;
     if (!editorCanvas) return;
-    
+
     if (animate) {
-        // Анимированное перемещение (простая реализация)
-        const startX = viewOffsetX;
-        const startY = viewOffsetY;
-        const duration = 500; // мс
+        const startX = window.viewOffsetX;
+        const startY = window.viewOffsetY;
+        const duration = 500;
         const startTime = performance.now();
-        
+
         function animatePan(currentTime) {
             const elapsed = currentTime - startTime;
             const progress = Math.min(elapsed / duration, 1);
-            
-            // Используем ease-out функцию для плавности
             const easeProgress = 1 - Math.pow(1 - progress, 3);
-            
-            viewOffsetX = startX + (x - startX) * easeProgress;
-            viewOffsetY = startY + (y - startY) * easeProgress;
-            
+
+            window.viewOffsetX = startX + (x - startX) * easeProgress;
+            window.viewOffsetY = startY + (y - startY) * easeProgress;
+
             draw(editorCanvas, editorCanvas.getContext('2d'));
-            
-            if (progress < 1) {
-                requestAnimationFrame(animatePan);
-            }
+
+            if (progress < 1) requestAnimationFrame(animatePan);
         }
-        
+
         requestAnimationFrame(animatePan);
     } else {
-        // Мгновенное перемещение
-        viewOffsetX = x;
-        viewOffsetY = y;
+        window.viewOffsetX = x;
+        window.viewOffsetY = y;
         draw(editorCanvas, editorCanvas.getContext('2d'));
     }
 }
 
-// Экспорт функций для глобального использования
+// ================== ОБРАБОТЧИКИ МЫШИ ==================
+
+function handleMouseDown(e) {
+    const editorCanvas = window.editorCanvas;
+    if (!editorCanvas) return;
+    const rect = editorCanvas.getBoundingClientRect();
+    const safeZoom = window.zoom > 0 ? window.zoom : 1;
+    const x = (e.clientX - rect.left - window.viewOffsetX) / safeZoom;
+    const y = (e.clientY - rect.top - window.viewOffsetY) / safeZoom;
+
+    if (window.currentTool === 'select') {
+        const element = findElementAt(x, y);
+        if (element) {
+            if (element.type === 'room') {
+                selectRoom(element);
+                window.isDragging = true;
+                window.dragStartX = e.clientX;
+                window.dragStartY = e.clientY;
+                window.dragOffsetX = x - element.x;
+                window.dragOffsetY = y - element.y;
+            } else if (element.type === 'window' || element.type === 'door') {
+                for (let r of window.rooms) {
+                    if (r.windows && r.windows.includes(element)) {
+                        window.selectedRoom = r;
+                        break;
+                    }
+                    if (r.doors && r.doors.includes(element)) {
+                        window.selectedRoom = r;
+                        break;
+                    }
+                }
+                selectElement(element);
+                window.isMovingElement = true;
+                window.movingElement = element;
+            }
+        } else {
+            window.isPanning = true;
+            window.panStartX = e.clientX;
+            window.panStartY = e.clientY;
+            window.selectedRoom = null;
+            window.selectedElementObj = null;
+            hideAllProperties();
+            editorCanvas.style.cursor = 'grabbing';
+        }
+    } else if (window.currentTool === 'room') {
+        window.isDrawing = true;
+        window.startX = x;
+        window.startY = y;
+    } else if (window.currentTool === 'window' || window.currentTool === 'door') {
+        const room = findRoomAt(x, y);
+        if (room) {
+            selectRoom(room);
+            const wallInfo = findNearestWall(room, x, y);
+            if (wallInfo) {
+                addElementToRoom(window.currentTool, room, wallInfo.wall, wallInfo.leftOffset);
+            }
+        } else {
+            showNotification('Кликните внутри комнаты для добавления элемента');
+        }
+    }
+
+    draw(editorCanvas, editorCanvas.getContext('2d'));
+}
+
+function handleMouseMove(e) {
+    const editorCanvas = window.editorCanvas;
+    if (!editorCanvas) return;
+    const rect = editorCanvas.getBoundingClientRect();
+    const safeZoom = window.zoom > 0 ? window.zoom : 1;
+    const x = (e.clientX - rect.left - window.viewOffsetX) / safeZoom;
+    const y = (e.clientY - rect.top - window.viewOffsetY) / safeZoom;
+
+    const cursorPosition = safeGetElement('cursorPosition');
+    if (cursorPosition) {
+        cursorPosition.textContent = `X: ${(x / window.scale).toFixed(2)}, Y: ${(y / window.scale).toFixed(2)}`;
+    }
+
+    if (window.isPanning) {
+        const dx = e.clientX - window.panStartX;
+        const dy = e.clientY - window.panStartY;
+        window.viewOffsetX += dx;
+        window.viewOffsetY += dy;
+        window.panStartX = e.clientX;
+        window.panStartY = e.clientY;
+        draw(editorCanvas, editorCanvas.getContext('2d'));
+        return;
+    }
+
+    if (window.isDragging && window.selectedRoom) {
+        const newX = x - window.dragOffsetX;
+        const newY = y - window.dragOffsetY;
+        window.selectedRoom.x = newX;
+        window.selectedRoom.y = newY;
+        draw(editorCanvas, editorCanvas.getContext('2d'));
+    }
+
+    if (window.isMovingElement && window.movingElement && window.selectedRoom) {
+        const wallInfo = findNearestWall(window.selectedRoom, x, y);
+        if (wallInfo && wallInfo.wall === window.movingElement.wall) {
+            const wallLength = wallInfo.wall === 'top' || wallInfo.wall === 'bottom' ?
+                (window.selectedRoom.width / window.scale) : (window.selectedRoom.height / window.scale);
+            const maxLeftOffset = wallLength - window.movingElement.width;
+            const clampedLeftOffset = Math.max(0, Math.min(maxLeftOffset, wallInfo.leftOffset));
+
+            if (Math.abs(window.movingElement.leftOffset - clampedLeftOffset) > 0.001) {
+                window.movingElement.leftOffset = clampedLeftOffset;
+                window.movingElement.rightOffset = wallLength - clampedLeftOffset - window.movingElement.width;
+                updatePropertiesPanel(window.movingElement);
+                draw(editorCanvas, editorCanvas.getContext('2d'));
+            }
+        }
+    }
+
+    if (window.isDrawing && window.currentTool === 'room') {
+        draw(editorCanvas, editorCanvas.getContext('2d'));
+        const ctx = editorCanvas.getContext('2d');
+        ctx.save();
+        ctx.translate(window.viewOffsetX, window.viewOffsetY);
+        ctx.scale(window.zoom, window.zoom);
+        ctx.strokeStyle = '#4a6ee0';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+        ctx.strokeRect(window.startX, window.startY, x - window.startX, y - window.startY);
+        ctx.setLineDash([]);
+        ctx.restore();
+    }
+}
+
+function handleMouseUp(e) {
+    const editorCanvas = window.editorCanvas;
+    if (!editorCanvas) return;
+
+    if (window.isPanning) {
+        window.isPanning = false;
+        editorCanvas.style.cursor = 'move';
+    }
+
+    if (window.isDragging) {
+        window.isDragging = false;
+        pushToHistory();
+        dispatchStateChanged({ action: 'roomMoved' });
+    }
+
+    if (window.isMovingElement) {
+        window.isMovingElement = false;
+        pushToHistory();
+        dispatchStateChanged({ action: 'elementMoved' });
+        window.movingElement = null;
+    }
+
+    if (!window.isDrawing) return;
+
+    const rect = editorCanvas.getBoundingClientRect();
+    const safeZoom = window.zoom > 0 ? window.zoom : 1;
+    const x = (e.clientX - rect.left - window.viewOffsetX) / safeZoom;
+    const y = (e.clientY - rect.top - window.viewOffsetY) / safeZoom;
+
+    if (window.currentTool === 'room') {
+        const width = Math.abs(x - window.startX);
+        const height = Math.abs(y - window.startY);
+
+        if (width > 50 && height > 50) {
+            const roomX = Math.min(window.startX, x);
+            const roomY = Math.min(window.startY, y);
+
+            pushToHistory();
+
+            const room = {
+                id: generateId(),
+                type: 'room',
+                x: roomX,
+                y: roomY,
+                width: width,
+                height: height,
+                name: `Комната ${window.roomCounter}`,
+                plaster: true,
+                armoring: false,
+                puttyWallpaper: false,
+                puttyPaint: false,
+                painting: false,
+                windows: [],
+                doors: []
+            };
+            window.rooms.push(room);
+            window.roomCounter++;
+            selectRoom(room);
+            showNotification('Комната добавлена');
+
+            dispatchStateChanged({ action: 'roomCreated' });
+            centerView(editorCanvas);
+        } else {
+            showNotification('Слишком маленькая комната. Минимальный размер: 1x1 метр');
+        }
+    }
+
+    window.isDrawing = false;
+    draw(editorCanvas, editorCanvas.getContext('2d'));
+}
+
 window.canvasFunctions = {
     resetView,
     setZoom,

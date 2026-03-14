@@ -1,120 +1,17 @@
-// Основной файл приложения - инициализация и управление состоянием
+// app.js – инициализация, история, сохранение/загрузка
 
-// Глобальные переменные состояния редактора
-let currentTool = 'select';
-let rooms = [];
-let selectedRoom = null;
-let selectedElementObj = null;
-let isDrawing = false;
-let startX, startY;
-let scale = 50; // 1 метр = 50 пикселей
-let roomCounter = 1;
-let viewOffsetX = 0;
-let viewOffsetY = 0;
-let zoom = 1;
-let isDragging = false;
-let dragStartX, dragStartY;
-let dragOffsetX, dragOffsetY;
-let isMovingElement = false;
-let movingElement = null;
-let isPanning = false;
-let panStartX, panStartY;
-
-// СТЕКИ ИСТОРИИ ДЛЯ UNDO/REDO
 const MAX_HISTORY = 50;
 let undoStack = [];
 let redoStack = [];
 
 window.editorCanvas = null;
 
-// Добавить проверку инициализации глобальных переменных
-if (typeof window.rooms === 'undefined') window.rooms = [];
-if (typeof window.selectedRoom === 'undefined') window.selectedRoom = null;
-if (typeof window.selectedElementObj === 'undefined') window.selectedElementObj = null;
-if (typeof window.currentTool === 'undefined') window.currentTool = 'select';
-if (typeof window.isDrawing === 'undefined') window.isDrawing = false;
-if (typeof window.isDragging === 'undefined') window.isDragging = false;
-if (typeof window.isMovingElement === 'undefined') window.isMovingElement = false;
-if (typeof window.movingElement === 'undefined') window.movingElement = null;
-if (typeof window.isPanning === 'undefined') window.isPanning = false;
-
-// Цены за работы (руб.)
-const prices = {
-    // Стартовая штукатурка
-    primer: { square: 50, linear: 35 }, // Грунтовка
-    plaster: { square: 450, linear: 315 }, // Штукатурка (погонный метр = 70% от квадратного)
-    corner: { linear: 150 }, // Установка уголков
-    // Армирование сеткой
-    armoring: { square: 150, linear: 105 }, // Армирование сеткой (погонный метр = 70% от квадратного)
-    // Финишная шпаклевка
-    putty: {
-        wallpaper: { square: 350, linear: 245 }, // Под обои (погонный метр = 70% от квадратного)
-        paint: { square: 550, linear: 385 } // Под покраску (погонный метр = 70% от квадратного)
-    },
-    // Покраска
-    painting: { square: 300, linear: 210 }, // Покраска в 2 слоя (погонный метр = 70% от квадратного)
-    // Дополнительные работы
-    sanding: { square: 80, linear: 56 } // Зашкуривание (погонный метр = 70% от квадратного)
-};
-
-// Вспомогательные функции для безопасной работы с DOM
-function safeGetElement(id) {
-    const element = document.getElementById(id);
-    if (!element) {
-        console.warn(`Element with id '${id}' not found`);
-    }
-    return element;
-}
-
-function throttle(func, limit) {
-    let inThrottle;
-    return function(...args) {
-        if (!inThrottle) {
-            func.apply(this, args);
-            inThrottle = true;
-            setTimeout(() => inThrottle = false, limit);
-        }
-    }
-}
-
-// Функция экранирования HTML для защиты от XSS
-function escapeHTML(str) {
-    if (!str || typeof str !== 'string') return '';
-    return str.replace(/[&<>"']/g, function(m) {
-        return {
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#39;'
-        }[m];
-    });
-}
-
-// Генерация уникального ID
-function generateId() {
-    return Date.now().toString(36) + Math.random().toString(36).substr(2);
-}
-
-// Показ уведомлений
-function showNotification(message) {
-    const notification = safeGetElement('notification');
-    const notificationText = safeGetElement('notificationText');
-    if (!notification || !notificationText) return;
-
-    notificationText.textContent = escapeHTML(message);
-    notification.classList.add('show');
-    setTimeout(() => {
-        notification.classList.remove('show');
-    }, 3000);
-}
-
-// Функция для получения canvas контекста с обработкой ошибок
+// ============================================
+// ФУНКЦИИ ДЛЯ РАБОТЫ С CANVAS (контекст)
+// ============================================
 function getCanvasContext(editorCanvas) {
     try {
-        if (!editorCanvas || !editorCanvas.getContext) {
-            return null;
-        }
+        if (!editorCanvas || !editorCanvas.getContext) return null;
         return editorCanvas.getContext('2d');
     } catch (error) {
         console.error('Error getting canvas context:', error);
@@ -123,15 +20,21 @@ function getCanvasContext(editorCanvas) {
 }
 
 // ============================================
-// ФУНКЦИИ ИСТОРИИ (UNDO/REDO)
+// ИСТОРИЯ (UNDO/REDO)
 // ============================================
-
-// Сохранение состояния в историю (с проверкой на дубликаты)
 function pushToHistory() {
     try {
-        const currentState = JSON.parse(JSON.stringify(rooms));
-        
-        // Проверяем, отличается ли новое состояние от последнего в стеке
+        const ceilingHeightInput = safeGetElement('ceilingHeight');
+        const ceilingHeight = ceilingHeightInput ? parseFloat(ceilingHeightInput.value) : 2.5;
+        const currentState = {
+            rooms: JSON.parse(JSON.stringify(window.rooms)),
+            ceilingHeight: ceilingHeight,
+            zoom: window.zoom,
+            viewOffsetX: window.viewOffsetX,
+            viewOffsetY: window.viewOffsetY,
+            roomCounter: window.roomCounter
+        };
+
         if (undoStack.length > 0) {
             const lastState = undoStack[undoStack.length - 1];
             if (JSON.stringify(lastState) === JSON.stringify(currentState)) {
@@ -139,11 +42,9 @@ function pushToHistory() {
                 return;
             }
         }
-        
+
         undoStack.push(currentState);
-        if (undoStack.length > MAX_HISTORY) {
-            undoStack.shift();
-        }
+        if (undoStack.length > MAX_HISTORY) undoStack.shift();
         redoStack = [];
         updateUndoRedoButtons();
         console.log('✓ History pushed. Undo stack:', undoStack.length, 'Redo stack:', redoStack.length);
@@ -152,35 +53,38 @@ function pushToHistory() {
     }
 }
 
-// Отмена действия (Undo)
 function undo() {
     try {
         if (undoStack.length === 0) {
             showNotification('Нечего отменять');
             return;
         }
-        const currentState = JSON.parse(JSON.stringify(rooms));
+        const currentState = {
+            rooms: JSON.parse(JSON.stringify(window.rooms)),
+            ceilingHeight: parseFloat(safeGetElement('ceilingHeight')?.value || 2.5),
+            zoom: window.zoom,
+            viewOffsetX: window.viewOffsetX,
+            viewOffsetY: window.viewOffsetY,
+            roomCounter: window.roomCounter
+        };
         redoStack.push(currentState);
         const prevState = undoStack.pop();
-        rooms = prevState;
-        selectedRoom = null;
-        selectedElementObj = null;
-        if (typeof hideAllProperties === 'function') {
-            hideAllProperties();
+
+        window.rooms = prevState.rooms;
+        if (safeGetElement('ceilingHeight')) {
+            safeGetElement('ceilingHeight').value = prevState.ceilingHeight;
         }
-        if (typeof updateElementList === 'function') {
-            updateElementList();
-        }
-        if (typeof updateProjectSummary === 'function') {
-            updateProjectSummary();
-        }
-        if (typeof calculateCost === 'function') {
-            calculateCost();
-        }
-        const canvas = safeGetElement('editorCanvas');
-        if (canvas) {
-            draw(canvas, canvas.getContext('2d'));
-        }
+        window.zoom = prevState.zoom;
+        window.viewOffsetX = prevState.viewOffsetX;
+        window.viewOffsetY = prevState.viewOffsetY;
+        window.roomCounter = prevState.roomCounter;
+
+        window.selectedRoom = null;
+        window.selectedElementObj = null;
+
+        // Обновление через Event Bus
+        dispatchStateChanged({ action: 'undo' });
+
         updateUndoRedoButtons();
         showNotification('Отмена действия');
         console.log('✓ Undo performed. Undo stack:', undoStack.length, 'Redo stack:', redoStack.length);
@@ -190,35 +94,37 @@ function undo() {
     }
 }
 
-// Повтор действия (Redo)
 function redo() {
     try {
         if (redoStack.length === 0) {
             showNotification('Нечего повторять');
             return;
         }
-        const currentState = JSON.parse(JSON.stringify(rooms));
+        const currentState = {
+            rooms: JSON.parse(JSON.stringify(window.rooms)),
+            ceilingHeight: parseFloat(safeGetElement('ceilingHeight')?.value || 2.5),
+            zoom: window.zoom,
+            viewOffsetX: window.viewOffsetX,
+            viewOffsetY: window.viewOffsetY,
+            roomCounter: window.roomCounter
+        };
         undoStack.push(currentState);
         const nextState = redoStack.pop();
-        rooms = nextState;
-        selectedRoom = null;
-        selectedElementObj = null;
-        if (typeof hideAllProperties === 'function') {
-            hideAllProperties();
+
+        window.rooms = nextState.rooms;
+        if (safeGetElement('ceilingHeight')) {
+            safeGetElement('ceilingHeight').value = nextState.ceilingHeight;
         }
-        if (typeof updateElementList === 'function') {
-            updateElementList();
-        }
-        if (typeof updateProjectSummary === 'function') {
-            updateProjectSummary();
-        }
-        if (typeof calculateCost === 'function') {
-            calculateCost();
-        }
-        const canvas = safeGetElement('editorCanvas');
-        if (canvas) {
-            draw(canvas, canvas.getContext('2d'));
-        }
+        window.zoom = nextState.zoom;
+        window.viewOffsetX = nextState.viewOffsetX;
+        window.viewOffsetY = nextState.viewOffsetY;
+        window.roomCounter = nextState.roomCounter;
+
+        window.selectedRoom = null;
+        window.selectedElementObj = null;
+
+        dispatchStateChanged({ action: 'redo' });
+
         updateUndoRedoButtons();
         showNotification('Повтор действия');
         console.log('✓ Redo performed. Undo stack:', undoStack.length, 'Redo stack:', redoStack.length);
@@ -228,19 +134,13 @@ function redo() {
     }
 }
 
-// Обновление состояния кнопок Undo/Redo
 function updateUndoRedoButtons() {
     const undoBtn = safeGetElement('undoBtn');
     const redoBtn = safeGetElement('redoBtn');
-    if (undoBtn) {
-        undoBtn.disabled = undoStack.length === 0;
-    }
-    if (redoBtn) {
-        redoBtn.disabled = redoStack.length === 0;
-    }
+    if (undoBtn) undoBtn.disabled = undoStack.length === 0;
+    if (redoBtn) redoBtn.disabled = redoStack.length === 0;
 }
 
-// Очистка истории (при новом проекте)
 function clearHistory() {
     undoStack = [];
     redoStack = [];
@@ -249,19 +149,17 @@ function clearHistory() {
 }
 
 // ============================================
-// ФУНКЦИИ СОХРАНЕНИЯ И ЗАГРУЗКИ ПРОЕКТА
+// СОХРАНЕНИЕ / ЗАГРУЗКА
 // ============================================
-
-// Сохранение проекта
 function saveProject() {
     try {
-        if (!rooms || rooms.length === 0) {
+        if (!window.rooms || window.rooms.length === 0) {
             showNotification('Нет данных для сохранения');
             return;
         }
         const projectData = {
-            rooms: rooms,
-            roomCounter: roomCounter,
+            rooms: window.rooms,
+            roomCounter: window.roomCounter,
             ceilingHeight: safeGetElement('ceilingHeight')?.value || 2.5,
             savedAt: new Date().toISOString(),
             version: '1.0'
@@ -284,49 +182,31 @@ function saveProject() {
     }
 }
 
-// Валидация загруженных данных
 function validateProjectData(data) {
     if (!data || typeof data !== 'object') return false;
     if (!Array.isArray(data.rooms)) return false;
-    // Можно добавить более глубокую проверку, но пока так
     return true;
 }
 
-// Загрузка проекта
 function loadProject(file) {
     try {
         const reader = new FileReader();
         reader.onload = function(e) {
             try {
                 const projectData = JSON.parse(e.target.result);
-                if (!validateProjectData(projectData)) {
-                    throw new Error('Неверный формат файла');
-                }
+                if (!validateProjectData(projectData)) throw new Error('Неверный формат файла');
                 pushToHistory();
-                rooms = projectData.rooms;
-                roomCounter = projectData.roomCounter || 1;
+                window.rooms = projectData.rooms;
+                window.roomCounter = projectData.roomCounter || 1;
                 const ceilingHeightInput = safeGetElement('ceilingHeight');
                 if (ceilingHeightInput && projectData.ceilingHeight) {
                     ceilingHeightInput.value = projectData.ceilingHeight;
                 }
-                selectedRoom = null;
-                selectedElementObj = null;
-                if (typeof hideAllProperties === 'function') {
-                    hideAllProperties();
-                }
-                if (typeof updateElementList === 'function') {
-                    updateElementList();
-                }
-                if (typeof updateProjectSummary === 'function') {
-                    updateProjectSummary();
-                }
-                if (typeof calculateCost === 'function') {
-                    calculateCost();
-                }
-                const canvas = safeGetElement('editorCanvas');
-                if (canvas) {
-                    centerView(canvas);
-                }
+                window.selectedRoom = null;
+                window.selectedElementObj = null;
+
+                dispatchStateChanged({ action: 'projectLoaded' });
+
                 showNotification('Проект успешно загружен');
                 console.log('✓ Project loaded');
             } catch (error) {
@@ -334,9 +214,7 @@ function loadProject(file) {
                 showNotification('Ошибка при чтении файла проекта');
             }
         };
-        reader.onerror = function() {
-            showNotification('Ошибка при чтении файла');
-        };
+        reader.onerror = () => showNotification('Ошибка при чтении файла');
         reader.readAsText(file);
     } catch (error) {
         console.error('Error loading project:', error);
@@ -344,8 +222,9 @@ function loadProject(file) {
     }
 }
 
-// ================== ДЕМОНСТРАЦИОННЫЙ ПРОЕКТ ==================
-// Встроенные данные демо-проекта (из предоставленного JSON)
+// ============================================
+// ДЕМО-ПРОЕКТ (встроенный)
+// ============================================
 const demoProjectData = {
   "rooms": [
     {
@@ -635,41 +514,31 @@ const demoProjectData = {
   "version": "1.0"
 };
 
-// Функция загрузки демо-проекта
 function loadDemoProject() {
-    // Сохраняем текущее состояние в историю перед загрузкой демо
     pushToHistory();
-    
-    rooms = demoProjectData.rooms;
-    roomCounter = demoProjectData.roomCounter || 1;
+    window.rooms = demoProjectData.rooms;
+    window.roomCounter = demoProjectData.roomCounter || 1;
     const ceilingHeightInput = safeGetElement('ceilingHeight');
     if (ceilingHeightInput && demoProjectData.ceilingHeight) {
         ceilingHeightInput.value = demoProjectData.ceilingHeight;
     }
-    selectedRoom = null;
-    selectedElementObj = null;
+    window.selectedRoom = null;
+    window.selectedElementObj = null;
+    if (typeof hideAllProperties === 'function') hideAllProperties();
+    if (typeof updateElementList === 'function') updateElementList();
+    if (typeof updateProjectSummary === 'function') updateProjectSummary();
+    if (typeof calculateCost === 'function') calculateCost();
     
-    if (typeof hideAllProperties === 'function') {
-        hideAllProperties();
-    }
-    if (typeof updateElementList === 'function') {
-        updateElementList();
-    }
-    if (typeof updateProjectSummary === 'function') {
-        updateProjectSummary();
-    }
-    if (typeof calculateCost === 'function') {
-        calculateCost();
-    }
-    const canvas = safeGetElement('editorCanvas');
-    if (canvas) {
-        centerView(canvas);
-    }
-    // Очищаем историю, чтобы демо-проект был начальным состоянием
+    // Центрируем вид после того, как canvas отрисован
+    requestAnimationFrame(() => {
+        const canvas = safeGetElement('editorCanvas');
+        if (canvas && typeof centerView === 'function') {
+            centerView(canvas);
+        }
+    });
+
     clearHistory();
-    // Добавляем текущее состояние как первое в историю
     pushToHistory();
-    
     showNotification('Демо-проект загружен');
     console.log('✓ Demo project loaded');
 }
@@ -677,89 +546,59 @@ function loadDemoProject() {
 // ============================================
 // КЛАВИАТУРНЫЕ КОМАНДЫ
 // ============================================
-
-// Инициализация обработчиков клавиатуры
 function initKeyboardHandlers() {
     document.addEventListener('keydown', (e) => {
         const activeElement = document.activeElement;
-        const isInputFocused = activeElement.tagName === 'INPUT' || 
-                               activeElement.tagName === 'TEXTAREA' || 
+        const isInputFocused = activeElement.tagName === 'INPUT' ||
+                               activeElement.tagName === 'TEXTAREA' ||
                                activeElement.tagName === 'SELECT';
-        
-        if (e.ctrlKey && e.key === 'z') {
-            e.preventDefault();
-            undo();
-            return;
-        }
-        
-        if (e.ctrlKey && e.key === 'y') {
-            e.preventDefault();
-            redo();
-            return;
-        }
-        
+
+        if (e.ctrlKey && e.key === 'z') { e.preventDefault(); undo(); return; }
+        if (e.ctrlKey && e.key === 'y') { e.preventDefault(); redo(); return; }
+
         if (e.key === 'Delete' || e.key === 'Del') {
             if (isInputFocused) return;
-            if (selectedElementObj) {
-                if (selectedElementObj.type === 'room') {
-                    if (typeof deleteRoom === 'function') {
-                        deleteRoom(selectedElementObj);
-                    }
-                } else if (selectedElementObj.type === 'window' && selectedRoom) {
-                    if (typeof deleteWindow === 'function') {
-                        deleteWindow(selectedRoom, selectedElementObj);
-                    }
-                } else if (selectedElementObj.type === 'door' && selectedRoom) {
-                    if (typeof deleteDoor === 'function') {
-                        deleteDoor(selectedRoom, selectedElementObj);
-                    }
+            if (window.selectedElementObj) {
+                if (window.selectedElementObj.type === 'room') {
+                    if (typeof deleteRoom === 'function') deleteRoom(window.selectedElementObj);
+                } else if (window.selectedElementObj.type === 'window' && window.selectedRoom) {
+                    if (typeof deleteWindow === 'function') deleteWindow(window.selectedRoom, window.selectedElementObj);
+                } else if (window.selectedElementObj.type === 'door' && window.selectedRoom) {
+                    if (typeof deleteDoor === 'function') deleteDoor(window.selectedRoom, window.selectedElementObj);
                 }
             }
             return;
         }
-        
+
         if (e.key === 'Enter') {
             if (activeElement && activeElement.id && !isInputFocused) {
                 const applyRoomChangesBtn = safeGetElement('applyRoomChanges');
                 const applyWindowChangesBtn = safeGetElement('applyWindowChanges');
                 const applyDoorChangesBtn = safeGetElement('applyDoorChanges');
                 if (activeElement.id.startsWith('room') && applyRoomChangesBtn && !applyRoomChangesBtn.disabled) {
-                    e.preventDefault();
-                    applyRoomChangesBtn.click();
+                    e.preventDefault(); applyRoomChangesBtn.click();
                 } else if (activeElement.id.startsWith('window') && applyWindowChangesBtn && !applyWindowChangesBtn.disabled) {
-                    e.preventDefault();
-                    applyWindowChangesBtn.click();
+                    e.preventDefault(); applyWindowChangesBtn.click();
                 } else if (activeElement.id.startsWith('door') && applyDoorChangesBtn && !applyDoorChangesBtn.disabled) {
-                    e.preventDefault();
-                    applyDoorChangesBtn.click();
+                    e.preventDefault(); applyDoorChangesBtn.click();
                 } else if (activeElement.id === 'ceilingHeight') {
                     e.preventDefault();
-                    if (typeof updateProjectSummary === 'function') {
-                        updateProjectSummary();
-                    }
-                    if (typeof calculateCost === 'function') {
-                        calculateCost();
-                    }
+                    if (typeof updateProjectSummary === 'function') updateProjectSummary();
+                    if (typeof calculateCost === 'function') calculateCost();
                     showNotification('Параметры обновлены');
                 }
             }
             return;
         }
-        
+
         if (e.key === 'Escape') {
             if (!isInputFocused) {
-                selectedRoom = null;
-                selectedElementObj = null;
-                if (typeof hideAllProperties === 'function') {
-                    hideAllProperties();
-                }
-                if (typeof updateElementList === 'function') {
-                    updateElementList();
-                }
+                window.selectedRoom = null;
+                window.selectedElementObj = null;
+                if (typeof hideAllProperties === 'function') hideAllProperties();
+                if (typeof updateElementList === 'function') updateElementList();
                 const canvas = safeGetElement('editorCanvas');
-                if (canvas) {
-                    draw(canvas, canvas.getContext('2d'));
-                }
+                if (canvas && typeof draw === 'function') draw(canvas, canvas.getContext('2d'));
                 showNotification('Выделение снято');
             }
             return;
@@ -767,33 +606,21 @@ function initKeyboardHandlers() {
     });
 }
 
-// Инициализация кнопок Undo/Redo
 function initHistoryButtons() {
     const undoBtn = safeGetElement('undoBtn');
     const redoBtn = safeGetElement('redoBtn');
-    if (undoBtn) {
-        undoBtn.addEventListener('click', undo);
-    }
-    if (redoBtn) {
-        redoBtn.addEventListener('click', redo);
-    }
+    if (undoBtn) undoBtn.addEventListener('click', undo);
+    if (redoBtn) redoBtn.addEventListener('click', redo);
 }
 
-// Инициализация кнопок сохранения/загрузки
 function initProjectButtons() {
     const saveProjectBtn = safeGetElement('saveProjectBtn');
     const loadProjectBtn = safeGetElement('loadProjectBtn');
     const loadProjectInput = safeGetElement('loadProjectInput');
-    if (saveProjectBtn) {
-        saveProjectBtn.addEventListener('click', saveProject);
-    }
-    if (loadProjectBtn) {
-        loadProjectBtn.addEventListener('click', () => {
-            if (loadProjectInput) {
-                loadProjectInput.click();
-            }
-        });
-    }
+    if (saveProjectBtn) saveProjectBtn.addEventListener('click', saveProject);
+    if (loadProjectBtn) loadProjectBtn.addEventListener('click', () => {
+        if (loadProjectInput) loadProjectInput.click();
+    });
     if (loadProjectInput) {
         loadProjectInput.addEventListener('change', (e) => {
             if (e.target.files && e.target.files.length > 0) {
@@ -804,98 +631,60 @@ function initProjectButtons() {
     }
 }
 
-// Инициализация кнопки "Вверх"
 function initScrollToTop() {
     const scrollToTopBtn = safeGetElement('scrollToTopBtn');
     if (scrollToTopBtn) {
         window.addEventListener('scroll', () => {
-            if (window.pageYOffset > 300) {
-                scrollToTopBtn.classList.add('show');
-            } else {
-                scrollToTopBtn.classList.remove('show');
-            }
+            if (window.pageYOffset > 300) scrollToTopBtn.classList.add('show');
+            else scrollToTopBtn.classList.remove('show');
         });
         scrollToTopBtn.addEventListener('click', () => {
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         });
     }
 }
 
-// Инициализация приложения
+// ============================================
+// ИНИЦИАЛИЗАЦИЯ
+// ============================================
 function initializeApp() {
     try {
         const editorCanvas = safeGetElement('editorCanvas');
         const canvasFallback = safeGetElement('canvasFallback');
         if (!editorCanvas) {
-            if (canvasFallback) {
-                canvasFallback.style.display = 'block';
-            }
+            if (canvasFallback) canvasFallback.style.display = 'block';
             showNotification('Ошибка инициализации редактора');
             return;
         }
         const ctx = getCanvasContext(editorCanvas);
         if (!ctx) {
-            if (canvasFallback) {
-                canvasFallback.style.display = 'block';
-            }
+            if (canvasFallback) canvasFallback.style.display = 'block';
             editorCanvas.style.display = 'none';
             showNotification('Браузер не поддерживает Canvas');
             return;
         }
         window.editorCanvas = editorCanvas;
-        
-        if (typeof initCanvas === 'function') {
-            initCanvas(editorCanvas, ctx);
-        } else {
-            console.error('initCanvas function not found');
-        }
-        if (typeof initUI === 'function') {
-            initUI();
-        } else {
-            console.error('initUI function not found');
-        }
-        if (typeof initEventListeners === 'function') {
-            initEventListeners();
-        } else {
-            console.error('initEventListeners function not found');
-        }
-        if (typeof initHistoryButtons === 'function') {
-            initHistoryButtons();
-        }
-        if (typeof initProjectButtons === 'function') {
-            initProjectButtons();
-        }
-        if (typeof initScrollToTop === 'function') {
-            initScrollToTop();
-        }
-        if (typeof initKeyboardHandlers === 'function') {
-            initKeyboardHandlers();
-        }
-        if (typeof updateElementList === 'function') {
-            updateElementList();
-        }
-        if (typeof updateProjectSummary === 'function') {
-            updateProjectSummary();
-        }
-        if (typeof calculateCost === 'function') {
-            calculateCost();
-        }
-        if (typeof centerView === 'function') {
-            centerView(editorCanvas);
-        }
-        if (typeof initSharingButtons === 'function') {
-            initSharingButtons();
-        }
+
+        if (typeof initCanvas === 'function') initCanvas(editorCanvas, ctx);
+        else console.error('initCanvas function not found');
+
+        if (typeof initUI === 'function') initUI();
+        else console.error('initUI function not found');
+
+        if (typeof initEventListeners === 'function') initEventListeners();
+        else console.error('initEventListeners function not found');
+
+        if (typeof initHistoryButtons === 'function') initHistoryButtons();
+        if (typeof initProjectButtons === 'function') initProjectButtons();
+        if (typeof initScrollToTop === 'function') initScrollToTop();
+        if (typeof initKeyboardHandlers === 'function') initKeyboardHandlers();
+
+        // Первоначальная отрисовка
+        dispatchStateChanged({ action: 'appInitialized' });
+
         updateUndoRedoButtons();
-        
-        // Загружаем демо-проект после полной инициализации
-        setTimeout(() => {
-            loadDemoProject();
-        }, 100); // небольшая задержка для гарантии, что все элементы DOM готовы
-        
+
+        setTimeout(() => loadDemoProject(), 100);
         console.log('App initialized successfully');
     } catch (error) {
         console.error('Error initializing app:', error);
@@ -903,46 +692,38 @@ function initializeApp() {
     }
 }
 
-// Обработчик изменения размера окна с throttle
 const throttledResize = throttle(function() {
     const editorCanvas = window.editorCanvas;
-    if (editorCanvas && typeof resizeCanvas === 'function') {
-        resizeCanvas(editorCanvas);
-    }
+    if (editorCanvas && typeof resizeCanvas === 'function') resizeCanvas(editorCanvas);
 }, 250);
 
-// Глобальные функции для доступа из других модулей
 window.getEditorState = function() {
     return {
-        currentTool,
-        rooms,
-        selectedRoom,
-        selectedElementObj,
-        scale,
-        zoom,
-        viewOffsetX,
-        viewOffsetY,
-        isPanning
+        currentTool: window.currentTool,
+        rooms: window.rooms,
+        selectedRoom: window.selectedRoom,
+        selectedElementObj: window.selectedElementObj,
+        scale: window.scale,
+        zoom: window.zoom,
+        viewOffsetX: window.viewOffsetX,
+        viewOffsetY: window.viewOffsetY,
+        isPanning: window.isPanning
     };
 };
 
 window.setEditorState = function(newState) {
-    if (newState.currentTool !== undefined) currentTool = newState.currentTool;
-    if (newState.rooms !== undefined) rooms = newState.rooms;
-    if (newState.selectedRoom !== undefined) selectedRoom = newState.selectedRoom;
-    if (newState.selectedElementObj !== undefined) selectedElementObj = newState.selectedElementObj;
-    if (newState.scale !== undefined) scale = newState.scale;
-    if (newState.zoom !== undefined) zoom = newState.zoom;
-    if (newState.viewOffsetX !== undefined) viewOffsetX = newState.viewOffsetX;
-    if (newState.viewOffsetY !== undefined) viewOffsetY = newState.viewOffsetY;
-    if (newState.isPanning !== undefined) isPanning = newState.isPanning;
+    if (newState.currentTool !== undefined) window.currentTool = newState.currentTool;
+    if (newState.rooms !== undefined) window.rooms = newState.rooms;
+    if (newState.selectedRoom !== undefined) window.selectedRoom = newState.selectedRoom;
+    if (newState.selectedElementObj !== undefined) window.selectedElementObj = newState.selectedElementObj;
+    if (newState.scale !== undefined) window.scale = newState.scale;
+    if (newState.zoom !== undefined) window.zoom = newState.zoom;
+    if (newState.viewOffsetX !== undefined) window.viewOffsetX = newState.viewOffsetX;
+    if (newState.viewOffsetY !== undefined) window.viewOffsetY = newState.viewOffsetY;
+    if (newState.isPanning !== undefined) window.isPanning = newState.isPanning;
 };
 
-// Экспорт функций для использования в других модулях
-window.safeGetElement = safeGetElement;
-window.showNotification = showNotification;
-window.escapeHTML = escapeHTML;
-window.generateId = generateId;
+// Экспорт
 window.pushToHistory = pushToHistory;
 window.undo = undo;
 window.redo = redo;
@@ -951,23 +732,20 @@ window.updateUndoRedoButtons = updateUndoRedoButtons;
 window.saveProject = saveProject;
 window.loadProject = loadProject;
 
-// Инициализация при загрузке DOM
 document.addEventListener('DOMContentLoaded', function() {
     window.addEventListener('resize', throttledResize);
     initializeApp();
 });
 
-// Обработчик ошибок для отлова непредвиденных ошибок
 window.addEventListener('error', function(e) {
     console.error('Global error:', e.error);
     showNotification('Произошла непредвиденная ошибка');
 });
 
-// Предотвращение выхода из страницы с несохраненными изменениями
 window.addEventListener('beforeunload', function(e) {
-    if (rooms.length > 0) {
-        const confirmationMessage = 'У вас есть несохраненные изменения. Вы уверены, что хотите покинуть страницу?';
-        e.returnValue = confirmationMessage;
-        return confirmationMessage;
+    if (window.rooms.length > 0) {
+        const msg = 'У вас есть несохраненные изменения. Вы уверены, что хотите покинуть страницу?';
+        e.returnValue = msg;
+        return msg;
     }
 });

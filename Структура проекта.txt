@@ -4,8 +4,9 @@ planpomeshcheniy/
 │   ├── style.css
 │   └── responsive.css
 ├── js/
+│   ├── utils.js
+│   ├── state.js
 │   ├── app.js
-│   ├──	state.js
 │   ├── canvas.js
 │   ├── elements.js
 │   ├── calculator.js

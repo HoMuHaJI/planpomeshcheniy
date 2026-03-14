@@ -2,7 +2,6 @@
 
 window.PlanPomeshcheniy = window.PlanPomeshcheniy || {};
 
-// Основное состояние приложения
 window.PlanPomeshcheniy.State = {
     // Основные переменные
     rooms: [],
@@ -23,7 +22,7 @@ window.PlanPomeshcheniy.State = {
     movingElement: null,
     isPanning: false,
     
-    // Для жестов на мобильных
+    // Для жестов на мобильных (пока не используется)
     isPinching: false,
     touchStartDistance: 0,
     initialTouch1: null,
@@ -44,15 +43,6 @@ window.PlanPomeshcheniy.State = {
         },
         painting: { square: 300, linear: 210 },
         sanding: { square: 80, linear: 56 }
-    },
-    
-    // DOM ссылки
-    elements: {
-        editorCanvas: null,
-        canvasContext: null,
-        cursorPosition: null,
-        selectedElement: null,
-        zoomLevel: null
     }
 };
 

@@ -1,21 +1,30 @@
-// ui.js – ПОЛНАЯ ИСПРАВЛЕННАЯ ВЕРСИЯ (с рабочим вводом отступов)
+// ui.js – пользовательский интерфейс (панели свойств, кнопки, списки)
 
+// Глобальные ссылки на элементы (инициализируются в initUI)
+let roomProperties, doorProperties, windowProperties;
+let applyRoomChangesBtn, applyWindowChangesBtn, applyDoorChangesBtn;
+let plasterCheckbox, armoringCheckbox, puttyWallpaperCheckbox, puttyPaintCheckbox, paintingCheckbox;
+let windowWidth, windowHeight, windowWall, windowLeftOffset, windowRightOffset, windowSlopes;
+let doorWidth, doorHeight, doorWall, doorLeftOffset, doorRightOffset, doorSlopes;
+let roomName, roomWidth, roomHeightProp;
+
+// ================== ОБНОВЛЕНИЕ СПИСКА ЭЛЕМЕНТОВ ==================
 function updateElementList() {
     const elementList = safeGetElement('elementList');
     if (!elementList) return;
     elementList.innerHTML = '';
 
-    if (!rooms || rooms.length === 0) {
+    if (!window.rooms || window.rooms.length === 0) {
         elementList.innerHTML = '<div class="element-item">Нет элементов</div>';
         return;
     }
 
-    rooms.forEach(room => {
+    window.rooms.forEach(room => {
         if (!room) return;
 
         const item = document.createElement('div');
         item.className = 'element-item';
-        if (selectedRoom && selectedRoom.id === room.id) {
+        if (window.selectedRoom && window.selectedRoom.id === room.id) {
             item.classList.add('selected');
         }
 
@@ -28,7 +37,7 @@ function updateElementList() {
 
         item.innerHTML = `
             <div style="display: flex; align-items: center; gap: 8px;">
-                <span>${escapeHTML(room.name || 'Комната')} (${(room.width / scale).toFixed(1)}x${(room.height / scale).toFixed(1)} м)</span>
+                <span>${escapeHTML(room.name || 'Комната')} (${(room.width / window.scale).toFixed(1)}x${(room.height / window.scale).toFixed(1)} м)</span>
                 <div class="work-indicators">${worksHtml}</div>
             </div>
             <button class="delete-btn" data-id="${room.id}" data-type="room"><i class="fas fa-trash"></i></button>
@@ -38,7 +47,7 @@ function updateElementList() {
             if (e.target.classList.contains('delete-btn') || e.target.parentElement?.classList.contains('delete-btn')) return;
             selectRoom(room);
             const canvas = safeGetElement('editorCanvas');
-            if (canvas) {
+            if (canvas && typeof draw === 'function') {
                 draw(canvas, canvas.getContext('2d'));
             }
         });
@@ -70,7 +79,7 @@ function updateElementList() {
 
                 const windowItem = document.createElement('div');
                 windowItem.className = 'element-item';
-                if (selectedElementObj && selectedElementObj.id === window.id) {
+                if (window.selectedElementObj && window.selectedElementObj.id === window.id) {
                     windowItem.classList.add('selected');
                 }
                 windowItem.innerHTML = `
@@ -82,10 +91,9 @@ function updateElementList() {
                 `;
                 windowItem.addEventListener('click', (e) => {
                     if (e.target.classList.contains('delete-btn') || e.target.parentElement?.classList.contains('delete-btn')) return;
-                    selectedRoom = room;
                     selectElement(window);
                     const canvas = safeGetElement('editorCanvas');
-                    if (canvas) {
+                    if (canvas && typeof draw === 'function') {
                         draw(canvas, canvas.getContext('2d'));
                     }
                 });
@@ -119,7 +127,7 @@ function updateElementList() {
 
                 const doorItem = document.createElement('div');
                 doorItem.className = 'element-item';
-                if (selectedElementObj && selectedElementObj.id === door.id) {
+                if (window.selectedElementObj && window.selectedElementObj.id === door.id) {
                     doorItem.classList.add('selected');
                 }
                 doorItem.innerHTML = `
@@ -131,10 +139,9 @@ function updateElementList() {
                 `;
                 doorItem.addEventListener('click', (e) => {
                     if (e.target.classList.contains('delete-btn') || e.target.parentElement?.classList.contains('delete-btn')) return;
-                    selectedRoom = room;
                     selectElement(door);
                     const canvas = safeGetElement('editorCanvas');
-                    if (canvas) {
+                    if (canvas && typeof draw === 'function') {
                         draw(canvas, canvas.getContext('2d'));
                     }
                 });
@@ -153,41 +160,42 @@ function updateElementList() {
     });
 }
 
+// ================== ФУНКЦИИ УДАЛЕНИЯ ==================
 function deleteRoom(room) {
     if (!room) return;
     if (confirm(`Удалить комнату "${room.name}"?`)) {
         pushToHistory();
-        rooms = rooms.filter(r => r && r.id !== room.id);
-        if (selectedRoom && selectedRoom.id === room.id) {
-            selectedRoom = null;
-            selectedElementObj = null;
+        window.rooms = window.rooms.filter(r => r && r.id !== room.id);
+        if (window.selectedRoom && window.selectedRoom.id === room.id) {
+            window.selectedRoom = null;
+            window.selectedElementObj = null;
             hideAllProperties();
         }
         updateElementList();
         updateProjectSummary();
         calculateCost();
         const canvas = safeGetElement('editorCanvas');
-        if (canvas) {
+        if (canvas && typeof centerView === 'function') {
             centerView(canvas);
         }
         showNotification('Комната удалена');
     }
 }
 
-function deleteWindow(room, window) {
-    if (!room || !window) return;
+function deleteWindow(room, windowEl) {
+    if (!room || !windowEl) return;
     if (confirm('Удалить окно?')) {
         pushToHistory();
-        room.windows = room.windows.filter(w => w && w.id !== window.id);
-        if (selectedElementObj && selectedElementObj.id === window.id) {
-            selectedElementObj = null;
+        room.windows = room.windows.filter(w => w && w.id !== windowEl.id);
+        if (window.selectedElementObj && window.selectedElementObj.id === windowEl.id) {
+            window.selectedElementObj = null;
             hideAllProperties();
         }
         updateElementList();
         updateProjectSummary();
         calculateCost();
         const canvas = safeGetElement('editorCanvas');
-        if (canvas) {
+        if (canvas && typeof draw === 'function') {
             draw(canvas, canvas.getContext('2d'));
         }
         showNotification('Окно удалено');
@@ -199,28 +207,29 @@ function deleteDoor(room, door) {
     if (confirm('Удалить дверь?')) {
         pushToHistory();
         room.doors = room.doors.filter(d => d && d.id !== door.id);
-        if (selectedElementObj && selectedElementObj.id === door.id) {
-            selectedElementObj = null;
+        if (window.selectedElementObj && window.selectedElementObj.id === door.id) {
+            window.selectedElementObj = null;
             hideAllProperties();
         }
         updateElementList();
         updateProjectSummary();
         calculateCost();
         const canvas = safeGetElement('editorCanvas');
-        if (canvas) {
+        if (canvas && typeof draw === 'function') {
             draw(canvas, canvas.getContext('2d'));
         }
         showNotification('Дверь удалена');
     }
 }
 
+// ================== СВОДКА ПРОЕКТА ==================
 function updateProjectSummary() {
     let windowsCount = 0;
     let doorsCount = 0;
     let totalArea = 0;
 
-    if (rooms && Array.isArray(rooms)) {
-        rooms.forEach(room => {
+    if (window.rooms && Array.isArray(window.rooms)) {
+        window.rooms.forEach(room => {
             if (!room) return;
 
             if (room.windows && Array.isArray(room.windows)) {
@@ -230,7 +239,7 @@ function updateProjectSummary() {
                 doorsCount += room.doors.length;
             }
 
-            const perimeter = ((room.width / scale) + (room.height / scale)) * 2;
+            const perimeter = ((room.width / window.scale) + (room.height / window.scale)) * 2;
             const ceilingHeightInput = safeGetElement('ceilingHeight');
             const ceilingHeight = ceilingHeightInput ? parseFloat(ceilingHeightInput.value) || 2.5 : 2.5;
             const wallsArea = perimeter * ceilingHeight;
@@ -263,12 +272,13 @@ function updateProjectSummary() {
     const doorsCountElem = safeGetElement('doorsCount');
     const totalAreaElem = safeGetElement('totalArea');
 
-    if (roomsCountElem) roomsCountElem.textContent = rooms ? rooms.length : 0;
+    if (roomsCountElem) roomsCountElem.textContent = window.rooms ? window.rooms.length : 0;
     if (windowsCountElem) windowsCountElem.textContent = windowsCount;
     if (doorsCountElem) doorsCountElem.textContent = doorsCount;
     if (totalAreaElem) totalAreaElem.textContent = `${totalArea.toFixed(1)} м²`;
 }
 
+// ================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ UI ==================
 function updateCheckboxColor(checkboxId, color) {
     const checkbox = safeGetElement(checkboxId);
     if (checkbox) {
@@ -290,20 +300,98 @@ function updateSlopesSelectColor(selectId, value) {
 }
 
 function hideAllProperties() {
-    const roomProperties = safeGetElement('roomProperties');
-    const doorProperties = safeGetElement('doorProperties');
-    const windowProperties = safeGetElement('windowProperties');
-
     if (roomProperties) roomProperties.style.display = 'none';
     if (doorProperties) doorProperties.style.display = 'none';
     if (windowProperties) windowProperties.style.display = 'none';
-
     const selectedElement = safeGetElement('selectedElement');
     if (selectedElement) selectedElement.textContent = 'Не выбран';
 }
 
-// ================== ОБНОВЛЕННЫЕ ФУНКЦИИ ПАНЕЛЕЙ СВОЙСТВ ==================
+// ================== ОБРАБОТЧИКИ ПОЛЕЙ ВВОДА (ВЫНЕСЕНЫ НА УРОВЕНЬ МОДУЛЯ) ==================
+function windowInputHandler(e) {
+    if (applyWindowChangesBtn) applyWindowChangesBtn.disabled = false;
+    if (e.target.id === 'windowSlopes') {
+        updateSlopesSelectColor('windowSlopes', e.target.value);
+    }
+    if (e.target.id === 'windowWidth' || e.target.id === 'windowLeftOffset') {
+        if (!window.selectedRoom || !window.selectedElementObj) return;
+        const wallLength = window.selectedElementObj.wall === 'top' || window.selectedElementObj.wall === 'bottom' ?
+            (window.selectedRoom.width / window.scale) : (window.selectedRoom.height / window.scale);
+        let currentLeft = parseFloat(windowLeftOffset?.value) || 0;
+        let currentWidth = parseFloat(windowWidth?.value) || window.selectedElementObj.width;
+        if (e.target.id === 'windowLeftOffset') {
+            currentLeft = Math.max(0, Math.min(wallLength - currentWidth, currentLeft));
+            windowLeftOffset.value = currentLeft.toFixed(2);
+            const newRight = wallLength - currentLeft - currentWidth;
+            if (windowRightOffset) windowRightOffset.value = Math.max(0, newRight).toFixed(2);
+        } else if (e.target.id === 'windowWidth') {
+            currentWidth = Math.max(0.5, Math.min(wallLength, currentWidth));
+            windowWidth.value = currentWidth.toFixed(2);
+            const newRight = wallLength - currentLeft - currentWidth;
+            if (windowRightOffset) windowRightOffset.value = Math.max(0, newRight).toFixed(2);
+        }
+    }
+}
 
+function doorInputHandler(e) {
+    if (applyDoorChangesBtn) applyDoorChangesBtn.disabled = false;
+    if (e.target.id === 'doorSlopes') {
+        updateSlopesSelectColor('doorSlopes', e.target.value);
+    }
+    if (e.target.id === 'doorWidth' || e.target.id === 'doorLeftOffset') {
+        if (!window.selectedRoom || !window.selectedElementObj) return;
+        const wallLength = window.selectedElementObj.wall === 'top' || window.selectedElementObj.wall === 'bottom' ?
+            (window.selectedRoom.width / window.scale) : (window.selectedRoom.height / window.scale);
+        let currentLeft = parseFloat(doorLeftOffset?.value) || 0;
+        let currentWidth = parseFloat(doorWidth?.value) || window.selectedElementObj.width;
+        if (e.target.id === 'doorLeftOffset') {
+            currentLeft = Math.max(0, Math.min(wallLength - currentWidth, currentLeft));
+            doorLeftOffset.value = currentLeft.toFixed(2);
+            const newRight = wallLength - currentLeft - currentWidth;
+            if (doorRightOffset) doorRightOffset.value = Math.max(0, newRight).toFixed(2);
+        } else if (e.target.id === 'doorWidth') {
+            currentWidth = Math.max(0.6, Math.min(wallLength, currentWidth));
+            doorWidth.value = currentWidth.toFixed(2);
+            const newRight = wallLength - currentLeft - currentWidth;
+            if (doorRightOffset) doorRightOffset.value = Math.max(0, newRight).toFixed(2);
+        }
+    }
+}
+
+function roomInputHandler(e) {
+    if (applyRoomChangesBtn) applyRoomChangesBtn.disabled = false;
+}
+
+function roomCheckboxHandler(e) {
+    if (applyRoomChangesBtn) applyRoomChangesBtn.disabled = false;
+    const color = this.checked ?
+        (this.id === 'plaster' ? '#3498db' :
+         this.id === 'armoring' ? '#e67e22' :
+         this.id === 'puttyWallpaper' ? '#2ecc71' :
+         this.id === 'puttyPaint' ? '#9b59b6' :
+         '#e74c3c') : '#ccc';
+    updateCheckboxColor(this.id, color);
+    // Логика взаимного исключения (как ранее)
+    if (this === puttyWallpaperCheckbox && this.checked) {
+        if (puttyPaintCheckbox) { puttyPaintCheckbox.checked = false; updateCheckboxColor('puttyPaint', '#ccc'); }
+        if (paintingCheckbox) { paintingCheckbox.checked = false; paintingCheckbox.disabled = true; updateCheckboxColor('painting', '#ccc'); }
+    } else if (this === puttyPaintCheckbox && this.checked) {
+        if (puttyWallpaperCheckbox) { puttyWallpaperCheckbox.checked = false; updateCheckboxColor('puttyWallpaper', '#ccc'); }
+        if (paintingCheckbox) paintingCheckbox.disabled = false;
+    } else if (this === puttyWallpaperCheckbox && !this.checked) {
+        if (paintingCheckbox) paintingCheckbox.disabled = false;
+    } else if (this === puttyPaintCheckbox && !this.checked) {
+        if (paintingCheckbox) { paintingCheckbox.checked = false; paintingCheckbox.disabled = true; updateCheckboxColor('painting', '#ccc'); }
+    }
+    if (this === plasterCheckbox && !this.checked) {
+        if (armoringCheckbox) { armoringCheckbox.checked = false; updateCheckboxColor('armoring', '#ccc'); }
+        if (puttyWallpaperCheckbox) { puttyWallpaperCheckbox.checked = false; updateCheckboxColor('puttyWallpaper', '#ccc'); }
+        if (puttyPaintCheckbox) { puttyPaintCheckbox.checked = false; updateCheckboxColor('puttyPaint', '#ccc'); }
+        if (paintingCheckbox) { paintingCheckbox.checked = false; paintingCheckbox.disabled = true; updateCheckboxColor('painting', '#ccc'); }
+    }
+}
+
+// ================== ОБНОВЛЕНИЕ ПАНЕЛИ СВОЙСТВ ==================
 function updatePropertiesPanel(element) {
     if (!element) {
         hideAllProperties();
@@ -312,421 +400,84 @@ function updatePropertiesPanel(element) {
     hideAllProperties();
 
     if (element.type === 'room') {
-        const roomProperties = safeGetElement('roomProperties');
-        if (roomProperties) roomProperties.style.display = 'block';
+        roomProperties.style.display = 'block';
+        roomName.value = element.name || '';
+        roomWidth.value = (element.width / window.scale).toFixed(1);
+        roomHeightProp.value = (element.height / window.scale).toFixed(1);
 
-        const roomName = safeGetElement('roomName');
-        const roomWidth = safeGetElement('roomWidth');
-        const roomHeightProp = safeGetElement('roomHeightProp');
+        plasterCheckbox.checked = !!element.plaster;
+        updateCheckboxColor('plaster', element.plaster ? '#3498db' : '#ccc');
+        armoringCheckbox.checked = !!element.armoring;
+        updateCheckboxColor('armoring', element.armoring ? '#e67e22' : '#ccc');
+        puttyWallpaperCheckbox.checked = !!element.puttyWallpaper;
+        updateCheckboxColor('puttyWallpaper', element.puttyWallpaper ? '#2ecc71' : '#ccc');
+        puttyPaintCheckbox.checked = !!element.puttyPaint;
+        updateCheckboxColor('puttyPaint', element.puttyPaint ? '#9b59b6' : '#ccc');
+        paintingCheckbox.checked = !!element.painting;
+        paintingCheckbox.disabled = !!element.puttyWallpaper;
+        updateCheckboxColor('painting', element.painting ? '#e74c3c' : '#ccc');
 
-        if (roomName) roomName.value = element.name || '';
-        if (roomWidth) roomWidth.value = (element.width / scale).toFixed(1);
-        if (roomHeightProp) roomHeightProp.value = (element.height / scale).toFixed(1);
-
-        const plasterCheckbox = safeGetElement('plaster');
-        const armoringCheckbox = safeGetElement('armoring');
-        const puttyWallpaperCheckbox = safeGetElement('puttyWallpaper');
-        const puttyPaintCheckbox = safeGetElement('puttyPaint');
-        const paintingCheckbox = safeGetElement('painting');
-
-        if (plasterCheckbox) {
-            plasterCheckbox.checked = !!element.plaster;
-            updateCheckboxColor('plaster', element.plaster ? '#3498db' : '#ccc');
-        }
-        if (armoringCheckbox) {
-            armoringCheckbox.checked = !!element.armoring;
-            updateCheckboxColor('armoring', element.armoring ? '#e67e22' : '#ccc');
-        }
-        if (puttyWallpaperCheckbox) {
-            puttyWallpaperCheckbox.checked = !!element.puttyWallpaper;
-            updateCheckboxColor('puttyWallpaper', element.puttyWallpaper ? '#2ecc71' : '#ccc');
-        }
-        if (puttyPaintCheckbox) {
-            puttyPaintCheckbox.checked = !!element.puttyPaint;
-            updateCheckboxColor('puttyPaint', element.puttyPaint ? '#9b59b6' : '#ccc');
-        }
-        if (paintingCheckbox) {
-            paintingCheckbox.checked = !!element.painting;
-            paintingCheckbox.disabled = !!element.puttyWallpaper;
-            updateCheckboxColor('painting', element.painting ? '#e74c3c' : '#ccc');
-        }
-
-        const applyRoomChangesBtn = safeGetElement('applyRoomChanges');
-        if (applyRoomChangesBtn) applyRoomChangesBtn.disabled = false;
-
-        const roomInputs = ['roomName', 'roomWidth', 'roomHeightProp'];
-        roomInputs.forEach(inputId => {
-            const input = safeGetElement(inputId);
-            if (input) {
-                input.removeEventListener('input', handleRoomInputChange);
-                input.removeEventListener('change', handleRoomInputChange);
-                input.addEventListener('input', handleRoomInputChange);
-                input.addEventListener('change', handleRoomInputChange);
-            }
-        });
-
-        function handleRoomInputChange() {
-            const btn = safeGetElement('applyRoomChanges');
-            if (btn) btn.disabled = false;
-        }
-
-        const checkboxes = [plasterCheckbox, armoringCheckbox, puttyWallpaperCheckbox, puttyPaintCheckbox, paintingCheckbox];
-        checkboxes.forEach(checkbox => {
-            if (checkbox) {
-                checkbox.removeEventListener('change', handleCheckboxChange);
-                checkbox.addEventListener('change', handleCheckboxChange);
-            }
-        });
-
-        function handleCheckboxChange() {
-            const btn = safeGetElement('applyRoomChanges');
-            if (btn) btn.disabled = false;
-
-            const color = this.checked ?
-                (this.id === 'plaster' ? '#3498db' :
-                 this.id === 'armoring' ? '#e67e22' :
-                 this.id === 'puttyWallpaper' ? '#2ecc71' :
-                 this.id === 'puttyPaint' ? '#9b59b6' :
-                 '#e74c3c') : '#ccc';
-            updateCheckboxColor(this.id, color);
-
-            if (this === puttyWallpaperCheckbox && this.checked) {
-                if (puttyPaintCheckbox) {
-                    puttyPaintCheckbox.checked = false;
-                    updateCheckboxColor('puttyPaint', '#ccc');
-                }
-                if (paintingCheckbox) {
-                    paintingCheckbox.checked = false;
-                    paintingCheckbox.disabled = true;
-                    updateCheckboxColor('painting', '#ccc');
-                }
-            } else if (this === puttyPaintCheckbox && this.checked) {
-                if (puttyWallpaperCheckbox) {
-                    puttyWallpaperCheckbox.checked = false;
-                    updateCheckboxColor('puttyWallpaper', '#ccc');
-                }
-                if (paintingCheckbox) paintingCheckbox.disabled = false;
-            } else if (this === puttyWallpaperCheckbox && !this.checked) {
-                if (paintingCheckbox) paintingCheckbox.disabled = false;
-            } else if (this === puttyPaintCheckbox && !this.checked) {
-                if (paintingCheckbox) {
-                    paintingCheckbox.checked = false;
-                    paintingCheckbox.disabled = true;
-                    updateCheckboxColor('painting', '#ccc');
-                }
-            }
-
-            if (this === plasterCheckbox && !this.checked) {
-                if (armoringCheckbox) {
-                    armoringCheckbox.checked = false;
-                    updateCheckboxColor('armoring', '#ccc');
-                }
-                if (puttyWallpaperCheckbox) {
-                    puttyWallpaperCheckbox.checked = false;
-                    updateCheckboxColor('puttyWallpaper', '#ccc');
-                }
-                if (puttyPaintCheckbox) {
-                    puttyPaintCheckbox.checked = false;
-                    updateCheckboxColor('puttyPaint', '#ccc');
-                }
-                if (paintingCheckbox) {
-                    paintingCheckbox.checked = false;
-                    paintingCheckbox.disabled = true;
-                    updateCheckboxColor('painting', '#ccc');
-                }
-            }
-        }
-
-        if (applyRoomChangesBtn) {
-            applyRoomChangesBtn.onclick = () => {
-                pushToHistory();
-
-                const newWidth = roomWidth ? parseFloat(roomWidth.value) * scale : element.width;
-                const newHeight = roomHeightProp ? parseFloat(roomHeightProp.value) * scale : element.height;
-
-                const centerX = element.x + element.width / 2;
-                const centerY = element.y + element.height / 2;
-
-                element.name = roomName ? roomName.value : element.name;
-                element.width = newWidth;
-                element.height = newHeight;
-
-                element.x = centerX - newWidth / 2;
-                element.y = centerY - newHeight / 2;
-
-                element.plaster = plasterCheckbox ? plasterCheckbox.checked : element.plaster;
-                element.armoring = armoringCheckbox ? armoringCheckbox.checked : element.armoring;
-                element.puttyWallpaper = puttyWallpaperCheckbox ? puttyWallpaperCheckbox.checked : element.puttyWallpaper;
-                element.puttyPaint = puttyPaintCheckbox ? puttyPaintCheckbox.checked : element.puttyPaint;
-                element.painting = paintingCheckbox ? paintingCheckbox.checked : element.painting;
-
-                applyRoomChangesBtn.disabled = true;
-                updateElementList();
-                updateProjectSummary();
-                calculateCost();
-                const canvas = safeGetElement('editorCanvas');
-                if (canvas) {
-                    draw(canvas, canvas.getContext('2d'));
-                }
-                showNotification('Изменения применены');
-            };
-        }
-
-        const deleteRoomBtn = safeGetElement('deleteRoom');
-        if (deleteRoomBtn) {
-            deleteRoomBtn.onclick = () => deleteRoom(element);
-        }
-
+        applyRoomChangesBtn.disabled = false;
     } else if (element.type === 'window') {
-        const windowProperties = safeGetElement('windowProperties');
-        if (windowProperties) windowProperties.style.display = 'block';
+        windowProperties.style.display = 'block';
 
-        const windowWidth = safeGetElement('windowWidth');
-        const windowHeight = safeGetElement('windowHeight');
-        const windowWall = safeGetElement('windowWall');
-        const windowLeftOffset = safeGetElement('windowLeftOffset');
-        const windowRightOffset = safeGetElement('windowRightOffset');
-        const windowSlopes = safeGetElement('windowSlopes');
-
-        if (windowWidth) windowWidth.value = element.width || 1.2;
-        if (windowHeight) windowHeight.value = element.height || 1.5;
-        if (windowWall) windowWall.value = element.wall || 'top';
-        if (windowLeftOffset) windowLeftOffset.value = (element.leftOffset || 0).toFixed(2);
-        if (windowRightOffset) windowRightOffset.value = (element.rightOffset || 0).toFixed(2);
-        if (windowSlopes) windowSlopes.value = element.slopes || 'with';
+        windowWidth.value = element.width || 1.2;
+        windowHeight.value = element.height || 1.5;
+        windowWall.value = element.wall || 'top';
+        windowLeftOffset.value = (element.leftOffset || 0).toFixed(2);
+        windowRightOffset.value = (element.rightOffset || 0).toFixed(2);
+        windowSlopes.value = element.slopes || 'with';
 
         updateSlopesSelectColor('windowSlopes', element.slopes);
 
-        const applyWindowChangesBtn = safeGetElement('applyWindowChanges');
-        if (applyWindowChangesBtn) applyWindowChangesBtn.disabled = false;
-
-        if (!selectedRoom) {
-            console.error('selectedRoom is null in window properties');
-            return;
-        }
-
+        if (!window.selectedRoom) return;
         const wallLength = element.wall === 'top' || element.wall === 'bottom' ?
-            (selectedRoom.width / scale) : (selectedRoom.height / scale);
+            (window.selectedRoom.width / window.scale) : (window.selectedRoom.height / window.scale);
 
-        // Устанавливаем ограничения для полей
-        if (windowLeftOffset) {
-            windowLeftOffset.max = (wallLength - element.width).toFixed(2);
-            windowLeftOffset.min = 0;
-        }
-        if (windowWidth) {
-            windowWidth.max = wallLength.toFixed(2);
-            windowWidth.min = 0.5;
-        }
-
-        // Корректируем отступы, если они выходят за границы стены
         let left = element.leftOffset || 0;
         if (left > wallLength - element.width) {
             left = Math.max(0, wallLength - element.width);
             element.leftOffset = left;
             element.rightOffset = wallLength - left - element.width;
-            if (windowLeftOffset) windowLeftOffset.value = left.toFixed(2);
-            if (windowRightOffset) windowRightOffset.value = element.rightOffset.toFixed(2);
+            windowLeftOffset.value = left.toFixed(2);
+            windowRightOffset.value = element.rightOffset.toFixed(2);
         }
 
-        // Обработчики ввода
-        const windowInputs = ['windowWidth', 'windowHeight', 'windowLeftOffset', 'windowRightOffset', 'windowSlopes'];
-        windowInputs.forEach(inputId => {
-            const input = safeGetElement(inputId);
-            if (input) {
-                input.removeEventListener('input', windowInputHandler);
-                input.addEventListener('input', windowInputHandler);
-            }
-        });
-
-        function windowInputHandler(e) {
-            const btn = safeGetElement('applyWindowChanges');
-            if (btn) {
-                btn.disabled = false;
-            }
-
-            if (e.target.id === 'windowSlopes') {
-                updateSlopesSelectColor('windowSlopes', e.target.value);
-            }
-
-            // Пересчёт отступов при изменении ширины или левого отступа
-            if (e.target.id === 'windowWidth' || e.target.id === 'windowLeftOffset') {
-                let currentLeft = parseFloat(windowLeftOffset?.value) || 0;
-                let currentWidth = parseFloat(windowWidth?.value) || element.width;
-
-                if (e.target.id === 'windowLeftOffset') {
-                    currentLeft = Math.max(0, Math.min(wallLength - currentWidth, currentLeft));
-                    windowLeftOffset.value = currentLeft.toFixed(2);
-                    const newRight = wallLength - currentLeft - currentWidth;
-                    if (windowRightOffset) windowRightOffset.value = Math.max(0, newRight).toFixed(2);
-                } else if (e.target.id === 'windowWidth') {
-                    currentWidth = Math.max(0.5, Math.min(wallLength, currentWidth));
-                    windowWidth.value = currentWidth.toFixed(2);
-                    const newRight = wallLength - currentLeft - currentWidth;
-                    if (windowRightOffset) windowRightOffset.value = Math.max(0, newRight).toFixed(2);
-                }
-            }
-        }
-
-        if (applyWindowChangesBtn) {
-            applyWindowChangesBtn.onclick = () => {
-                pushToHistory();
-
-                const wallLength = element.wall === 'top' || element.wall === 'bottom' ?
-                    (selectedRoom.width / scale) : (selectedRoom.height / scale);
-
-                const newWidth = windowWidth ? parseFloat(windowWidth.value) : element.width;
-                const newLeftOffset = windowLeftOffset ? parseFloat(windowLeftOffset.value) : (element.leftOffset || 0);
-                const newRightOffset = wallLength - newLeftOffset - newWidth;
-
-                element.width = Math.max(0.5, Math.min(wallLength, newWidth));
-                element.leftOffset = Math.max(0, Math.min(wallLength - element.width, newLeftOffset));
-                element.rightOffset = Math.max(0, newRightOffset);
-                element.height = windowHeight ? parseFloat(windowHeight.value) : element.height;
-                element.wall = windowWall ? windowWall.value : element.wall;
-                element.slopes = windowSlopes ? windowSlopes.value : element.slopes;
-
-                applyWindowChangesBtn.disabled = true;
-                updateElementList();
-                updateProjectSummary();
-                calculateCost();
-                const canvas = safeGetElement('editorCanvas');
-                if (canvas) {
-                    draw(canvas, canvas.getContext('2d'));
-                }
-                showNotification('Изменения применены');
-            };
-        }
-
-        const deleteWindowBtn = safeGetElement('deleteWindow');
-        if (deleteWindowBtn) {
-            deleteWindowBtn.onclick = () => {
-                if (selectedRoom) deleteWindow(selectedRoom, element);
-            };
-        }
-
+        windowLeftOffset.max = (wallLength - element.width).toFixed(2);
+        windowLeftOffset.min = 0;
+        windowWidth.max = wallLength.toFixed(2);
+        windowWidth.min = 0.5;
+        applyWindowChangesBtn.disabled = false;
     } else if (element.type === 'door') {
-        const doorProperties = safeGetElement('doorProperties');
-        if (doorProperties) doorProperties.style.display = 'block';
+        doorProperties.style.display = 'block';
 
-        const doorWidth = safeGetElement('doorWidth');
-        const doorHeight = safeGetElement('doorHeight');
-        const doorWall = safeGetElement('doorWall');
-        const doorLeftOffset = safeGetElement('doorLeftOffset');
-        const doorRightOffset = safeGetElement('doorRightOffset');
-        const doorSlopes = safeGetElement('doorSlopes');
-
-        if (doorWidth) doorWidth.value = element.width || 0.9;
-        if (doorHeight) doorHeight.value = element.height || 2.1;
-        if (doorWall) doorWall.value = element.wall || 'top';
-        if (doorLeftOffset) doorLeftOffset.value = (element.leftOffset || 0).toFixed(2);
-        if (doorRightOffset) doorRightOffset.value = (element.rightOffset || 0).toFixed(2);
-        if (doorSlopes) doorSlopes.value = element.slopes || 'with';
+        doorWidth.value = element.width || 0.9;
+        doorHeight.value = element.height || 2.1;
+        doorWall.value = element.wall || 'top';
+        doorLeftOffset.value = (element.leftOffset || 0).toFixed(2);
+        doorRightOffset.value = (element.rightOffset || 0).toFixed(2);
+        doorSlopes.value = element.slopes || 'with';
 
         updateSlopesSelectColor('doorSlopes', element.slopes);
 
-        const applyDoorChangesBtn = safeGetElement('applyDoorChanges');
-        if (applyDoorChangesBtn) applyDoorChangesBtn.disabled = false;
-
-        if (!selectedRoom) {
-            console.error('selectedRoom is null in door properties');
-            return;
-        }
-
+        if (!window.selectedRoom) return;
         const wallLength = element.wall === 'top' || element.wall === 'bottom' ?
-            (selectedRoom.width / scale) : (selectedRoom.height / scale);
+            (window.selectedRoom.width / window.scale) : (window.selectedRoom.height / window.scale);
 
-        if (doorLeftOffset) {
-            doorLeftOffset.max = (wallLength - element.width).toFixed(2);
-            doorLeftOffset.min = 0;
-        }
-        if (doorWidth) {
-            doorWidth.max = wallLength.toFixed(2);
-            doorWidth.min = 0.6;
-        }
-
-        // Корректируем отступы, если они выходят за границы стены
         let left = element.leftOffset || 0;
         if (left > wallLength - element.width) {
             left = Math.max(0, wallLength - element.width);
             element.leftOffset = left;
             element.rightOffset = wallLength - left - element.width;
-            if (doorLeftOffset) doorLeftOffset.value = left.toFixed(2);
-            if (doorRightOffset) doorRightOffset.value = element.rightOffset.toFixed(2);
+            doorLeftOffset.value = left.toFixed(2);
+            doorRightOffset.value = element.rightOffset.toFixed(2);
         }
 
-        const doorInputs = ['doorWidth', 'doorHeight', 'doorLeftOffset', 'doorRightOffset', 'doorSlopes'];
-        doorInputs.forEach(inputId => {
-            const input = safeGetElement(inputId);
-            if (input) {
-                input.removeEventListener('input', doorInputHandler);
-                input.addEventListener('input', doorInputHandler);
-            }
-        });
-
-        function doorInputHandler(e) {
-            const btn = safeGetElement('applyDoorChanges');
-            if (btn) {
-                btn.disabled = false;
-            }
-
-            if (e.target.id === 'doorSlopes') {
-                updateSlopesSelectColor('doorSlopes', e.target.value);
-            }
-
-            if (e.target.id === 'doorWidth' || e.target.id === 'doorLeftOffset') {
-                let currentLeft = parseFloat(doorLeftOffset?.value) || 0;
-                let currentWidth = parseFloat(doorWidth?.value) || element.width;
-
-                if (e.target.id === 'doorLeftOffset') {
-                    currentLeft = Math.max(0, Math.min(wallLength - currentWidth, currentLeft));
-                    doorLeftOffset.value = currentLeft.toFixed(2);
-                    const newRight = wallLength - currentLeft - currentWidth;
-                    if (doorRightOffset) doorRightOffset.value = Math.max(0, newRight).toFixed(2);
-                } else if (e.target.id === 'doorWidth') {
-                    currentWidth = Math.max(0.6, Math.min(wallLength, currentWidth));
-                    doorWidth.value = currentWidth.toFixed(2);
-                    const newRight = wallLength - currentLeft - currentWidth;
-                    if (doorRightOffset) doorRightOffset.value = Math.max(0, newRight).toFixed(2);
-                }
-            }
-        }
-
-        if (applyDoorChangesBtn) {
-            applyDoorChangesBtn.onclick = () => {
-                pushToHistory();
-
-                const wallLength = element.wall === 'top' || element.wall === 'bottom' ?
-                    (selectedRoom.width / scale) : (selectedRoom.height / scale);
-
-                const newWidth = doorWidth ? parseFloat(doorWidth.value) : element.width;
-                const newLeftOffset = doorLeftOffset ? parseFloat(doorLeftOffset.value) : (element.leftOffset || 0);
-                const newRightOffset = wallLength - newLeftOffset - newWidth;
-
-                element.width = Math.max(0.6, Math.min(wallLength, newWidth));
-                element.leftOffset = Math.max(0, Math.min(wallLength - element.width, newLeftOffset));
-                element.rightOffset = Math.max(0, newRightOffset);
-                element.height = doorHeight ? parseFloat(doorHeight.value) : element.height;
-                element.wall = doorWall ? doorWall.value : element.wall;
-                element.slopes = doorSlopes ? doorSlopes.value : element.slopes;
-
-                applyDoorChangesBtn.disabled = true;
-                updateElementList();
-                updateProjectSummary();
-                calculateCost();
-                const canvas = safeGetElement('editorCanvas');
-                if (canvas) {
-                    draw(canvas, canvas.getContext('2d'));
-                }
-                showNotification('Изменения применены');
-            };
-        }
-
-        const deleteDoorBtn = safeGetElement('deleteDoor');
-        if (deleteDoorBtn) {
-            deleteDoorBtn.onclick = () => {
-                if (selectedRoom) deleteDoor(selectedRoom, element);
-            };
-        }
+        doorLeftOffset.max = (wallLength - element.width).toFixed(2);
+        doorLeftOffset.min = 0;
+        doorWidth.max = wallLength.toFixed(2);
+        doorWidth.min = 0.6;
+        applyDoorChangesBtn.disabled = false;
     }
 
     const selectedElement = safeGetElement('selectedElement');
@@ -736,7 +487,6 @@ function updatePropertiesPanel(element) {
 }
 
 // ================== ФУНКЦИИ ДЛЯ ОТПРАВКИ СМЕТЫ ==================
-
 function initSharingButtons() {
     console.log('✓ initSharingButtons called');
 
@@ -783,28 +533,19 @@ function shareToMax() {
     const text = getReceiptText();
     const maxUrl = 'https://max.ru/u/f9LHodD0cOI0eQdcNzuPqeBgkFcnHu8HCOxVa6GeAo44-4XFtTYE5GFpREc';
 
-    navigator.clipboard.writeText(text).then(() => {
-        const newWindow = window.open(maxUrl, '_blank');
-        if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
-            alert('Ссылка не открылась автоматически. Перейдите по ссылке вручную:\n' + maxUrl);
-        }
-        showNotification('Смета скопирована!');
-    }).catch(err => {
-        console.error('Ошибка копирования: ', err);
-        window.open(maxUrl, '_blank');
-        showNotification('Открывается профиль в Max. Скопируйте смету вручную.');
-    });
+    copyToClipboard(text);
+    const newWindow = window.open(maxUrl, '_blank');
+    if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+        alert('Ссылка не открылась автоматически. Перейдите по ссылке вручную:\n' + maxUrl);
+    }
+    showNotification('Смета скопирована!');
 }
 
 function copyReceiptToClipboard() {
     console.log('✓ copyReceipt clicked');
     const text = getReceiptText();
-    navigator.clipboard.writeText(text).then(() => {
-        showNotification('Смета скопирована в буфер обмена!');
-    }).catch(err => {
-        console.error('Ошибка копирования: ', err);
-        showNotification('Ошибка копирования. Попробуйте еще раз.');
-    });
+    copyToClipboard(text);
+    showNotification('Смета скопирована в буфер обмена!');
 }
 
 function printReceipt() {
@@ -857,9 +598,7 @@ ${receiptText}
                 parse_mode: 'Markdown'
             })
         });
-
         const result = await response.json();
-
         if (!result.ok) {
             const responsePlain = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
                 method: 'POST',
@@ -873,7 +612,6 @@ ${receiptText}
             const resultPlain = await responsePlain.json();
             return resultPlain.ok;
         }
-
         return result.ok;
     } catch (error) {
         console.error('Ошибка отправки заявки:', error);
@@ -892,7 +630,6 @@ function initFeedbackModal() {
     }
 
     closeBtn.addEventListener('click', closeFeedbackModal);
-
     window.addEventListener('click', (e) => {
         if (e.target === modal) {
             closeFeedbackModal();
@@ -920,7 +657,6 @@ function initFeedbackModal() {
 
         try {
             const success = await submitFeedbackForm(formData);
-
             if (success) {
                 showNotification('Заявка успешно отправлена!');
                 closeFeedbackModal();
@@ -940,6 +676,7 @@ function initFeedbackModal() {
     });
 }
 
+// ================== ИНИЦИАЛИЗАЦИЯ UI ==================
 function initUI() {
     console.log('✓ initUI called');
 
@@ -950,9 +687,9 @@ function initUI() {
     window.receiptContainer = safeGetElement('receiptContainer');
     window.receiptContent = safeGetElement('receiptContent');
 
-    window.roomProperties = safeGetElement('roomProperties');
-    window.doorProperties = safeGetElement('doorProperties');
-    window.windowProperties = safeGetElement('windowProperties');
+    roomProperties = safeGetElement('roomProperties');
+    doorProperties = safeGetElement('doorProperties');
+    windowProperties = safeGetElement('windowProperties');
 
     window.newProjectBtn = safeGetElement('newProject');
     window.clearAllBtn = safeGetElement('clearAll');
@@ -960,21 +697,156 @@ function initUI() {
     window.zoomOutBtn = safeGetElement('zoomOut');
     window.centerViewBtn = safeGetElement('centerView');
 
-    window.applyRoomChangesBtn = safeGetElement('applyRoomChanges');
-    window.applyWindowChangesBtn = safeGetElement('applyWindowChanges');
-    window.applyDoorChangesBtn = safeGetElement('applyDoorChanges');
+    applyRoomChangesBtn = safeGetElement('applyRoomChanges');
+    applyWindowChangesBtn = safeGetElement('applyWindowChanges');
+    applyDoorChangesBtn = safeGetElement('applyDoorChanges');
 
-    window.plasterCheckbox = safeGetElement('plaster');
-    window.armoringCheckbox = safeGetElement('armoring');
-    window.puttyWallpaperCheckbox = safeGetElement('puttyWallpaper');
-    window.puttyPaintCheckbox = safeGetElement('puttyPaint');
-    window.paintingCheckbox = safeGetElement('painting');
+    // Элементы комнаты
+    roomName = safeGetElement('roomName');
+    roomWidth = safeGetElement('roomWidth');
+    roomHeightProp = safeGetElement('roomHeightProp');
+    plasterCheckbox = safeGetElement('plaster');
+    armoringCheckbox = safeGetElement('armoring');
+    puttyWallpaperCheckbox = safeGetElement('puttyWallpaper');
+    puttyPaintCheckbox = safeGetElement('puttyPaint');
+    paintingCheckbox = safeGetElement('painting');
+
+    // Элементы окна
+    windowWidth = safeGetElement('windowWidth');
+    windowHeight = safeGetElement('windowHeight');
+    windowWall = safeGetElement('windowWall');
+    windowLeftOffset = safeGetElement('windowLeftOffset');
+    windowRightOffset = safeGetElement('windowRightOffset');
+    windowSlopes = safeGetElement('windowSlopes');
+
+    // Элементы двери
+    doorWidth = safeGetElement('doorWidth');
+    doorHeight = safeGetElement('doorHeight');
+    doorWall = safeGetElement('doorWall');
+    doorLeftOffset = safeGetElement('doorLeftOffset');
+    doorRightOffset = safeGetElement('doorRightOffset');
+    doorSlopes = safeGetElement('doorSlopes');
+
+    // Назначаем постоянные обработчики (один раз)
+    if (windowWidth) windowWidth.addEventListener('input', windowInputHandler);
+    if (windowLeftOffset) windowLeftOffset.addEventListener('input', windowInputHandler);
+    if (windowSlopes) windowSlopes.addEventListener('input', windowInputHandler);
+    if (doorWidth) doorWidth.addEventListener('input', doorInputHandler);
+    if (doorLeftOffset) doorLeftOffset.addEventListener('input', doorInputHandler);
+    if (doorSlopes) doorSlopes.addEventListener('input', doorInputHandler);
+    if (roomName) roomName.addEventListener('input', roomInputHandler);
+    if (roomWidth) roomWidth.addEventListener('input', roomInputHandler);
+    if (roomHeightProp) roomHeightProp.addEventListener('input', roomInputHandler);
+    if (plasterCheckbox) plasterCheckbox.addEventListener('change', roomCheckboxHandler);
+    if (armoringCheckbox) armoringCheckbox.addEventListener('change', roomCheckboxHandler);
+    if (puttyWallpaperCheckbox) puttyWallpaperCheckbox.addEventListener('change', roomCheckboxHandler);
+    if (puttyPaintCheckbox) puttyPaintCheckbox.addEventListener('change', roomCheckboxHandler);
+    if (paintingCheckbox) paintingCheckbox.addEventListener('change', roomCheckboxHandler);
+
+    // Кнопки "Применить"
+    if (applyRoomChangesBtn) {
+        applyRoomChangesBtn.addEventListener('click', () => {
+            if (!window.selectedRoom) return;
+            pushToHistory();
+            const newWidth = roomWidth ? parseFloat(roomWidth.value) * window.scale : window.selectedRoom.width;
+            const newHeight = roomHeightProp ? parseFloat(roomHeightProp.value) * window.scale : window.selectedRoom.height;
+            const centerX = window.selectedRoom.x + window.selectedRoom.width / 2;
+            const centerY = window.selectedRoom.y + window.selectedRoom.height / 2;
+            window.selectedRoom.name = roomName ? roomName.value : window.selectedRoom.name;
+            window.selectedRoom.width = newWidth;
+            window.selectedRoom.height = newHeight;
+            window.selectedRoom.x = centerX - newWidth / 2;
+            window.selectedRoom.y = centerY - newHeight / 2;
+            window.selectedRoom.plaster = plasterCheckbox ? plasterCheckbox.checked : window.selectedRoom.plaster;
+            window.selectedRoom.armoring = armoringCheckbox ? armoringCheckbox.checked : window.selectedRoom.armoring;
+            window.selectedRoom.puttyWallpaper = puttyWallpaperCheckbox ? puttyWallpaperCheckbox.checked : window.selectedRoom.puttyWallpaper;
+            window.selectedRoom.puttyPaint = puttyPaintCheckbox ? puttyPaintCheckbox.checked : window.selectedRoom.puttyPaint;
+            window.selectedRoom.painting = paintingCheckbox ? paintingCheckbox.checked : window.selectedRoom.painting;
+            applyRoomChangesBtn.disabled = true;
+            updateElementList();
+            updateProjectSummary();
+            calculateCost();
+            const canvas = safeGetElement('editorCanvas');
+            if (canvas && typeof draw === 'function') draw(canvas, canvas.getContext('2d'));
+            showNotification('Изменения применены');
+        });
+    }
+
+    if (applyWindowChangesBtn) {
+        applyWindowChangesBtn.addEventListener('click', () => {
+            if (!window.selectedRoom || !window.selectedElementObj) return;
+            pushToHistory();
+            const wallLength = window.selectedElementObj.wall === 'top' || window.selectedElementObj.wall === 'bottom' ?
+                (window.selectedRoom.width / window.scale) : (window.selectedRoom.height / window.scale);
+            const newWidth = windowWidth ? parseFloat(windowWidth.value) : window.selectedElementObj.width;
+            const newLeftOffset = windowLeftOffset ? parseFloat(windowLeftOffset.value) : (window.selectedElementObj.leftOffset || 0);
+            window.selectedElementObj.width = Math.max(0.5, Math.min(wallLength, newWidth));
+            window.selectedElementObj.leftOffset = Math.max(0, Math.min(wallLength - window.selectedElementObj.width, newLeftOffset));
+            window.selectedElementObj.rightOffset = wallLength - window.selectedElementObj.leftOffset - window.selectedElementObj.width;
+            window.selectedElementObj.height = windowHeight ? parseFloat(windowHeight.value) : window.selectedElementObj.height;
+            window.selectedElementObj.wall = windowWall ? windowWall.value : window.selectedElementObj.wall;
+            window.selectedElementObj.slopes = windowSlopes ? windowSlopes.value : window.selectedElementObj.slopes;
+            applyWindowChangesBtn.disabled = true;
+            updateElementList();
+            updateProjectSummary();
+            calculateCost();
+            const canvas = safeGetElement('editorCanvas');
+            if (canvas && typeof draw === 'function') draw(canvas, canvas.getContext('2d'));
+            showNotification('Изменения применены');
+        });
+    }
+
+    if (applyDoorChangesBtn) {
+        applyDoorChangesBtn.addEventListener('click', () => {
+            if (!window.selectedRoom || !window.selectedElementObj) return;
+            pushToHistory();
+            const wallLength = window.selectedElementObj.wall === 'top' || window.selectedElementObj.wall === 'bottom' ?
+                (window.selectedRoom.width / window.scale) : (window.selectedRoom.height / window.scale);
+            const newWidth = doorWidth ? parseFloat(doorWidth.value) : window.selectedElementObj.width;
+            const newLeftOffset = doorLeftOffset ? parseFloat(doorLeftOffset.value) : (window.selectedElementObj.leftOffset || 0);
+            window.selectedElementObj.width = Math.max(0.6, Math.min(wallLength, newWidth));
+            window.selectedElementObj.leftOffset = Math.max(0, Math.min(wallLength - window.selectedElementObj.width, newLeftOffset));
+            window.selectedElementObj.rightOffset = wallLength - window.selectedElementObj.leftOffset - window.selectedElementObj.width;
+            window.selectedElementObj.height = doorHeight ? parseFloat(doorHeight.value) : window.selectedElementObj.height;
+            window.selectedElementObj.wall = doorWall ? doorWall.value : window.selectedElementObj.wall;
+            window.selectedElementObj.slopes = doorSlopes ? doorSlopes.value : window.selectedElementObj.slopes;
+            applyDoorChangesBtn.disabled = true;
+            updateElementList();
+            updateProjectSummary();
+            calculateCost();
+            const canvas = safeGetElement('editorCanvas');
+            if (canvas && typeof draw === 'function') draw(canvas, canvas.getContext('2d'));
+            showNotification('Изменения применены');
+        });
+    }
+
+    // Кнопки удаления
+    const deleteRoomBtn = safeGetElement('deleteRoom');
+    if (deleteRoomBtn) deleteRoomBtn.addEventListener('click', () => { if (window.selectedRoom) deleteRoom(window.selectedRoom); });
+    const deleteWindowBtn = safeGetElement('deleteWindow');
+    if (deleteWindowBtn) deleteWindowBtn.addEventListener('click', () => { if (window.selectedRoom && window.selectedElementObj) deleteWindow(window.selectedRoom, window.selectedElementObj); });
+    const deleteDoorBtn = safeGetElement('deleteDoor');
+    if (deleteDoorBtn) deleteDoorBtn.addEventListener('click', () => { if (window.selectedRoom && window.selectedElementObj) deleteDoor(window.selectedRoom, window.selectedElementObj); });
 
     initSharingButtons();
     initFeedbackModal();
     initEventListeners();
+
+// ================== EVENT BUS ==================
+    // Один обработчик на все изменения состояния
+    window.addEventListener('stateChanged', () => {
+        updateElementList();
+        updateProjectSummary();
+        calculateCost();
+
+        const canvas = safeGetElement('editorCanvas');
+        if (canvas && typeof draw === 'function') {
+            draw(canvas, canvas.getContext('2d'));
+        }
+    });
 }
 
+// ================== ОБРАБОТЧИКИ СОБЫТИЙ (КНОПКИ ИНТЕРФЕЙСА) ==================
 function initEventListeners() {
     const editorCanvas = safeGetElement('editorCanvas');
     if (!editorCanvas) return;
@@ -984,13 +856,13 @@ function initEventListeners() {
             button.addEventListener('click', () => {
                 window.toolButtons.forEach(btn => btn.classList.remove('active'));
                 button.classList.add('active');
-                currentTool = button.dataset.tool;
+                window.currentTool = button.dataset.tool;
 
-                if (currentTool === 'select') {
+                if (window.currentTool === 'select') {
                     editorCanvas.style.cursor = 'move';
-                } else if (currentTool === 'room') {
+                } else if (window.currentTool === 'room') {
                     editorCanvas.style.cursor = 'crosshair';
-                } else if (currentTool === 'window' || currentTool === 'door') {
+                } else if (window.currentTool === 'window' || window.currentTool === 'door') {
                     editorCanvas.style.cursor = 'cell';
                 }
             });
@@ -1001,15 +873,16 @@ function initEventListeners() {
     if (newProjectBtn) {
         newProjectBtn.addEventListener('click', () => {
             pushToHistory();
-            rooms = [];
-            selectedRoom = null;
-            selectedElementObj = null;
-            roomCounter = 1;
+            window.rooms = [];
+            window.selectedRoom = null;
+            window.selectedElementObj = null;
+            window.roomCounter = 1;
             hideAllProperties();
             updateElementList();
             updateProjectSummary();
             calculateCost();
-            centerView(editorCanvas);
+            const canvas = safeGetElement('editorCanvas');
+            if (canvas && typeof centerView === 'function') centerView(canvas);
             clearHistory();
             showNotification('Новый проект создан');
         });
@@ -1020,15 +893,16 @@ function initEventListeners() {
         clearAllBtn.addEventListener('click', () => {
             if (confirm('Вы уверены, что хотите удалить все комнаты?')) {
                 pushToHistory();
-                rooms = [];
-                selectedRoom = null;
-                selectedElementObj = null;
-                roomCounter = 1;
+                window.rooms = [];
+                window.selectedRoom = null;
+                window.selectedElementObj = null;
+                window.roomCounter = 1;
                 hideAllProperties();
                 updateElementList();
                 updateProjectSummary();
                 calculateCost();
-                centerView(editorCanvas);
+                const canvas = safeGetElement('editorCanvas');
+                if (canvas && typeof centerView === 'function') centerView(canvas);
                 showNotification('Все комнаты удалены');
             }
         });
@@ -1037,28 +911,33 @@ function initEventListeners() {
     const zoomInBtn = safeGetElement('zoomIn');
     if (zoomInBtn) {
         zoomInBtn.addEventListener('click', () => {
-            zoom *= 1.2;
-            zoom = Math.min(3, zoom);
+            window.zoom *= 1.2;
+            window.zoom = Math.min(3, window.zoom);
             const zoomLevel = safeGetElement('zoomLevel');
-            if (zoomLevel) zoomLevel.textContent = `${Math.round(zoom * 100)}%`;
-            draw(editorCanvas, editorCanvas.getContext('2d'));
+            if (zoomLevel) zoomLevel.textContent = `${Math.round(window.zoom * 100)}%`;
+            const canvas = safeGetElement('editorCanvas');
+            if (canvas && typeof draw === 'function') draw(canvas, canvas.getContext('2d'));
         });
     }
 
     const zoomOutBtn = safeGetElement('zoomOut');
     if (zoomOutBtn) {
         zoomOutBtn.addEventListener('click', () => {
-            zoom /= 1.2;
-            zoom = Math.max(0.1, zoom);
+            window.zoom /= 1.2;
+            window.zoom = Math.max(0.1, window.zoom);
             const zoomLevel = safeGetElement('zoomLevel');
-            if (zoomLevel) zoomLevel.textContent = `${Math.round(zoom * 100)}%`;
-            draw(editorCanvas, editorCanvas.getContext('2d'));
+            if (zoomLevel) zoomLevel.textContent = `${Math.round(window.zoom * 100)}%`;
+            const canvas = safeGetElement('editorCanvas');
+            if (canvas && typeof draw === 'function') draw(canvas, canvas.getContext('2d'));
         });
     }
 
     const centerViewBtn = safeGetElement('centerView');
     if (centerViewBtn) {
-        centerViewBtn.addEventListener('click', () => centerView(editorCanvas));
+        centerViewBtn.addEventListener('click', () => {
+            const canvas = safeGetElement('editorCanvas');
+            if (canvas && typeof centerView === 'function') centerView(canvas);
+        });
     }
 
     const ceilingHeight = safeGetElement('ceilingHeight');
@@ -1068,203 +947,4 @@ function initEventListeners() {
             calculateCost();
         });
     }
-}
-
-function handleMouseDown(e) {
-    const editorCanvas = safeGetElement('editorCanvas');
-    if (!editorCanvas) return;
-    const rect = editorCanvas.getBoundingClientRect();
-    const safeZoom = zoom > 0 ? zoom : 1;
-    const x = (e.clientX - rect.left - viewOffsetX) / safeZoom;
-    const y = (e.clientY - rect.top - viewOffsetY) / safeZoom;
-
-    if (currentTool === 'select') {
-        const element = findElementAt(x, y);
-        if (element) {
-            if (element.type === 'room') {
-                selectRoom(element);
-                isDragging = true;
-                dragStartX = e.clientX;
-                dragStartY = e.clientY;
-                dragOffsetX = x - element.x;
-                dragOffsetY = y - element.y;
-            } else if (element.type === 'window' || element.type === 'door') {
-                // Находим комнату, в которой находится этот элемент
-                for (let r of rooms) {
-                    if (r.windows && r.windows.includes(element)) {
-                        selectedRoom = r;
-                        break;
-                    }
-                    if (r.doors && r.doors.includes(element)) {
-                        selectedRoom = r;
-                        break;
-                    }
-                }
-                selectElement(element);
-                isMovingElement = true;
-                movingElement = element;
-            }
-        } else {
-            isPanning = true;
-            panStartX = e.clientX;
-            panStartY = e.clientY;
-            selectedRoom = null;
-            selectedElementObj = null;
-            hideAllProperties();
-            editorCanvas.style.cursor = 'grabbing';
-        }
-    } else if (currentTool === 'room') {
-        isDrawing = true;
-        startX = x;
-        startY = y;
-    } else if (currentTool === 'window' || currentTool === 'door') {
-        const room = findRoomAt(x, y);
-        if (room) {
-            selectRoom(room);
-            const wallInfo = findNearestWall(room, x, y);
-            if (wallInfo) {
-                addElementToRoom(currentTool, room, wallInfo.wall, wallInfo.leftOffset);
-            }
-        } else {
-            showNotification('Кликните внутри комнаты для добавления элемента');
-        }
-    }
-
-    draw(editorCanvas, editorCanvas.getContext('2d'));
-}
-
-function handleMouseMove(e) {
-    const editorCanvas = safeGetElement('editorCanvas');
-    if (!editorCanvas) return;
-    const rect = editorCanvas.getBoundingClientRect();
-    const safeZoom = zoom > 0 ? zoom : 1;
-    const x = (e.clientX - rect.left - viewOffsetX) / safeZoom;
-    const y = (e.clientY - rect.top - viewOffsetY) / safeZoom;
-
-    const cursorPosition = safeGetElement('cursorPosition');
-    if (cursorPosition) {
-        cursorPosition.textContent = `X: ${(x / scale).toFixed(2)}, Y: ${(y / scale).toFixed(2)}`;
-    }
-
-    if (isPanning) {
-        const dx = e.clientX - panStartX;
-        const dy = e.clientY - panStartY;
-        viewOffsetX += dx;
-        viewOffsetY += dy;
-        panStartX = e.clientX;
-        panStartY = e.clientY;
-        draw(editorCanvas, editorCanvas.getContext('2d'));
-        return;
-    }
-
-    if (isDragging && selectedRoom) {
-        const newX = x - dragOffsetX;
-        const newY = y - dragOffsetY;
-        selectedRoom.x = newX;
-        selectedRoom.y = newY;
-        draw(editorCanvas, editorCanvas.getContext('2d'));
-    }
-
-    if (isMovingElement && movingElement && selectedRoom) {
-        const wallInfo = findNearestWall(selectedRoom, x, y);
-        if (wallInfo && wallInfo.wall === movingElement.wall) {
-            const wallLength = wallInfo.wall === 'top' || wallInfo.wall === 'bottom' ?
-                (selectedRoom.width / scale) : (selectedRoom.height / scale);
-            const maxLeftOffset = wallLength - movingElement.width;
-            const clampedLeftOffset = Math.max(0, Math.min(maxLeftOffset, wallInfo.leftOffset));
-
-            // Проверяем, изменилась ли позиция
-            if (Math.abs(movingElement.leftOffset - clampedLeftOffset) > 0.001) {
-                movingElement.leftOffset = clampedLeftOffset;
-                movingElement.rightOffset = wallLength - clampedLeftOffset - movingElement.width;
-                updatePropertiesPanel(movingElement);
-                draw(editorCanvas, editorCanvas.getContext('2d'));
-            }
-        }
-    }
-
-    if (isDrawing && currentTool === 'room') {
-        draw(editorCanvas, editorCanvas.getContext('2d'));
-        const ctx = editorCanvas.getContext('2d');
-        ctx.save();
-        ctx.translate(viewOffsetX, viewOffsetY);
-        ctx.scale(zoom, zoom);
-        ctx.strokeStyle = '#4a6ee0';
-        ctx.lineWidth = 2;
-        ctx.setLineDash([5, 5]);
-        ctx.strokeRect(startX, startY, x - startX, y - startY);
-        ctx.setLineDash([]);
-        ctx.restore();
-    }
-}
-
-function handleMouseUp(e) {
-    const editorCanvas = safeGetElement('editorCanvas');
-    if (!editorCanvas) return;
-
-    if (isPanning) {
-        isPanning = false;
-        editorCanvas.style.cursor = 'move';
-    }
-
-    if (isDragging) {
-        isDragging = false;
-        pushToHistory();
-    }
-
-    if (isMovingElement) {
-        isMovingElement = false;
-        pushToHistory();
-        movingElement = null;
-    }
-
-    if (!isDrawing) return;
-
-    const rect = editorCanvas.getBoundingClientRect();
-    const safeZoom = zoom > 0 ? zoom : 1;
-    const x = (e.clientX - rect.left - viewOffsetX) / safeZoom;
-    const y = (e.clientY - rect.top - viewOffsetY) / safeZoom;
-
-    if (currentTool === 'room') {
-        const width = Math.abs(x - startX);
-        const height = Math.abs(y - startY);
-
-        if (width > 50 && height > 50) {
-            const roomX = Math.min(startX, x);
-            const roomY = Math.min(startY, y);
-
-            pushToHistory();
-
-            const room = {
-                id: generateId(),
-                type: 'room',
-                x: roomX,
-                y: roomY,
-                width: width,
-                height: height,
-                name: `Комната ${roomCounter}`,
-                plaster: true,
-                armoring: false,
-                puttyWallpaper: false,
-                puttyPaint: false,
-                painting: false,
-                windows: [],
-                doors: []
-            };
-            rooms.push(room);
-            roomCounter++;
-            selectRoom(room);
-            showNotification('Комната добавлена');
-
-            updateElementList();
-            updateProjectSummary();
-            calculateCost();
-            centerView(editorCanvas);
-        } else {
-            showNotification('Слишком маленькая комната. Минимальный размер: 1x1 метр');
-        }
-    }
-
-    isDrawing = false;
-    draw(editorCanvas, editorCanvas.getContext('2d'));
 }

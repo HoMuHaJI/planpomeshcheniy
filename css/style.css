@@ -204,10 +204,10 @@ header a, header button, .contact-btn {
     box-shadow: 0 6px 16px rgba(255, 126, 95, 0.4);
 }
 
-/* Main App Container */
+/* Main App Container – теперь две колонки */
 .app-container {
     display: grid;
-    grid-template-columns: 300px 1fr 380px;
+    grid-template-columns: 1fr 380px;
     gap: 25px;
     margin-bottom: 40px;
 }
@@ -243,65 +243,6 @@ header a, header button, .contact-btn {
     padding: 20px;
 }
 
-.tool-group {
-    margin-bottom: 30px;
-}
-
-.tool-group h3 {
-    margin-bottom: 15px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid var(--neutral-medium);
-    color: var(--primary-color);
-    display: flex;
-    align-items: center;
-    font-size: 1.1rem;
-}
-
-.tool-group h3 i {
-    margin-right: 8px;
-    color: var(--secondary-color);
-}
-
-.tool-buttons {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 12px;
-}
-
-.tool-btn {
-    padding: 15px;
-    background-color: var(--white);
-    color: var(--text-color);
-    border: 1px solid var(--neutral-medium);
-    border-radius: 8px;
-    cursor: pointer;
-    text-align: center;
-    transition: var(--transition);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-weight: 500;
-}
-
-.tool-btn:hover {
-    background-color: var(--neutral-light);
-    border-color: var(--primary-light);
-    transform: translateY(-2px);
-}
-
-.tool-btn.active {
-    background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary-color) 100%);
-    color: var(--white);
-    border-color: var(--primary-color);
-    box-shadow: 0 4px 8px rgba(74, 110, 224, 0.3);
-}
-
-.tool-btn i {
-    font-size: 24px;
-    margin-bottom: 8px;
-}
-
 /* Editor Panel */
 .editor-panel {
     display: flex;
@@ -324,6 +265,7 @@ header a, header button, .contact-btn {
     align-items: center;
     gap: 8px;
     width: 100%;
+    flex-wrap: wrap;
 }
 
 .toolbar-full-width {
@@ -334,11 +276,10 @@ header a, header button, .contact-btn {
 }
 
 .toolbar-controls {
-    justify-content: flex-end;
+    justify-content: flex-start;
     flex-wrap: wrap;
 }
 
-/* Toolbar Buttons (Undo/Redo/Save/Load/Zoom) */
 .toolbar-btn {
     width: 42px;
     height: 42px;
@@ -383,9 +324,10 @@ header a, header button, .contact-btn {
     align-items: center;
     gap: 8px;
     background: var(--neutral-light);
-    padding: 5px 10px;
+    padding: 0 10px;
     border-radius: 8px;
     flex-shrink: 0;
+    height: 42px;
 }
 
 .zoom-controls .toolbar-btn {
@@ -412,10 +354,11 @@ header a, header button, .contact-btn {
     position: relative;
     overflow: auto;
     box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
-    min-height: 850px;
+    min-height: 1000px;
     display: flex;
     align-items: center;
     justify-content: center;
+    z-index: 1;
 }
 
 #editorCanvas {
@@ -441,23 +384,25 @@ header a, header button, .contact-btn {
     border-radius: 8px;
 }
 
+/* Form Elements */
 .form-group {
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
 
 label {
     display: block;
-    margin-bottom: 8px;
+    margin-bottom: 5px;
     font-weight: 600;
     color: var(--neutral-dark);
+    font-size: 0.95rem;
 }
 
 input, select, textarea, button {
     width: 100%;
-    padding: 12px 15px;
+    padding: 10px 12px;
     border: 1px solid var(--neutral-medium);
-    border-radius: 8px;
-    font-size: 15px;
+    border-radius: 6px;
+    font-size: 14px;
     transition: var(--transition);
 }
 
@@ -507,6 +452,26 @@ button:disabled {
 
 .btn-success:hover:not(:disabled) {
     background: linear-gradient(135deg, #1e7e34 0%, #145523 100%);
+}
+
+/* Tool groups inside right panel */
+.tool-group {
+    margin-bottom: 20px;
+}
+
+.tool-group h3 {
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid var(--neutral-medium);
+    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    font-size: 1rem;
+}
+
+.tool-group h3 i {
+    margin-right: 8px;
+    color: var(--secondary-color);
 }
 
 .element-list {
@@ -1042,22 +1007,16 @@ button:disabled {
 
 /* Print Styles */
 @media print {
-    /* Скрываем всё по умолчанию */
-    body * {
-        visibility: hidden;
-    }
-    /* Показываем только шапку, смету и секцию обратной связи */
+    body * { visibility: hidden; }
     header, .receipt-container, .feedback-section,
     header *, .receipt-container *, .feedback-section * {
         visibility: visible;
     }
-    /* Скрываем ненужные элементы интерфейса */
     .app-container, .panel, canvas, .toolbar, .controls, .modal, .notification,
     .receipt-actions, .sharing-buttons, .btn-max, .btn-copy, .btn-print, .btn-feedback,
     #loadProjectInput, #scrollToTopBtn {
         display: none !important;
     }
-    /* Естественное позиционирование */
     header, .receipt-container, .feedback-section {
         position: static;
         margin: 0;
@@ -1094,6 +1053,12 @@ button:disabled {
     }
     .contact-buttons {
         justify-content: center;
+    }
+    .app-container {
+        grid-template-columns: 1fr;
+    }
+    .panel {
+        width: 100%;
     }
 }
 
