@@ -995,22 +995,35 @@ button:disabled {
         font-size: 14px;
     }
     
-    /* 1.2 Перенос панели инструментов под холст */
-    .editor-panel .panel-content {
+    /* 1.2 Перенос панели инструментов под холст и принудительная высота холста */
+    .editor-panel {
+        min-height: 0; /* убираем фиксированную минимальную высоту */
+        height: auto;
         display: flex;
         flex-direction: column;
     }
-    .editor-toolbar {
-        order: 2;
-        margin-top: 20px;
+    .editor-panel .panel-content {
+        display: flex;
+        flex-direction: column;
+        flex: 1 1 auto;
+        padding: 10px;
     }
     .editor-container {
         order: 1;
         flex: 1 1 auto;
-        min-height: 300px; /* Уменьшаем минимальную высоту для мобильных */
+        min-height: 300px !important; /* гарантируем видимую высоту */
+        height: auto;
+        background-color: #e0e0e0; /* временно, чтобы увидеть границы контейнера */
+        border: 2px solid red; /* временно для отладки */
+    }
+    .editor-toolbar {
+        order: 2;
+        margin-top: 10px;
     }
     .status-bar {
         order: 3;
+        font-size: 11px;
+        padding: 8px;
     }
     
     /* 2. Выдвижная панель свойств */
