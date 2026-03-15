@@ -1001,11 +1001,13 @@ button:disabled {
         flex-direction: column;
     }
     .editor-toolbar {
-        order: 2; /* Перемещаем после контейнера */
+        order: 2;
         margin-top: 20px;
     }
     .editor-container {
         order: 1;
+        flex: 1 1 auto;
+        min-height: 300px; /* Уменьшаем минимальную высоту для мобильных */
     }
     .status-bar {
         order: 3;
