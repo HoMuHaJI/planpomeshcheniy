@@ -1,11 +1,10 @@
-// js/touch.js — поддержка тач-экранов (финальная версия)
-
-let lastTap = 0; // для двойного касания
+// js/touch.js — поддержка тач-экранов
+let lastTap = 0;
 
 function initTouchSupport() {
     const canvas = safeGetElement('editorCanvas');
     if (!canvas) return;
-
+    
     // Убираем браузерный зум при таче
     canvas.style.touchAction = 'none';
 
@@ -29,13 +28,13 @@ function getTouchPos(e) {
 function handleTouchStart(e) {
     e.preventDefault();
     const pos = getTouchPos(e);
-
+    
     if (e.touches.length === 1) {
         // Один палец — имитируем мышь
         const fakeEvent = { 
             clientX: e.touches[0].clientX, 
             clientY: e.touches[0].clientY,
-            preventDefault: () => {}   // ← КРОШЕЧНОЕ УЛУЧШЕНИЕ (убирает предупреждения)
+            preventDefault: () => {}
         };
         handleMouseDown(fakeEvent);
     } else if (e.touches.length === 2) {
@@ -49,6 +48,7 @@ function handleTouchStart(e) {
 
 function handleTouchMove(e) {
     e.preventDefault();
+    
     if (e.touches.length === 1 && !window.isPinching) {
         const fakeEvent = { clientX: e.touches[0].clientX, clientY: e.touches[0].clientY };
         handleMouseMove(fakeEvent);
@@ -76,7 +76,6 @@ function handlePinchZoom(e) {
     const currentDistance = getTouchDistance(e);
     const scaleFactor = currentDistance / window.touchStartDistance;
     const newZoom = window.zoom * scaleFactor;
-
     window.zoom = Math.max(0.1, Math.min(5, newZoom));
 
     // Центрируем зум между пальцами
@@ -94,15 +93,15 @@ function handlePinchZoom(e) {
     draw(window.editorCanvas, window.editorCanvas.getContext('2d'));
 }
 
-// Двойное касание для центрирования
 function handleDoubleTap(e) {
     const currentTime = new Date().getTime();
     const tapLength = currentTime - lastTap;
+    
     if (tapLength < 300 && tapLength > 0) {
-        // Двойное касание
         e.preventDefault();
         centerView(window.editorCanvas);
     }
+    
     lastTap = currentTime;
 }
 

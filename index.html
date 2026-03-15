@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <!-- Новый viewport с разрешением масштабирования -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="description" content="Бесплатный онлайн-конструктор планировки помещений и расчёт стоимости ремонта в Симферополе. Создайте план квартиры, дома или офиса с точными размерами и сметой.">
     <title>ПланПомещений - Конструктор помещений и расчет стоимости ремонта в Симферополе</title>
 
@@ -105,10 +106,13 @@
             </div>
         </header>
 
-        <!-- Кнопка для открытия панели свойств на мобильных -->
-        <button id="togglePropertiesBtn" class="mobile-menu-btn" type="button">
-            <i class="fas fa-sliders-h"></i>
+        <!-- Мобильная кнопка открытия панели свойств -->
+        <button id="togglePropertiesBtn" class="mobile-menu-btn" aria-label="Открыть панель свойств">
+            <i class="fas fa-bars"></i>
         </button>
+
+        <!-- Overlay для затемнения фона на мобильных -->
+        <div class="panel-overlay"></div>
 
         <!-- Основной контейнер приложения (две колонки) -->
         <div class="app-container">

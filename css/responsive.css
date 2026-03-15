@@ -32,6 +32,7 @@ body {
     color: var(--text-color);
     line-height: 1.6;
     min-height: 100vh;
+    overflow-x: hidden;
 }
 
 .container {
@@ -50,18 +51,6 @@ header {
     box-shadow: var(--shadow);
     position: relative;
     overflow: hidden;
-}
-
-header::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100" opacity="0.1"><path d="M20,20 L80,20 L80,80 L20,80 Z" fill="white" stroke="white" stroke-width="2"/><path d="M30,30 L50,30 L50,50 L30,50 Z" fill="white" stroke="white" stroke-width="1"/><path d="M60,40 L70,40 L70,60 L60,60 Z" fill="white" stroke="white" stroke-width="1"/></svg>');
-    background-size: 200px;
-    opacity: 0.1;
 }
 
 .header-container {
@@ -87,7 +76,6 @@ header::before {
     display: flex;
     align-items: center;
     justify-content: center;
-    -webkit-backdrop-filter: blur(5px);
     backdrop-filter: blur(5px);
 }
 
@@ -149,21 +137,6 @@ header::before {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-.contact-btn.phone {
-    background: rgba(52, 152, 219, 0.3);
-    border-color: rgba(52, 152, 219, 0.5);
-}
-
-.contact-btn.whatsapp {
-    background: rgba(37, 211, 102, 0.3);
-    border-color: rgba(37, 211, 102, 0.5);
-}
-
-.contact-btn.telegram {
-    background: rgba(0, 136, 204, 0.3);
-    border-color: rgba(0, 136, 204, 0.5);
-}
-
 .consult-btn {
     background: linear-gradient(135deg, var(--accent-color) 0%, #f85a3a 100%);
     color: white;
@@ -179,13 +152,7 @@ header::before {
     box-shadow: 0 4px 12px rgba(255, 126, 95, 0.3);
 }
 
-.consult-btn:hover {
-    background: linear-gradient(135deg, #f85a3a 0%, #e04a2d 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(255, 126, 95, 0.4);
-}
-
-/* ========== ОСНОВНАЯ РАЗМЕТКА (две колонки) ========== */
+/* ========== ОСНОВНАЯ РАЗМЕТКА ========== */
 .app-container {
     display: grid;
     grid-template-columns: 1fr 380px;
@@ -201,10 +168,6 @@ header::before {
     transition: var(--transition);
 }
 
-.panel:hover {
-    box-shadow: var(--shadow-hover);
-}
-
 .panel-header {
     padding: 20px;
     background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary-color) 100%);
@@ -215,32 +178,8 @@ header::before {
     align-items: center;
 }
 
-.panel-header i {
-    margin-right: 10px;
-    font-size: 1.2rem;
-}
-
 .panel-content {
     padding: 20px;
-}
-
-.tool-group {
-    margin-bottom: 30px;
-}
-
-.tool-group h3 {
-    margin-bottom: 15px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid var(--neutral-medium);
-    color: var(--primary-color);
-    display: flex;
-    align-items: center;
-    font-size: 1.1rem;
-}
-
-.tool-group h3 i {
-    margin-right: 8px;
-    color: var(--secondary-color);
 }
 
 .tool-buttons {
@@ -287,7 +226,7 @@ header::before {
 .editor-panel {
     display: flex;
     flex-direction: column;
-    min-height: 950px;
+    min-height: 600px;
 }
 
 .editor-toolbar {
@@ -309,27 +248,6 @@ header::before {
     transition: var(--transition);
 }
 
-.editor-toolbar button i {
-    font-size: 16px;
-}
-
-.zoom-controls {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-left: auto;
-}
-
-.zoom-controls button {
-    width: 42px;
-    height: 42px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    border-radius: 8px;
-}
-
 .editor-container {
     flex: 1;
     border: 1px solid var(--neutral-medium);
@@ -337,8 +255,7 @@ header::before {
     background-color: var(--white);
     position: relative;
     overflow: auto;
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
-    min-height: 850px;
+    min-height: 500px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -347,13 +264,8 @@ header::before {
 #editorCanvas {
     display: block;
     cursor: default;
-}
-
-.canvas-not-supported {
-    color: var(--danger-color);
-    font-size: 1.2rem;
-    text-align: center;
-    padding: 20px;
+    max-width: 100%;
+    touch-action: none;
 }
 
 .status-bar {
@@ -420,22 +332,6 @@ button:disabled {
     box-shadow: none;
 }
 
-.btn-danger {
-    background: linear-gradient(135deg, #ff7e5f 0%, #f85a3a 100%);
-}
-
-.btn-danger:hover:not(:disabled) {
-    background: linear-gradient(135deg, #f85a3a 0%, #e04a2d 100%);
-}
-
-.btn-success {
-    background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
-}
-
-.btn-success:hover:not(:disabled) {
-    background: linear-gradient(135deg, #1e7e34 0%, #145523 100%);
-}
-
 /* Element List */
 .element-list {
     margin-top: 10px;
@@ -459,10 +355,6 @@ button:disabled {
     background-color: var(--neutral-light);
 }
 
-.element-item:last-child {
-    border-bottom: none;
-}
-
 .element-item.selected {
     background-color: rgba(74, 110, 224, 0.1);
     border-left: 4px solid var(--primary-color);
@@ -474,60 +366,6 @@ button:disabled {
     padding: 6px 10px;
     font-size: 12px;
     border-radius: 6px;
-}
-
-/* Summary Styles */
-.summary {
-    margin-top: 20px;
-    padding: 20px;
-    background-color: var(--neutral-light);
-    border-radius: 8px;
-}
-
-.summary-item {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 12px;
-}
-
-.total {
-    font-weight: bold;
-    font-size: 1.1rem;
-    border-top: 1px solid var(--neutral-medium);
-    padding-top: 12px;
-    margin-top: 12px;
-}
-
-/* Checkbox Styles */
-.checkbox-group {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-top: 10px;
-}
-
-.checkbox-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px;
-    border-radius: 8px;
-    transition: var(--transition);
-}
-
-.checkbox-item:hover {
-    background-color: var(--neutral-light);
-}
-
-.checkbox-item input[type="checkbox"] {
-    width: auto;
-    transform: scale(1.2);
-}
-
-.checkbox-item label {
-    margin-bottom: 0;
-    font-weight: normal;
-    cursor: pointer;
 }
 
 /* Receipt Styles */
@@ -556,73 +394,6 @@ button:disabled {
     font-family: 'Courier New', monospace;
 }
 
-.receipt-work-line {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 10px;
-}
-
-.receipt-work-details {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-}
-
-.receipt-work-name {
-    flex: 2;
-    text-align: left;
-}
-
-.receipt-work-calculation {
-    flex: 2;
-    text-align: center;
-}
-
-.receipt-work-cost {
-    flex: 1;
-    text-align: right;
-}
-
-.receipt-divider {
-    border-bottom: 1px dashed #ddd;
-    margin-bottom: 10px;
-}
-
-.receipt-section {
-    margin-bottom: 25px;
-    padding-bottom: 20px;
-    border-bottom: 2px dashed var(--neutral-medium);
-}
-
-.receipt-section:last-child {
-    border-bottom: none;
-}
-
-.receipt-section-header {
-    font-weight: bold;
-    text-align: center;
-    margin-bottom: 20px;
-    padding: 12px;
-    background-color: var(--neutral-light);
-    border-radius: 8px;
-}
-
-.receipt-room-header {
-    font-weight: bold;
-    margin-bottom: 15px;
-    padding: 12px;
-    background-color: rgba(74, 110, 224, 0.1);
-    border-radius: 8px;
-    text-align: center;
-}
-
-.receipt-subtotal {
-    font-weight: bold;
-    margin-top: 15px;
-    padding-top: 15px;
-    border-top: 2px dashed var(--neutral-medium);
-}
-
 .receipt-total {
     font-weight: bold;
     font-size: 1.3rem;
@@ -634,16 +405,6 @@ button:disabled {
     border: 2px dashed #4caf50;
 }
 
-.receipt-footer {
-    text-align: center;
-    margin-top: 25px;
-    padding-top: 20px;
-    border-top: 2px dashed var(--neutral-medium);
-    font-size: 0.9em;
-    color: var(--text-light);
-}
-
-/* Кнопки отправки сметы */
 .receipt-actions {
     padding: 20px;
     background-color: var(--neutral-light);
@@ -657,53 +418,7 @@ button:disabled {
     flex-wrap: wrap;
 }
 
-.btn-max {
-    background: linear-gradient(135deg, #8a2be2 0%, #6a1cb9 100%);
-    color: white;
-    border: none;
-    padding: 12px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: var(--transition);
-    flex: 1;
-    min-width: 200px;
-    justify-content: center;
-}
-
-.btn-max:hover {
-    background: linear-gradient(135deg, #6a1cb9 0%, #551694 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(138, 43, 226, 0.3);
-}
-
-.btn-copy {
-    background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
-    color: white;
-    border: none;
-    padding: 12px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: var(--transition);
-    flex: 1;
-    min-width: 200px;
-    justify-content: center;
-}
-
-.btn-copy:hover {
-    background: linear-gradient(135deg, #495057 0%, #343a40 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
-}
-
-.btn-print {
+.btn-max, .btn-copy, .btn-print {
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
     color: white;
     border: none;
@@ -720,56 +435,7 @@ button:disabled {
     justify-content: center;
 }
 
-.btn-print:hover {
-    background: linear-gradient(135deg, var(--primary-dark) 0%, #2a4bb5 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(74, 110, 224, 0.3);
-}
-
-/* Кнопка обратной связи */
-.feedback-section {
-    text-align: center;
-    margin: 40px 0;
-    padding: 25px;
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    border-radius: var(--border-radius);
-    border: 1px solid var(--neutral-medium);
-    box-shadow: var(--shadow);
-}
-
-.btn-feedback {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-    color: white;
-    border: none;
-    padding: 16px 28px;
-    border-radius: 12px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 1.1rem;
-    display: inline-flex;
-    align-items: center;
-    gap: 12px;
-    transition: var(--transition);
-    box-shadow: 0 4px 12px rgba(74, 110, 224, 0.25);
-    margin-bottom: 15px;
-}
-
-.btn-feedback:hover {
-    background: linear-gradient(135deg, var(--primary-dark) 0%, #2a4bb5 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(74, 110, 224, 0.35);
-}
-
-.feedback-note {
-    font-size: 0.95rem;
-    color: var(--text-light);
-    max-width: 600px;
-    margin: 0 auto;
-    line-height: 1.5;
-    font-style: italic;
-}
-
-/* Модальное окно */
+/* Modal */
 .modal {
     display: none;
     position: fixed;
@@ -814,11 +480,6 @@ button:disabled {
     position: relative;
 }
 
-.modal-header h2 {
-    margin: 0;
-    font-size: 1.5rem;
-}
-
 .close-modal {
     position: absolute;
     right: 20px;
@@ -833,90 +494,8 @@ button:disabled {
     padding: 5px 10px;
 }
 
-.close-modal:hover {
-    color: var(--accent-light);
-    background: none;
-    transform: none;
-    box-shadow: none;
-}
-
 .modal-body {
     padding: 30px;
-}
-
-.info-notice {
-    background: #e7f3ff;
-    border-left: 4px solid var(--primary-color);
-    padding: 15px;
-    margin-bottom: 25px;
-    border-radius: 4px;
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-}
-
-.info-notice i {
-    color: var(--primary-color);
-    font-size: 1.2rem;
-    margin-top: 2px;
-}
-
-.info-notice p {
-    margin: 0;
-    color: var(--neutral-dark);
-    font-size: 0.95rem;
-}
-
-.form-actions {
-    margin-top: 30px;
-    text-align: center;
-}
-
-.btn-submit {
-    background: linear-gradient(135deg, #00b894 0%, #00a085 100%);
-    color: white;
-    border: none;
-    padding: 15px 30px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 1.1rem;
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    transition: var(--transition);
-    box-shadow: 0 4px 15px rgba(0, 184, 148, 0.3);
-}
-
-.btn-submit:hover:not(:disabled) {
-    background: linear-gradient(135deg, #00a085 0%, #008b74 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 184, 148, 0.4);
-}
-
-/* Additional Visual Enhancements */
-.feature-badge {
-    display: inline-block;
-    background: var(--accent-color);
-    color: white;
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    margin-left: 10px;
-    vertical-align: middle;
-}
-
-.help-text {
-    font-size: 0.85rem;
-    color: var(--text-light);
-    margin-top: 5px;
-}
-
-.divider {
-    height: 1px;
-    background: var(--neutral-medium);
-    margin: 20px 0;
 }
 
 .notification {
@@ -942,7 +521,7 @@ button:disabled {
     opacity: 1;
 }
 
-/* Адаптивность для шапки */
+/* ========== АДАПТИВНОСТЬ ДЛЯ ПЛАНШЕТОВ (до 1200px) ========== */
 @media (max-width: 1200px) {
     .header-container {
         flex-direction: column;
@@ -957,11 +536,15 @@ button:disabled {
     .contact-buttons {
         justify-content: center;
     }
+    
+    .app-container {
+        grid-template-columns: 1fr 320px;
+    }
 }
 
-/* ========== МОБИЛЬНЫЕ СТИЛИ (ДО 768px) ========== */
+/* ========== МОБИЛЬНЫЕ СТИЛИ (до 768px) ========== */
 @media (max-width: 768px) {
-    /* 1.1 Увеличение интерактивных элементов */
+    /* 1. Увеличение интерактивных элементов */
     .toolbar-btn {
         width: 48px !important;
         height: 48px !important;
@@ -976,11 +559,13 @@ button:disabled {
     .checkbox-item {
         padding: 12px;
     }
+    
     .checkbox-item input[type="checkbox"] {
         width: 24px;
         height: 24px;
         transform: none;
     }
+    
     .checkbox-item label {
         font-size: 16px;
         line-height: 24px;
@@ -990,47 +575,52 @@ button:disabled {
         padding: 14px 16px;
         min-height: 52px;
     }
+    
     .delete-btn {
         padding: 10px 16px;
         font-size: 14px;
     }
     
-    /* 1.2 Перенос панели инструментов под холст и принудительная высота холста */
+    /* 2. Перенос панели инструментов под холст */
     .editor-panel {
-        min-height: 0; /* убираем фиксированную минимальную высоту */
+        min-height: 0;
         height: auto;
         display: flex;
         flex-direction: column;
     }
+    
     .editor-panel .panel-content {
         display: flex;
         flex-direction: column;
         flex: 1 1 auto;
         padding: 10px;
     }
+    
     .editor-container {
         order: 1;
         flex: 1 1 auto;
-        min-height: 300px !important; /* гарантируем видимую высоту */
+        min-height: 350px !important;
         height: auto;
-        background-color: #e0e0e0; /* временно, чтобы увидеть границы контейнера */
-        border: 2px solid red; /* временно для отладки */
     }
+    
     .editor-toolbar {
         order: 2;
         margin-top: 10px;
     }
+    
     .status-bar {
         order: 3;
         font-size: 11px;
         padding: 8px;
     }
     
-    /* 2. Выдвижная панель свойств */
+    /* 3. Выдвижная панель свойств */
     .app-container {
         position: relative;
         overflow: hidden;
+        grid-template-columns: 1fr;
     }
+    
     .app-container > .panel:last-child {
         position: fixed;
         top: 0;
@@ -1044,6 +634,7 @@ button:disabled {
         overflow-y: auto;
         background: white;
     }
+    
     .app-container > .panel:last-child.properties-panel--open {
         right: 0;
     }
@@ -1059,13 +650,14 @@ button:disabled {
         background: rgba(0,0,0,0.5);
         z-index: 1999;
     }
+    
     .panel-overlay.active {
         display: block;
     }
     
     /* Кнопка-гамбургер для открытия панели */
     .mobile-menu-btn {
-        display: flex;
+        display: flex !important;
         align-items: center;
         justify-content: center;
         position: fixed;
@@ -1080,6 +672,7 @@ button:disabled {
         box-shadow: var(--shadow);
         z-index: 1001;
         font-size: 24px;
+        cursor: pointer;
     }
     
     /* 4. Адаптация сметы */
@@ -1087,14 +680,45 @@ button:disabled {
         padding: 15px;
         font-size: 12px;
     }
+    
     .receipt-work-name,
     .receipt-work-calculation,
     .receipt-work-cost {
         font-size: 11px;
     }
+    
     .receipt-total {
         font-size: 1rem;
         padding: 15px;
+    }
+    
+    .sharing-buttons {
+        flex-direction: column;
+    }
+    
+    .btn-max, .btn-copy, .btn-print {
+        min-width: 100%;
+    }
+    
+    /* 5. Header адаптация */
+    .logo h1 {
+        font-size: 1.5rem;
+    }
+    
+    .logo-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 1.8rem;
+    }
+    
+    .contact-buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .contact-btn {
+        width: 100%;
+        justify-content: center;
     }
 }
 
@@ -1106,15 +730,18 @@ button:disabled {
 /* ========== СТИЛИ ДЛЯ ПЕЧАТИ ========== */
 @media print {
     body * { visibility: hidden; }
+    
     header, .receipt-container, .feedback-section,
     header *, .receipt-container *, .feedback-section * {
         visibility: visible;
     }
+    
     .app-container, .panel, canvas, .toolbar, .controls, .modal, .notification,
     .receipt-actions, .sharing-buttons, .btn-max, .btn-copy, .btn-print, .btn-feedback,
     #loadProjectInput, #scrollToTopBtn {
         display: none !important;
     }
+    
     header, .receipt-container, .feedback-section {
         position: static;
         margin: 0;
@@ -1124,16 +751,19 @@ button:disabled {
         box-shadow: none;
         border: none;
     }
+    
     .receipt-content {
         font-size: 10pt;
         line-height: 1.4;
     }
+    
     body {
         background: white;
         color: black;
         margin: 0;
         padding: 10mm;
     }
+    
     @page {
         margin: 1.5cm;
     }
