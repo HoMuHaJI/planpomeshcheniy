@@ -2,7 +2,8 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Новый viewport с разрешением масштабирования -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <meta name="description" content="Бесплатный онлайн-конструктор планировки помещений и расчёт стоимости ремонта в Симферополе. Создайте план квартиры, дома или офиса с точными размерами и сметой.">
     <title>ПланПомещений - Конструктор помещений и расчет стоимости ремонта в Симферополе</title>
 
@@ -100,6 +101,12 @@
                     <button id="headerFeedbackBtn" class="consult-btn" type="button">
                         <i class="fas fa-headset"></i> Получить консультацию
                     </button>
+
+                    <!-- НОВАЯ ГАЛОЧКА "Версия для ПК" (включена по умолчанию) -->
+                    <label class="desktop-toggle">
+                        <input type="checkbox" id="desktopMode" checked>
+                        <span>Версия для ПК</span>
+                    </label>
                 </div>
             </div>
         </header>
@@ -500,5 +507,7 @@
     <script src="js/elements.js"></script>
     <script src="js/calculator.js"></script>
     <script src="js/ui.js"></script>
+    <!-- Новый файл для поддержки touch -->
+    <script src="js/touch.js"></script>
 </body>
 </html>

@@ -548,7 +548,7 @@ async function submitFeedbackForm(formData) {
 
     let receiptText = getReceiptText();
 
-    // 🔥 ОГРАНИЧИВАЕМ ДЛИНУ (Telegram максимум ~4096 символов)
+    // Ограничиваем длину для Telegram
     if (receiptText.length > 3800) {
         receiptText = receiptText.substring(0, 3800) + '\n\n... (полная смета слишком большая — смотрите в конструкторе)';
     }
@@ -572,7 +572,7 @@ ${receiptText}
             body: JSON.stringify({
                 chat_id: TELEGRAM_CHAT_ID,
                 text: message,
-                parse_mode: undefined   // ← всегда plain text (без Markdown)
+                parse_mode: undefined   // всегда plain text (без Markdown)
             })
         });
 
@@ -791,6 +791,25 @@ function initUI() {
     initSharingButtons();
     initFeedbackModal();
     initEventListeners();
+
+    // ================== ГАЛОЧКА «Версия для ПК» ==================
+    const desktopMode = safeGetElement('desktopMode');
+    if (desktopMode) {
+        // Устанавливаем начальное состояние
+        document.body.classList.toggle('mobile-mode', !desktopMode.checked);
+        desktopMode.addEventListener('change', () => {
+            const isDesktop = desktopMode.checked;
+            document.body.classList.toggle('mobile-mode', !isDesktop);
+
+            const canvas = safeGetElement('editorCanvas');
+            if (canvas) {
+                canvas.style.touchAction = isDesktop ? 'auto' : 'none';
+            }
+
+            showNotification(isDesktop ? 'Режим ПК включён' : 'Мобильный режим включён');
+            dispatchStateChanged({ action: 'modeChanged' });
+        });
+    }
 
     // ================== EVENT BUS (единственный обработчик) ==================
     window.addEventListener('stateChanged', () => {

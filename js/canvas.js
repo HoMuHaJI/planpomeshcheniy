@@ -15,6 +15,9 @@ function initCanvas(editorCanvas, ctx) {
     window.addEventListener('resize', () => resizeCanvas(editorCanvas));
 
     editorCanvas.addEventListener('contextmenu', (e) => e.preventDefault());
+
+    // Инициализация поддержки touch (если функция определена)
+    if (typeof initTouchSupport === 'function') initTouchSupport();
 }
 
 function resizeCanvas(editorCanvas) {
