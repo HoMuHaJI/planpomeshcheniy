@@ -5,15 +5,15 @@ function initTouchSupport() {
     const canvas = safeGetElement('editorCanvas');
     if (!canvas) return;
     
-    // Убираем браузерный зум при таче
-    canvas.style.touchAction = 'none';
+    // Разрешаем pinch-to-zoom и вертикальную прокрутку, блокируем горизонтальную прокрутку внутри canvas
+    canvas.style.touchAction = 'pinch-zoom pan-y';
 
     canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
     canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
     canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
 
-    // Двойное касание для центрирования
-    canvas.addEventListener('touchstart', handleDoubleTap);
+    // Двойное касание для центрирования (используем touchend, чтобы избежать конфликта с другим поведением)
+    canvas.addEventListener('touchend', handleDoubleTap, { passive: false });
 }
 
 function getTouchPos(e) {
