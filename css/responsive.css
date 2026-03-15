@@ -959,29 +959,133 @@ button:disabled {
     }
 }
 
+/* ========== МОБИЛЬНЫЕ СТИЛИ (ДО 768px) ========== */
 @media (max-width: 768px) {
-    .contact-buttons {
-        flex-direction: column;
-        width: 100%;
-    }
-    
-    .contact-btn {
-        justify-content: center;
-    }
-    
-    .logo h1 {
-        font-size: 1.8rem;
-    }
-    
-    .tagline {
-        font-size: 1rem;
-    }
-    
-    /* Увеличиваем кнопки на мобильных */
+    /* 1.1 Увеличение интерактивных элементов */
     .toolbar-btn {
-        width: 52px !important;
-        height: 52px !important;
+        width: 48px !important;
+        height: 48px !important;
+        font-size: 20px;
     }
+    
+    input, select, textarea, button {
+        padding: 14px 16px;
+        font-size: 16px;
+    }
+    
+    .checkbox-item {
+        padding: 12px;
+    }
+    .checkbox-item input[type="checkbox"] {
+        width: 24px;
+        height: 24px;
+        transform: none;
+    }
+    .checkbox-item label {
+        font-size: 16px;
+        line-height: 24px;
+    }
+    
+    .element-item {
+        padding: 14px 16px;
+        min-height: 52px;
+    }
+    .delete-btn {
+        padding: 10px 16px;
+        font-size: 14px;
+    }
+    
+    /* 1.2 Перенос панели инструментов под холст */
+    .editor-panel .panel-content {
+        display: flex;
+        flex-direction: column;
+    }
+    .editor-toolbar {
+        order: 2; /* Перемещаем после контейнера */
+        margin-top: 20px;
+    }
+    .editor-container {
+        order: 1;
+    }
+    .status-bar {
+        order: 3;
+    }
+    
+    /* 2. Выдвижная панель свойств */
+    .app-container {
+        position: relative;
+        overflow: hidden;
+    }
+    .app-container > .panel:last-child {
+        position: fixed;
+        top: 0;
+        right: -100%;
+        width: 85%;
+        max-width: 400px;
+        height: 100vh;
+        z-index: 2000;
+        transition: right 0.3s ease;
+        box-shadow: -2px 0 10px rgba(0,0,0,0.2);
+        overflow-y: auto;
+        background: white;
+    }
+    .app-container > .panel:last-child.properties-panel--open {
+        right: 0;
+    }
+    
+    /* Затемнение фона */
+    .panel-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 1999;
+    }
+    .panel-overlay.active {
+        display: block;
+    }
+    
+    /* Кнопка-гамбургер для открытия панели */
+    .mobile-menu-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        box-shadow: var(--shadow);
+        z-index: 1001;
+        font-size: 24px;
+    }
+    
+    /* 4. Адаптация сметы */
+    .receipt-content {
+        padding: 15px;
+        font-size: 12px;
+    }
+    .receipt-work-name,
+    .receipt-work-calculation,
+    .receipt-work-cost {
+        font-size: 11px;
+    }
+    .receipt-total {
+        font-size: 1rem;
+        padding: 15px;
+    }
+}
+
+/* Скрываем мобильную кнопку на десктопе */
+.mobile-menu-btn {
+    display: none;
 }
 
 /* ========== СТИЛИ ДЛЯ ПЕЧАТИ ========== */

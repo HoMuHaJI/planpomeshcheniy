@@ -1,5 +1,7 @@
 // js/touch.js — поддержка тач-экранов (финальная версия)
 
+let lastTap = 0; // для двойного касания
+
 function initTouchSupport() {
     const canvas = safeGetElement('editorCanvas');
     if (!canvas) return;
@@ -10,6 +12,9 @@ function initTouchSupport() {
     canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
     canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
     canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
+
+    // Двойное касание для центрирования
+    canvas.addEventListener('touchstart', handleDoubleTap);
 }
 
 function getTouchPos(e) {
@@ -87,6 +92,18 @@ function handlePinchZoom(e) {
     if (zoomLevel) zoomLevel.textContent = `${Math.round(window.zoom * 100)}%`;
 
     draw(window.editorCanvas, window.editorCanvas.getContext('2d'));
+}
+
+// Двойное касание для центрирования
+function handleDoubleTap(e) {
+    const currentTime = new Date().getTime();
+    const tapLength = currentTime - lastTap;
+    if (tapLength < 300 && tapLength > 0) {
+        // Двойное касание
+        e.preventDefault();
+        centerView(window.editorCanvas);
+    }
+    lastTap = currentTime;
 }
 
 // Экспорт
