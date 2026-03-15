@@ -1019,24 +1019,3 @@ button:disabled {
         margin: 1.5cm;
     }
 }
-
-/* ========== МОБИЛЬНЫЙ РЕЖИМ (при снятой галочке) ========== */
-body.mobile-mode .app-container {
-    grid-template-columns: 1fr !important;
-}
-
-body.mobile-mode .panel {
-    min-height: auto;
-}
-
-body.mobile-mode .toolbar-btn {
-    width: 52px;
-    height: 52px;
-    font-size: 18px;
-}
-
-/* Улучшенные тач-цели */
-body.mobile-mode .tool-btn {
-    min-width: 60px;
-    min-height: 60px;
-}

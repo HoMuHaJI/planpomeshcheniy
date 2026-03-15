@@ -792,25 +792,6 @@ function initUI() {
     initFeedbackModal();
     initEventListeners();
 
-    // ================== ГАЛОЧКА «Версия для ПК» ==================
-    const desktopMode = safeGetElement('desktopMode');
-    if (desktopMode) {
-        // Устанавливаем начальное состояние
-        document.body.classList.toggle('mobile-mode', !desktopMode.checked);
-        desktopMode.addEventListener('change', () => {
-            const isDesktop = desktopMode.checked;
-            document.body.classList.toggle('mobile-mode', !isDesktop);
-
-            const canvas = safeGetElement('editorCanvas');
-            if (canvas) {
-                canvas.style.touchAction = isDesktop ? 'auto' : 'none';
-            }
-
-            showNotification(isDesktop ? 'Режим ПК включён' : 'Мобильный режим включён');
-            dispatchStateChanged({ action: 'modeChanged' });
-        });
-    }
-
     // ================== EVENT BUS (единственный обработчик) ==================
     window.addEventListener('stateChanged', () => {
         updateElementList();
