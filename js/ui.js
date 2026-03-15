@@ -542,23 +542,28 @@ function closeFeedbackModal() {
 }
 
 async function submitFeedbackForm(formData) {
-    const config = window.getTelegramConfig();           // ← берём из config.js
+    const config = window.getTelegramConfig();
     const TELEGRAM_BOT_TOKEN = config.token;
     const TELEGRAM_CHAT_ID = config.chatId;
 
-    const receiptText = getReceiptText();
+    let receiptText = getReceiptText();
+
+    // 🔥 ОГРАНИЧИВАЕМ ДЛИНУ (Telegram максимум ~4096 символов)
+    if (receiptText.length > 3800) {
+        receiptText = receiptText.substring(0, 3800) + '\n\n... (полная смета слишком большая — смотрите в конструкторе)';
+    }
 
     const message = `
 📋 НОВАЯ ЗАЯВКА НА КОНСУЛЬТАЦИЮ
-👤 Клиент: ${formData.clientName}
-📞 Контакты: ${formData.clientContact}
-🏠 Тип помещения: ${formData.propertyType}
+👤 Клиент: ${formData.clientName || 'Не указано'}
+📞 Контакты: ${formData.clientContact || 'Не указано'}
+🏠 Тип помещения: ${formData.propertyType || 'Не указано'}
 📏 Площадь: ${formData.totalArea || 'Не указана'} м²
-💬 Дополнительная информация:
-${formData.additionalInfo || 'Не указана'}
+💬 Доп. информация: ${formData.additionalInfo || 'Не указана'}
+
 ━━━━━━━━━━━━━━━━━━━━
 ${receiptText}
-`;
+    `.trim();
 
     try {
         const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
@@ -567,26 +572,21 @@ ${receiptText}
             body: JSON.stringify({
                 chat_id: TELEGRAM_CHAT_ID,
                 text: message,
-                parse_mode: 'Markdown'
+                parse_mode: undefined   // ← всегда plain text (без Markdown)
             })
         });
+
         const result = await response.json();
-        if (!result.ok) {
-            const responsePlain = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    chat_id: TELEGRAM_CHAT_ID,
-                    text: message.replace(/\*/g, ''),
-                    parse_mode: null
-                })
-            });
-            const resultPlain = await responsePlain.json();
-            return resultPlain.ok;
+
+        if (result.ok) {
+            return true;
+        } else {
+            console.error('Telegram API error:', result);
+            throw new Error(result.description || 'Неизвестная ошибка Telegram');
         }
-        return result.ok;
     } catch (error) {
-        console.error('Ошибка отправки заявки:', error);
+        console.error('Ошибка отправки в Telegram:', error);
+        showNotification('Ошибка отправки заявки. Проверьте консоль (F12).');
         return false;
     }
 }
