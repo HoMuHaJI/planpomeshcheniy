@@ -32,7 +32,6 @@ body {
     color: var(--text-color);
     line-height: 1.6;
     min-height: 100vh;
-    overflow-x: hidden;
 }
 
 .container {
@@ -51,6 +50,18 @@ header {
     box-shadow: var(--shadow);
     position: relative;
     overflow: hidden;
+}
+
+header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100" opacity="0.1"><path d="M20,20 L80,20 L80,80 L20,80 Z" fill="white" stroke="white" stroke-width="2"/><path d="M30,30 L50,30 L50,50 L30,50 Z" fill="white" stroke="white" stroke-width="1"/><path d="M60,40 L70,40 L70,60 L60,60 Z" fill="white" stroke="white" stroke-width="1"/></svg>');
+    background-size: 200px;
+    opacity: 0.1;
 }
 
 .header-container {
@@ -76,6 +87,7 @@ header {
     display: flex;
     align-items: center;
     justify-content: center;
+    -webkit-backdrop-filter: blur(5px);
     backdrop-filter: blur(5px);
 }
 
@@ -137,6 +149,21 @@ header {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
+.contact-btn.phone {
+    background: rgba(52, 152, 219, 0.3);
+    border-color: rgba(52, 152, 219, 0.5);
+}
+
+.contact-btn.whatsapp {
+    background: rgba(37, 211, 102, 0.3);
+    border-color: rgba(37, 211, 102, 0.5);
+}
+
+.contact-btn.telegram {
+    background: rgba(0, 136, 204, 0.3);
+    border-color: rgba(0, 136, 204, 0.5);
+}
+
 .consult-btn {
     background: linear-gradient(135deg, var(--accent-color) 0%, #f85a3a 100%);
     color: white;
@@ -152,570 +179,8 @@ header {
     box-shadow: 0 4px 12px rgba(255, 126, 95, 0.3);
 }
 
-/* ========== ОСНОВНАЯ РАЗМЕТКА ========== */
-.app-container {
-    display: grid;
-    grid-template-columns: 1fr 380px;
-    gap: 25px;
-    margin-bottom: 40px;
-}
-
-.panel {
-    background: var(--white);
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow);
-    overflow: hidden;
-    transition: var(--transition);
-}
-
-.panel-header {
-    padding: 20px;
-    background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary-color) 100%);
-    color: var(--white);
-    font-weight: 600;
-    font-size: 1.1rem;
-    display: flex;
-    align-items: center;
-}
-
-.panel-content {
-    padding: 20px;
-}
-
-.tool-buttons {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 12px;
-}
-
-.tool-btn {
-    padding: 15px;
-    background-color: var(--white);
-    color: var(--text-color);
-    border: 1px solid var(--neutral-medium);
-    border-radius: 8px;
-    cursor: pointer;
-    text-align: center;
-    transition: var(--transition);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-weight: 500;
-}
-
-.tool-btn:hover {
-    background-color: var(--neutral-light);
-    border-color: var(--primary-light);
+.consult-btn:hover {
+    background: linear-gradient(135deg, #f85a3a 0%, #e04a2d 100%);
     transform: translateY(-2px);
-}
-
-.tool-btn.active {
-    background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary-color) 100%);
-    color: var(--white);
-    border-color: var(--primary-color);
-    box-shadow: 0 4px 8px rgba(74, 110, 224, 0.3);
-}
-
-.tool-btn i {
-    font-size: 24px;
-    margin-bottom: 8px;
-}
-
-/* Editor Panel */
-.editor-panel {
-    display: flex;
-    flex-direction: column;
-    min-height: 600px;
-}
-
-.editor-toolbar {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 20px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid var(--neutral-medium);
-    flex-wrap: wrap;
-}
-
-.editor-toolbar button {
-    padding: 10px 18px;
-    border-radius: 8px;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: var(--transition);
-}
-
-.editor-container {
-    flex: 1;
-    border: 1px solid var(--neutral-medium);
-    border-radius: 8px;
-    background-color: var(--white);
-    position: relative;
-    overflow: auto;
-    min-height: 500px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 20px;
-}
-
-#editorCanvas {
-    display: block;
-    cursor: default;
-    max-width: 100%;
-    touch-action: none;
-}
-
-.status-bar {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 15px;
-    font-size: 13px;
-    color: var(--text-light);
-    background: var(--neutral-light);
-    padding: 10px 15px;
-    border-radius: 8px;
-}
-
-/* Form Elements */
-.form-group {
-    margin-bottom: 20px;
-}
-
-label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 600;
-    color: var(--neutral-dark);
-}
-
-input, select, textarea, button {
-    width: 100%;
-    padding: 12px 15px;
-    border: 1px solid var(--neutral-medium);
-    border-radius: 8px;
-    font-size: 15px;
-    transition: var(--transition);
-}
-
-input:focus, select:focus, textarea:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(74, 110, 224, 0.1);
-}
-
-button {
-    background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary-color) 100%);
-    color: var(--white);
-    border: none;
-    cursor: pointer;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
-
-button:hover:not(:disabled) {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(74, 110, 224, 0.3);
-}
-
-button:disabled {
-    background: var(--neutral-medium);
-    color: var(--text-light);
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-}
-
-/* Element List */
-.element-list {
-    margin-top: 10px;
-    max-height: 220px;
-    overflow-y: auto;
-    border: 1px solid var(--neutral-medium);
-    border-radius: 8px;
-}
-
-.element-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 15px;
-    border-bottom: 1px solid var(--neutral-medium);
-    cursor: pointer;
-    transition: var(--transition);
-}
-
-.element-item:hover {
-    background-color: var(--neutral-light);
-}
-
-.element-item.selected {
-    background-color: rgba(74, 110, 224, 0.1);
-    border-left: 4px solid var(--primary-color);
-}
-
-.delete-btn {
-    background: var(--danger-color);
-    width: auto;
-    padding: 6px 10px;
-    font-size: 12px;
-    border-radius: 6px;
-}
-
-/* Receipt Styles */
-.receipt-container {
-    background: white;
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow);
-    padding: 0;
-    margin-top: 40px;
-    max-width: 800px;
-    margin-left: auto;
-    margin-right: auto;
-    border: 1px solid var(--neutral-medium);
-    overflow: hidden;
-}
-
-.receipt-header {
-    background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 100%);
-    color: white;
-    padding: 25px;
-    text-align: center;
-}
-
-.receipt-content {
-    padding: 25px;
-    font-family: 'Courier New', monospace;
-}
-
-.receipt-total {
-    font-weight: bold;
-    font-size: 1.3rem;
-    text-align: center;
-    margin-top: 25px;
-    padding: 20px;
-    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
-    border-radius: 10px;
-    border: 2px dashed #4caf50;
-}
-
-.receipt-actions {
-    padding: 20px;
-    background-color: var(--neutral-light);
-    border-top: 1px solid var(--neutral-medium);
-}
-
-.sharing-buttons {
-    display: flex;
-    gap: 15px;
-    justify-content: center;
-    flex-wrap: wrap;
-}
-
-.btn-max, .btn-copy, .btn-print {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-    color: white;
-    border: none;
-    padding: 12px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: var(--transition);
-    flex: 1;
-    min-width: 200px;
-    justify-content: center;
-}
-
-/* Modal */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(5px);
-}
-
-.modal-content {
-    background-color: var(--white);
-    margin: 2% auto;
-    padding: 0;
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow-hover);
-    width: 90%;
-    max-width: 600px;
-    max-height: 90vh;
-    overflow-y: auto;
-    animation: modalSlideIn 0.3s ease-out;
-}
-
-@keyframes modalSlideIn {
-    from {
-        opacity: 0;
-        transform: translateY(-50px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.modal-header {
-    background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 100%);
-    color: white;
-    padding: 25px;
-    border-radius: var(--border-radius) var(--border-radius) 0 0;
-    position: relative;
-}
-
-.close-modal {
-    position: absolute;
-    right: 20px;
-    top: 20px;
-    font-size: 28px;
-    font-weight: bold;
-    background: none;
-    border: none;
-    color: white;
-    cursor: pointer;
-    width: auto;
-    padding: 5px 10px;
-}
-
-.modal-body {
-    padding: 30px;
-}
-
-.notification {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: var(--success-color);
-    color: white;
-    padding: 15px 25px;
-    border-radius: 8px;
-    box-shadow: var(--shadow);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    z-index: 1000;
-    transform: translateY(100px);
-    opacity: 0;
-    transition: var(--transition);
-}
-
-.notification.show {
-    transform: translateY(0);
-    opacity: 1;
-}
-
-/* ========== АДАПТИВНОСТЬ ДЛЯ ПЛАНШЕТОВ ========== */
-@media (max-width: 1200px) {
-    .header-container {
-        flex-direction: column;
-        text-align: center;
-    }
-    
-    .header-contacts {
-        align-items: center;
-        width: 100%;
-    }
-    
-    .contact-buttons {
-        justify-content: center;
-    }
-    
-    .app-container {
-        grid-template-columns: 1fr 320px;
-    }
-}
-
-/* ========== МОБИЛЬНЫЕ СТИЛИ (до 768px) ========== */
-@media (max-width: 768px) {
-    /* Увеличение интерактивных элементов */
-    .toolbar-btn {
-        width: 48px !important;
-        height: 48px !important;
-        font-size: 20px;
-    }
-    
-    input, select, textarea, button {
-        padding: 14px 16px;
-        font-size: 16px;
-        min-height: 48px;
-    }
-    
-    .checkbox-item {
-        padding: 12px;
-    }
-    
-    .checkbox-item input[type="checkbox"] {
-        width: 24px;
-        height: 24px;
-        transform: none;
-    }
-    
-    .checkbox-item label {
-        font-size: 16px;
-        line-height: 24px;
-    }
-    
-    .element-item {
-        padding: 14px 16px;
-        min-height: 52px;
-    }
-    
-    .delete-btn {
-        padding: 10px 16px;
-        font-size: 14px;
-    }
-    
-    /* Перестраиваем layout: одна колонка */
-    .app-container {
-        grid-template-columns: 1fr;
-        gap: 15px;
-    }
-    
-    /* Внутри editor-panel задаём порядок: тулбар сверху, холст под ним, статус-бар под холстом */
-    .editor-panel {
-        min-height: 0;
-    }
-    
-    .editor-panel .panel-content {
-        display: flex;
-        flex-direction: column;
-        padding: 10px;
-    }
-    
-    .editor-toolbar {
-        order: 1;
-        margin-bottom: 10px;
-        padding-bottom: 10px;
-    }
-    
-    .editor-container {
-        order: 2;
-        min-height: 350px !important;
-        height: 40vh;
-        margin-bottom: 10px;
-    }
-    
-    .status-bar {
-        order: 3;
-        font-size: 11px;
-        padding: 8px;
-    }
-    
-    /* Панель свойств (второй .panel) идёт своим порядком (после .editor-panel) */
-    .app-container > .panel:last-child {
-        position: static;
-        width: 100%;
-        max-width: 100%;
-        height: auto;
-        max-height: none;
-        transform: none;
-        box-shadow: var(--shadow);
-        margin-top: 10px;
-    }
-    
-    /* Адаптация сметы */
-    .receipt-content {
-        padding: 15px;
-        font-size: 12px;
-    }
-    
-    .receipt-work-name,
-    .receipt-work-calculation,
-    .receipt-work-cost {
-        font-size: 11px;
-    }
-    
-    .receipt-total {
-        font-size: 1rem;
-        padding: 15px;
-    }
-    
-    .sharing-buttons {
-        flex-direction: column;
-    }
-    
-    .btn-max, .btn-copy, .btn-print {
-        min-width: 100%;
-    }
-    
-    /* Header адаптация */
-    .logo h1 {
-        font-size: 1.5rem;
-    }
-    
-    .logo-icon {
-        width: 50px;
-        height: 50px;
-        font-size: 1.8rem;
-    }
-    
-    .contact-buttons {
-        flex-direction: column;
-        width: 100%;
-    }
-    
-    .contact-btn {
-        width: 100%;
-        justify-content: center;
-    }
-}
-
-/* ========== СТИЛИ ДЛЯ ПЕЧАТИ ========== */
-@media print {
-    body * { visibility: hidden; }
-    
-    header, .receipt-container, .feedback-section,
-    header *, .receipt-container *, .feedback-section * {
-        visibility: visible;
-    }
-    
-    .app-container, .panel, canvas, .toolbar, .controls, .modal, .notification,
-    .receipt-actions, .sharing-buttons, .btn-max, .btn-copy, .btn-print, .btn-feedback,
-    #loadProjectInput, #scrollToTopBtn {
-        display: none !important;
-    }
-    
-    header, .receipt-container, .feedback-section {
-        position: static;
-        margin: 0;
-        padding: 10px;
-        background: white !important;
-        color: black !important;
-        box-shadow: none;
-        border: none;
-    }
-    
-    .receipt-content {
-        font-size: 10pt;
-        line-height: 1.4;
-    }
-    
-    body {
-        background: white;
-        color: black;
-        margin: 0;
-        padding: 10mm;
-    }
-    
-    @page {
-        margin: 1.5cm;
-    }
+    box-shadow: 0 6px 16px rgba(255, 126, 95, 0.4);
 }
