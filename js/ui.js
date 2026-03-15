@@ -542,8 +542,10 @@ function closeFeedbackModal() {
 }
 
 async function submitFeedbackForm(formData) {
-    const TELEGRAM_BOT_TOKEN = '8142957488:AAGDsEIsGdtrCX-ZyvOD7nJjaVVD3_YIFks';
-    const TELEGRAM_CHAT_ID = '-1001701431569';
+    const config = window.getTelegramConfig();           // ← берём из config.js
+    const TELEGRAM_BOT_TOKEN = config.token;
+    const TELEGRAM_CHAT_ID = config.chatId;
+
     const receiptText = getReceiptText();
 
     const message = `
