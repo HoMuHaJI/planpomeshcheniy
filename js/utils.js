@@ -1,46 +1,29 @@
-// js/utils.js – общие утилиты
+// js/utils.js – общие утилиты + Event Bus
 
-// Безопасное получение элемента DOM
 function safeGetElement(id) {
     const element = document.getElementById(id);
-    if (!element) {
-        console.warn(`Element with id '${id}' not found`);
-    }
+    if (!element) console.warn(`Element with id '${id}' not found`);
     return element;
 }
 
-// Экранирование HTML
 function escapeHTML(str) {
     if (!str || typeof str !== 'string') return '';
-    return str.replace(/[&<>"']/g, function(m) {
-        return {
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#39;'
-        }[m];
-    });
+    return str.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]);
 }
 
-// Генерация уникального ID
 function generateId() {
     return Date.now().toString(36) + Math.random().toString(36).substr(2);
 }
 
-// Показ уведомления
 function showNotification(message) {
     const notification = safeGetElement('notification');
     const notificationText = safeGetElement('notificationText');
     if (!notification || !notificationText) return;
     notificationText.textContent = escapeHTML(message);
     notification.classList.add('show');
-    setTimeout(() => {
-        notification.classList.remove('show');
-    }, 3000);
+    setTimeout(() => notification.classList.remove('show'), 3000);
 }
 
-// Throttle для частых событий
 function throttle(func, limit) {
     let inThrottle;
     return function(...args) {
@@ -52,7 +35,6 @@ function throttle(func, limit) {
     };
 }
 
-// Копирование текста в буфер обмена
 function copyToClipboard(text) {
     if (navigator.clipboard?.writeText) {
         navigator.clipboard.writeText(text);
@@ -69,14 +51,12 @@ function copyToClipboard(text) {
 }
 
 // ================== EVENT BUS ==================
-// Центральное событие — всё обновление интерфейса через него
 function dispatchStateChanged(detail = {}) {
     const event = new CustomEvent('stateChanged', {
         detail: { timestamp: Date.now(), ...detail }
     });
     window.dispatchEvent(event);
 }
-
 
 // Экспорт в глобальную область
 window.safeGetElement = safeGetElement;

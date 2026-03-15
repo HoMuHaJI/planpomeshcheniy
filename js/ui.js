@@ -46,10 +46,6 @@ function updateElementList() {
         item.addEventListener('click', (e) => {
             if (e.target.classList.contains('delete-btn') || e.target.parentElement?.classList.contains('delete-btn')) return;
             selectRoom(room);
-            const canvas = safeGetElement('editorCanvas');
-            if (canvas && typeof draw === 'function') {
-                draw(canvas, canvas.getContext('2d'));
-            }
         });
 
         const deleteBtn = item.querySelector('.delete-btn');
@@ -64,45 +60,41 @@ function updateElementList() {
 
         // Окна
         if (room.windows && Array.isArray(room.windows)) {
-            room.windows.forEach(window => {
-                if (!window) return;
+            room.windows.forEach(windowEl => {
+                if (!windowEl) return;
 
                 let slopesColor = '#888';
                 let slopesText = 'Без откосов';
-                if (window.slopes === 'with') {
+                if (windowEl.slopes === 'with') {
                     slopesColor = '#4a6ee0';
                     slopesText = 'С откосами';
-                } else if (window.slopes === 'with_net') {
+                } else if (windowEl.slopes === 'with_net') {
                     slopesColor = '#ffc107';
                     slopesText = 'С откосами и сеткой';
                 }
 
                 const windowItem = document.createElement('div');
                 windowItem.className = 'element-item';
-                if (window.selectedElementObj && window.selectedElementObj.id === window.id) {
+                if (window.selectedElementObj && window.selectedElementObj.id === windowEl.id) {
                     windowItem.classList.add('selected');
                 }
                 windowItem.innerHTML = `
                     <div style="display: flex; align-items: center; gap: 8px; margin-left: 20px;">
-                        <span>Окно: ${window.width}x${window.height} м (L: ${(window.leftOffset || 0).toFixed(2)}м, R: ${(window.rightOffset || 0).toFixed(2)}м)</span>
+                        <span>Окно: ${windowEl.width}x${windowEl.height} м (L: ${(windowEl.leftOffset || 0).toFixed(2)}м, R: ${(windowEl.rightOffset || 0).toFixed(2)}м)</span>
                         <span class="slopes-indicator" style="background-color: ${slopesColor};" title="${slopesText}"></span>
                     </div>
-                    <button class="delete-btn" data-id="${window.id}" data-type="window"><i class="fas fa-trash"></i></button>
+                    <button class="delete-btn" data-id="${windowEl.id}" data-type="window"><i class="fas fa-trash"></i></button>
                 `;
                 windowItem.addEventListener('click', (e) => {
                     if (e.target.classList.contains('delete-btn') || e.target.parentElement?.classList.contains('delete-btn')) return;
-                    selectElement(window);
-                    const canvas = safeGetElement('editorCanvas');
-                    if (canvas && typeof draw === 'function') {
-                        draw(canvas, canvas.getContext('2d'));
-                    }
+                    selectElement(windowEl);
                 });
 
                 const deleteBtn = windowItem.querySelector('.delete-btn');
                 if (deleteBtn) {
                     deleteBtn.addEventListener('click', (e) => {
                         e.stopPropagation();
-                        deleteWindow(room, window);
+                        deleteWindow(room, windowEl);
                     });
                 }
 
@@ -140,10 +132,6 @@ function updateElementList() {
                 doorItem.addEventListener('click', (e) => {
                     if (e.target.classList.contains('delete-btn') || e.target.parentElement?.classList.contains('delete-btn')) return;
                     selectElement(door);
-                    const canvas = safeGetElement('editorCanvas');
-                    if (canvas && typeof draw === 'function') {
-                        draw(canvas, canvas.getContext('2d'));
-                    }
                 });
 
                 const deleteBtn = doorItem.querySelector('.delete-btn');
@@ -160,7 +148,7 @@ function updateElementList() {
     });
 }
 
-// ================== ФУНКЦИИ УДАЛЕНИЯ ==================
+// ================== ФУНКЦИИ УДАЛЕНИЯ (только dispatch) ==================
 function deleteRoom(room) {
     if (!room) return;
     if (confirm(`Удалить комнату "${room.name}"?`)) {
@@ -171,13 +159,7 @@ function deleteRoom(room) {
             window.selectedElementObj = null;
             hideAllProperties();
         }
-        updateElementList();
-        updateProjectSummary();
-        calculateCost();
-        const canvas = safeGetElement('editorCanvas');
-        if (canvas && typeof centerView === 'function') {
-            centerView(canvas);
-        }
+        dispatchStateChanged({ action: 'elementDeleted', type: 'room' });
         showNotification('Комната удалена');
     }
 }
@@ -191,13 +173,7 @@ function deleteWindow(room, windowEl) {
             window.selectedElementObj = null;
             hideAllProperties();
         }
-        updateElementList();
-        updateProjectSummary();
-        calculateCost();
-        const canvas = safeGetElement('editorCanvas');
-        if (canvas && typeof draw === 'function') {
-            draw(canvas, canvas.getContext('2d'));
-        }
+        dispatchStateChanged({ action: 'elementDeleted', type: 'window' });
         showNotification('Окно удалено');
     }
 }
@@ -211,13 +187,7 @@ function deleteDoor(room, door) {
             window.selectedElementObj = null;
             hideAllProperties();
         }
-        updateElementList();
-        updateProjectSummary();
-        calculateCost();
-        const canvas = safeGetElement('editorCanvas');
-        if (canvas && typeof draw === 'function') {
-            draw(canvas, canvas.getContext('2d'));
-        }
+        dispatchStateChanged({ action: 'elementDeleted', type: 'door' });
         showNotification('Дверь удалена');
     }
 }
@@ -307,7 +277,7 @@ function hideAllProperties() {
     if (selectedElement) selectedElement.textContent = 'Не выбран';
 }
 
-// ================== ОБРАБОТЧИКИ ПОЛЕЙ ВВОДА (ВЫНЕСЕНЫ НА УРОВЕНЬ МОДУЛЯ) ==================
+// ================== ОБРАБОТЧИКИ ПОЛЕЙ ВВОДА ==================
 function windowInputHandler(e) {
     if (applyWindowChangesBtn) applyWindowChangesBtn.disabled = false;
     if (e.target.id === 'windowSlopes') {
@@ -371,7 +341,7 @@ function roomCheckboxHandler(e) {
          this.id === 'puttyPaint' ? '#9b59b6' :
          '#e74c3c') : '#ccc';
     updateCheckboxColor(this.id, color);
-    // Логика взаимного исключения (как ранее)
+    // Логика взаимного исключения
     if (this === puttyWallpaperCheckbox && this.checked) {
         if (puttyPaintCheckbox) { puttyPaintCheckbox.checked = false; updateCheckboxColor('puttyPaint', '#ccc'); }
         if (paintingCheckbox) { paintingCheckbox.checked = false; paintingCheckbox.disabled = true; updateCheckboxColor('painting', '#ccc'); }
@@ -743,7 +713,7 @@ function initUI() {
     if (puttyPaintCheckbox) puttyPaintCheckbox.addEventListener('change', roomCheckboxHandler);
     if (paintingCheckbox) paintingCheckbox.addEventListener('change', roomCheckboxHandler);
 
-    // Кнопки "Применить"
+    // Кнопки "Применить" (теперь используют Event Bus)
     if (applyRoomChangesBtn) {
         applyRoomChangesBtn.addEventListener('click', () => {
             if (!window.selectedRoom) return;
@@ -763,11 +733,7 @@ function initUI() {
             window.selectedRoom.puttyPaint = puttyPaintCheckbox ? puttyPaintCheckbox.checked : window.selectedRoom.puttyPaint;
             window.selectedRoom.painting = paintingCheckbox ? paintingCheckbox.checked : window.selectedRoom.painting;
             applyRoomChangesBtn.disabled = true;
-            updateElementList();
-            updateProjectSummary();
-            calculateCost();
-            const canvas = safeGetElement('editorCanvas');
-            if (canvas && typeof draw === 'function') draw(canvas, canvas.getContext('2d'));
+            dispatchStateChanged({ action: 'propertiesApplied', type: 'room' });
             showNotification('Изменения применены');
         });
     }
@@ -787,11 +753,7 @@ function initUI() {
             window.selectedElementObj.wall = windowWall ? windowWall.value : window.selectedElementObj.wall;
             window.selectedElementObj.slopes = windowSlopes ? windowSlopes.value : window.selectedElementObj.slopes;
             applyWindowChangesBtn.disabled = true;
-            updateElementList();
-            updateProjectSummary();
-            calculateCost();
-            const canvas = safeGetElement('editorCanvas');
-            if (canvas && typeof draw === 'function') draw(canvas, canvas.getContext('2d'));
+            dispatchStateChanged({ action: 'propertiesApplied', type: 'window' });
             showNotification('Изменения применены');
         });
     }
@@ -811,11 +773,7 @@ function initUI() {
             window.selectedElementObj.wall = doorWall ? doorWall.value : window.selectedElementObj.wall;
             window.selectedElementObj.slopes = doorSlopes ? doorSlopes.value : window.selectedElementObj.slopes;
             applyDoorChangesBtn.disabled = true;
-            updateElementList();
-            updateProjectSummary();
-            calculateCost();
-            const canvas = safeGetElement('editorCanvas');
-            if (canvas && typeof draw === 'function') draw(canvas, canvas.getContext('2d'));
+            dispatchStateChanged({ action: 'propertiesApplied', type: 'door' });
             showNotification('Изменения применены');
         });
     }
@@ -832,8 +790,7 @@ function initUI() {
     initFeedbackModal();
     initEventListeners();
 
-// ================== EVENT BUS ==================
-    // Один обработчик на все изменения состояния
+    // ================== EVENT BUS (единственный обработчик) ==================
     window.addEventListener('stateChanged', () => {
         updateElementList();
         updateProjectSummary();
@@ -878,12 +835,10 @@ function initEventListeners() {
             window.selectedElementObj = null;
             window.roomCounter = 1;
             hideAllProperties();
-            updateElementList();
-            updateProjectSummary();
-            calculateCost();
+            clearHistory();
+            dispatchStateChanged({ action: 'newProject' });
             const canvas = safeGetElement('editorCanvas');
             if (canvas && typeof centerView === 'function') centerView(canvas);
-            clearHistory();
             showNotification('Новый проект создан');
         });
     }
@@ -898,9 +853,7 @@ function initEventListeners() {
                 window.selectedElementObj = null;
                 window.roomCounter = 1;
                 hideAllProperties();
-                updateElementList();
-                updateProjectSummary();
-                calculateCost();
+                dispatchStateChanged({ action: 'clearAll' });
                 const canvas = safeGetElement('editorCanvas');
                 if (canvas && typeof centerView === 'function') centerView(canvas);
                 showNotification('Все комнаты удалены');

@@ -246,8 +246,8 @@ function findElementAt(x, y) {
 
         if (room.windows && Array.isArray(room.windows)) {
             for (let j = room.windows.length - 1; j >= 0; j--) {
-                const window = room.windows[j];
-                if (isPointNearElement(room, window, x, y)) return window;
+                const windowEl = room.windows[j];
+                if (isPointNearElement(room, windowEl, x, y)) return windowEl;
             }
         }
         if (room.doors && Array.isArray(room.doors)) {
@@ -306,31 +306,21 @@ function findNearestWall(room, x, y) {
     return { wall, leftOffset };
 }
 
+// ================== ВЫДЕЛЕНИЕ (только dispatch) ==================
 function selectRoom(room) {
     window.selectedRoom = room;
     window.selectedElementObj = room;
     updatePropertiesPanel(room);
-    updateElementList();
-    const selectedElement = safeGetElement('selectedElement');
-    if (selectedElement) {
-        selectedElement.textContent = `Комната: ${escapeHTML(room.name)}`;
-    }
+    dispatchStateChanged({ action: 'selectionChanged', type: 'room' });
 }
 
 function selectElement(element) {
     window.selectedElementObj = element;
     updatePropertiesPanel(element);
-    updateElementList();
-    const selectedElement = safeGetElement('selectedElement');
-    if (selectedElement) {
-        if (element.type === 'window') {
-            selectedElement.textContent = `Окно: ${element.width}x${element.height} м`;
-        } else if (element.type === 'door') {
-            selectedElement.textContent = `Дверь: ${element.width}x${element.height} м`;
-        }
-    }
+    dispatchStateChanged({ action: 'selectionChanged', type: element.type });
 }
 
+// ================== ДОБАВЛЕНИЕ ЭЛЕМЕНТА ==================
 function addElementToRoom(type, room, wall, rawLeftOffset) {
     const wallLength = wall === 'top' || wall === 'bottom' ?
         (room.width / window.scale) : (room.height / window.scale);

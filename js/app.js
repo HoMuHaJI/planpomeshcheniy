@@ -82,7 +82,6 @@ function undo() {
         window.selectedRoom = null;
         window.selectedElementObj = null;
 
-        // Обновление через Event Bus
         dispatchStateChanged({ action: 'undo' });
 
         updateUndoRedoButtons();
@@ -524,12 +523,10 @@ function loadDemoProject() {
     }
     window.selectedRoom = null;
     window.selectedElementObj = null;
-    if (typeof hideAllProperties === 'function') hideAllProperties();
-    if (typeof updateElementList === 'function') updateElementList();
-    if (typeof updateProjectSummary === 'function') updateProjectSummary();
-    if (typeof calculateCost === 'function') calculateCost();
-    
-    // Центрируем вид после того, как canvas отрисован
+    hideAllProperties();
+
+    dispatchStateChanged({ action: 'demoLoaded' });
+
     requestAnimationFrame(() => {
         const canvas = safeGetElement('editorCanvas');
         if (canvas && typeof centerView === 'function') {
@@ -596,7 +593,7 @@ function initKeyboardHandlers() {
                 window.selectedRoom = null;
                 window.selectedElementObj = null;
                 if (typeof hideAllProperties === 'function') hideAllProperties();
-                if (typeof updateElementList === 'function') updateElementList();
+                updateElementList();
                 const canvas = safeGetElement('editorCanvas');
                 if (canvas && typeof draw === 'function') draw(canvas, canvas.getContext('2d'));
                 showNotification('Выделение снято');
