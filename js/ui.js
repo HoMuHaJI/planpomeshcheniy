@@ -648,54 +648,6 @@ function initFeedbackModal() {
     });
 }
 
-// ================== МОБИЛЬНАЯ ВЫДВИЖНАЯ ПАНЕЛЬ ==================
-function initMobileUI() {
-    const toggleBtn = document.getElementById('togglePropertiesBtn');
-    const propertiesPanel = document.querySelector('.app-container > .panel:last-child');
-    if (!toggleBtn || !propertiesPanel) return;
-
-    // Создаём overlay, если его нет
-    let overlay = document.querySelector('.panel-overlay');
-    if (!overlay) {
-        overlay = document.createElement('div');
-        overlay.className = 'panel-overlay';
-        document.body.appendChild(overlay);
-    }
-
-    toggleBtn.addEventListener('click', () => {
-        propertiesPanel.classList.toggle('properties-panel--open');
-        overlay.classList.toggle('active');
-    });
-
-    overlay.addEventListener('click', () => {
-        propertiesPanel.classList.remove('properties-panel--open');
-        overlay.classList.remove('active');
-    });
-
-    // Закрытие свайпом вправо (для touch-устройств)
-    let touchStartX = 0;
-    propertiesPanel.addEventListener('touchstart', (e) => {
-        touchStartX = e.touches[0].clientX;
-    }, { passive: true });
-
-    propertiesPanel.addEventListener('touchend', (e) => {
-        const touchEndX = e.changedTouches[0].clientX;
-        const deltaX = touchEndX - touchStartX;
-        if (deltaX > 50 && propertiesPanel.classList.contains('properties-panel--open')) {
-            propertiesPanel.classList.remove('properties-panel--open');
-            overlay.classList.remove('active');
-        }
-    });
-
-    // При изменении размера окна проверяем, нужно ли скрыть панель при переходе на десктоп
-    window.addEventListener('resize', () => {
-        if (window.innerWidth > 768) {
-            propertiesPanel.classList.remove('properties-panel--open');
-            overlay.classList.remove('active');
-        }
-    });
-}
-
 // ================== ИНИЦИАЛИЗАЦИЯ UI ==================
 function initUI() {
     console.log('✓ initUI called');
@@ -852,10 +804,10 @@ function initUI() {
         }
     });
 
-    // Инициализация мобильного UI, если ширина <= 768
-    if (window.innerWidth <= 768) {
-        initMobileUI();
-    }
+    // Мобильная выдвижная панель больше не используется — убрали вызов
+    // if (window.innerWidth <= 768) {
+    //     initMobileUI();
+    // }
 }
 
 // ================== ОБРАБОТЧИКИ СОБЫТИЙ (КНОПКИ ИНТЕРФЕЙСА) ==================

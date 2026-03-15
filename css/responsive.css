@@ -259,6 +259,7 @@ header {
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-bottom: 20px;
 }
 
 #editorCanvas {
@@ -521,7 +522,7 @@ button:disabled {
     opacity: 1;
 }
 
-/* ========== АДАПТИВНОСТЬ ДЛЯ ПЛАНШЕТОВ (до 1200px) ========== */
+/* ========== АДАПТИВНОСТЬ ДЛЯ ПЛАНШЕТОВ ========== */
 @media (max-width: 1200px) {
     .header-container {
         flex-direction: column;
@@ -544,7 +545,7 @@ button:disabled {
 
 /* ========== МОБИЛЬНЫЕ СТИЛИ (до 768px) ========== */
 @media (max-width: 768px) {
-    /* 1. Увеличение интерактивных элементов */
+    /* Увеличение интерактивных элементов */
     .toolbar-btn {
         width: 48px !important;
         height: 48px !important;
@@ -554,6 +555,7 @@ button:disabled {
     input, select, textarea, button {
         padding: 14px 16px;
         font-size: 16px;
+        min-height: 48px;
     }
     
     .checkbox-item {
@@ -581,31 +583,34 @@ button:disabled {
         font-size: 14px;
     }
     
-    /* 2. Перенос панели инструментов под холст */
+    /* Перестраиваем layout: тулбар сверху, холст, свойства снизу */
+    .app-container {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
     .editor-panel {
+        order: 1;
         min-height: 0;
-        height: auto;
-        display: flex;
-        flex-direction: column;
     }
     
     .editor-panel .panel-content {
         display: flex;
         flex-direction: column;
-        flex: 1 1 auto;
         padding: 10px;
     }
     
-    .editor-container {
+    .editor-toolbar {
         order: 1;
-        flex: 1 1 auto;
-        min-height: 350px !important;
-        height: auto;
+        margin-bottom: 10px;
+        padding-bottom: 10px;
     }
     
-    .editor-toolbar {
+    .editor-container {
         order: 2;
-        margin-top: 10px;
+        min-height: 350px !important;
+        height: 40vh;
+        margin-bottom: 10px;
     }
     
     .status-bar {
@@ -614,68 +619,28 @@ button:disabled {
         padding: 8px;
     }
     
-    /* 3. Выдвижная панель свойств */
-    .app-container {
-        position: relative;
-        overflow: hidden;
-        grid-template-columns: 1fr;
-    }
-    
+    /* Панель свойств переносим под холст */
     .app-container > .panel:last-child {
-        position: fixed;
-        top: 0;
-        right: -100%;
-        width: 85%;
-        max-width: 400px;
-        height: 100vh;
-        z-index: 2000;
-        transition: right 0.3s ease;
-        box-shadow: -2px 0 10px rgba(0,0,0,0.2);
-        overflow-y: auto;
-        background: white;
-    }
-    
-    .app-container > .panel:last-child.properties-panel--open {
-        right: 0;
-    }
-    
-    /* Затемнение фона */
-    .panel-overlay {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
+        order: 2;
+        position: static;
         width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.5);
-        z-index: 1999;
-    }
-    
-    .panel-overlay.active {
-        display: block;
-    }
-    
-    /* Кнопка-гамбургер для открытия панели */
-    .mobile-menu-btn {
-        display: flex !important;
-        align-items: center;
-        justify-content: center;
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        width: 56px;
-        height: 56px;
-        border-radius: 50%;
-        background: var(--primary-color);
-        color: white;
-        border: none;
+        max-width: 100%;
+        height: auto;
+        max-height: none;
+        transform: none;
         box-shadow: var(--shadow);
-        z-index: 1001;
-        font-size: 24px;
-        cursor: pointer;
     }
     
-    /* 4. Адаптация сметы */
+    /* Скрываем мобильную кнопку (на всякий случай) */
+    .mobile-menu-btn {
+        display: none !important;
+    }
+    
+    .panel-overlay {
+        display: none !important;
+    }
+    
+    /* Адаптация сметы */
     .receipt-content {
         padding: 15px;
         font-size: 12px;
@@ -700,7 +665,7 @@ button:disabled {
         min-width: 100%;
     }
     
-    /* 5. Header адаптация */
+    /* Header адаптация */
     .logo h1 {
         font-size: 1.5rem;
     }
@@ -720,11 +685,23 @@ button:disabled {
         width: 100%;
         justify-content: center;
     }
-}
-
-/* Скрываем мобильную кнопку на десктопе */
-.mobile-menu-btn {
-    display: none;
+    
+    /* Свойства комнат/окон/дверей - аккордеон */
+    .properties-section {
+        margin-bottom: 15px;
+    }
+    
+    .properties-section h4 {
+        background: var(--neutral-light);
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        cursor: pointer;
+    }
+    
+    .properties-content {
+        display: block;
+    }
 }
 
 /* ========== СТИЛИ ДЛЯ ПЕЧАТИ ========== */
