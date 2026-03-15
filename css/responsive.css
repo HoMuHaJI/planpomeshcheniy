@@ -583,14 +583,14 @@ button:disabled {
         font-size: 14px;
     }
     
-    /* Перестраиваем layout: тулбар сверху, холст, свойства снизу */
+    /* Перестраиваем layout: одна колонка */
     .app-container {
         grid-template-columns: 1fr;
         gap: 15px;
     }
     
+    /* Внутри editor-panel задаём порядок: тулбар сверху, холст под ним, статус-бар под холстом */
     .editor-panel {
-        order: 1;
         min-height: 0;
     }
     
@@ -619,9 +619,8 @@ button:disabled {
         padding: 8px;
     }
     
-    /* Панель свойств переносим под холст */
+    /* Панель свойств (второй .panel) идёт своим порядком (после .editor-panel) */
     .app-container > .panel:last-child {
-        order: 2;
         position: static;
         width: 100%;
         max-width: 100%;
@@ -629,15 +628,7 @@ button:disabled {
         max-height: none;
         transform: none;
         box-shadow: var(--shadow);
-    }
-    
-    /* Скрываем мобильную кнопку (на всякий случай) */
-    .mobile-menu-btn {
-        display: none !important;
-    }
-    
-    .panel-overlay {
-        display: none !important;
+        margin-top: 10px;
     }
     
     /* Адаптация сметы */
@@ -684,23 +675,6 @@ button:disabled {
     .contact-btn {
         width: 100%;
         justify-content: center;
-    }
-    
-    /* Свойства комнат/окон/дверей - аккордеон */
-    .properties-section {
-        margin-bottom: 15px;
-    }
-    
-    .properties-section h4 {
-        background: var(--neutral-light);
-        padding: 12px;
-        border-radius: 8px;
-        margin-bottom: 10px;
-        cursor: pointer;
-    }
-    
-    .properties-content {
-        display: block;
     }
 }
 
