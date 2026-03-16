@@ -608,14 +608,8 @@ function getBriefReceiptText() {
  * Отправка формы обратной связи в Telegram с таймаутом и улучшенной обработкой ошибок
  */
 async function submitFeedbackForm(formData) {
-    const config = window.getTelegramConfig();
-    const TELEGRAM_BOT_TOKEN = config.token;
-    const TELEGRAM_CHAT_ID = config.chatId;
-
-    // Используем краткую смету вместо полной
-    let receiptText = getBriefReceiptText();
-
-    // Локализуем тип помещения
+    // Формируем текст сообщения (без изменений)
+    const receiptText = getBriefReceiptText();
     const propertyTypeRussian = propertyTypeMap[formData.propertyType] || formData.propertyType || 'Не указано';
 
     const message = `
@@ -630,19 +624,17 @@ async function submitFeedbackForm(formData) {
 ${receiptText}
     `.trim();
 
-    // Создаём контроллер для тайм-аута
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 секунд тайм-аут
 
     try {
-        const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+        // ⚠️ ЗАМЕНИТЕ URL НА АДРЕС ВАШЕГО WORKER
+        const workerUrl = 'https://dark-sun-ba5c.nikolay-k.workers.dev'; // ваш URL
+
+        const response = await fetch(workerUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                chat_id: TELEGRAM_CHAT_ID,
-                text: message,
-                parse_mode: undefined
-            }),
+            body: JSON.stringify({ text: message, parse_mode: undefined }),
             signal: controller.signal
         });
 
@@ -653,16 +645,16 @@ ${receiptText}
         if (result.ok) {
             return true;
         } else {
-            console.error('Telegram API error:', result);
-            throw new Error(result.description || 'Неизвестная ошибка Telegram');
+            console.error('Worker error:', result);
+            throw new Error(result.description || 'Ошибка отправки');
         }
     } catch (error) {
         clearTimeout(timeoutId);
         if (error.name === 'AbortError') {
             throw new Error('Превышено время ожидания ответа. Пожалуйста, попробуйте ещё раз.');
         }
-        console.error('Ошибка отправки в Telegram:', error);
-        throw error; // Пробрасываем дальше для обработки в форме
+        console.error('Ошибка отправки в Worker:', error);
+        throw error; // Пробрасываем для обработки в форме
     }
 }
 
