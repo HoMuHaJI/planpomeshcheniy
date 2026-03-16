@@ -625,7 +625,7 @@ ${receiptText}
     `.trim();
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 секунд тайм-аут
+    const timeoutId = setTimeout(() => controller.abort(), 20000); // 20 секунд тайм-аут
 
     try {
         // ⚠️ ЗАМЕНИТЕ URL НА АДРЕС ВАШЕГО WORKER
