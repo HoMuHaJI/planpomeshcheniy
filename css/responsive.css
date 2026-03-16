@@ -898,7 +898,7 @@ button:disabled {
 /* ========== ДЕСКТОПНАЯ ВЕРСИЯ (исправление высоты холста) ========== */
 @media (min-width: 769px) {
     .editor-container {
-        min-height: 1000px !important;
+        min-height: 900px !important;
     }
 }
 /* ========== СТИЛИ ДЛЯ ПЕЧАТИ ========== */
