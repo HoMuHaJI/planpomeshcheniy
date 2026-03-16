@@ -541,7 +541,7 @@ function loadDemoProject() {
 }
 
 // ============================================
-// КЛАВИАТУРНЫЕ КОМАНДЫ
+// КЛАВИАТУРНЫЕ КОМАНДЫ (исправлено для любой раскладки)
 // ============================================
 function initKeyboardHandlers() {
     document.addEventListener('keydown', (e) => {
@@ -550,11 +550,36 @@ function initKeyboardHandlers() {
                                activeElement.tagName === 'TEXTAREA' ||
                                activeElement.tagName === 'SELECT';
 
-        if (e.ctrlKey && e.key === 'z') { e.preventDefault(); undo(); return; }
-        if (e.ctrlKey && e.key === 'y') { e.preventDefault(); redo(); return; }
+        // ===== ГЛОБАЛЬНЫЕ КОМБИНАЦИИ (всегда работают, даже в полях ввода, но с Ctrl) =====
+        if (e.ctrlKey && e.key === 's') {
+            e.preventDefault();
+            saveProject();
+            return;
+        }
+        // Используем e.code для Ctrl+Z / Ctrl+Y, чтобы они работали в любой раскладке
+        if (e.ctrlKey && e.code === 'KeyZ') {
+            e.preventDefault();
+            undo();
+            return;
+        }
+        if (e.ctrlKey && e.code === 'KeyY') {
+            e.preventDefault();
+            redo();
+            return;
+        }
+        if (e.ctrlKey && e.code === 'KeyN') {
+            e.preventDefault();
+            const newProjectBtn = safeGetElement('newProject');
+            if (newProjectBtn) newProjectBtn.click();
+            return;
+        }
 
-        if (e.key === 'Delete' || e.key === 'Del') {
-            if (isInputFocused) return;
+        // Если фокус в поле ввода – дальше не обрабатываем одиночные клавиши
+        if (isInputFocused) return;
+
+        // ===== ОДИНОЧНЫЕ КЛАВИШИ (используем e.code для незавимости от раскладки) =====
+        // Удаление выбранного элемента
+        if (e.code === 'Delete') {
             if (window.selectedElementObj) {
                 if (window.selectedElementObj.type === 'room') {
                     if (typeof deleteRoom === 'function') deleteRoom(window.selectedElementObj);
@@ -567,17 +592,53 @@ function initKeyboardHandlers() {
             return;
         }
 
+        // Escape – снять выделение
+        if (e.code === 'Escape') {
+            window.selectedRoom = null;
+            window.selectedElementObj = null;
+            if (typeof hideAllProperties === 'function') hideAllProperties();
+            updateElementList();
+            const canvas = safeGetElement('editorCanvas');
+            if (canvas && typeof draw === 'function') draw(canvas, canvas.getContext('2d'));
+            showNotification('Выделение снято');
+            return;
+        }
+
+        // Переключение инструментов (физические клавиши V, R, W, D)
+        switch (e.code) {
+            case 'KeyV':
+                e.preventDefault();
+                document.querySelector('.tool-btn[data-tool="select"]')?.click();
+                break;
+            case 'KeyR':
+                e.preventDefault();
+                document.querySelector('.tool-btn[data-tool="room"]')?.click();
+                break;
+            case 'KeyW':
+                e.preventDefault();
+                document.querySelector('.tool-btn[data-tool="window"]')?.click();
+                break;
+            case 'KeyD':
+                e.preventDefault();
+                document.querySelector('.tool-btn[data-tool="door"]')?.click();
+                break;
+        }
+
+        // Enter – если активно поле ввода свойств, применить изменения
         if (e.key === 'Enter') {
-            if (activeElement && activeElement.id && !isInputFocused) {
+            if (activeElement && activeElement.id) {
                 const applyRoomChangesBtn = safeGetElement('applyRoomChanges');
                 const applyWindowChangesBtn = safeGetElement('applyWindowChanges');
                 const applyDoorChangesBtn = safeGetElement('applyDoorChanges');
                 if (activeElement.id.startsWith('room') && applyRoomChangesBtn && !applyRoomChangesBtn.disabled) {
-                    e.preventDefault(); applyRoomChangesBtn.click();
+                    e.preventDefault();
+                    applyRoomChangesBtn.click();
                 } else if (activeElement.id.startsWith('window') && applyWindowChangesBtn && !applyWindowChangesBtn.disabled) {
-                    e.preventDefault(); applyWindowChangesBtn.click();
+                    e.preventDefault();
+                    applyWindowChangesBtn.click();
                 } else if (activeElement.id.startsWith('door') && applyDoorChangesBtn && !applyDoorChangesBtn.disabled) {
-                    e.preventDefault(); applyDoorChangesBtn.click();
+                    e.preventDefault();
+                    applyDoorChangesBtn.click();
                 } else if (activeElement.id === 'ceilingHeight') {
                     e.preventDefault();
                     if (typeof updateProjectSummary === 'function') updateProjectSummary();
@@ -585,20 +646,6 @@ function initKeyboardHandlers() {
                     showNotification('Параметры обновлены');
                 }
             }
-            return;
-        }
-
-        if (e.key === 'Escape') {
-            if (!isInputFocused) {
-                window.selectedRoom = null;
-                window.selectedElementObj = null;
-                if (typeof hideAllProperties === 'function') hideAllProperties();
-                updateElementList();
-                const canvas = safeGetElement('editorCanvas');
-                if (canvas && typeof draw === 'function') draw(canvas, canvas.getContext('2d'));
-                showNotification('Выделение снято');
-            }
-            return;
         }
     });
 }

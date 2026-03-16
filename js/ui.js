@@ -8,6 +8,16 @@ let windowWidth, windowHeight, windowWall, windowLeftOffset, windowRightOffset, 
 let doorWidth, doorHeight, doorWall, doorLeftOffset, doorRightOffset, doorSlopes;
 let roomName, roomWidth, roomHeightProp;
 
+// Словарь для локализации типа помещения
+const propertyTypeMap = {
+    'apartment': 'Квартира',
+    'house': 'Частный дом',
+    'commercial': 'Коммерческое помещение',
+    'residential': 'Жилое помещение',
+    'nonresidential': 'Нежилое помещение',
+    'other': 'Другое'
+};
+
 // ================== ОБНОВЛЕНИЕ СПИСКА ЭЛЕМЕНТОВ ==================
 function updateElementList() {
     const elementList = safeGetElement('elementList');
@@ -148,7 +158,7 @@ function updateElementList() {
     });
 }
 
-// ================== ФУНКЦИИ УДАЛЕНИЯ ==================
+// ================== ФУНКЦИИ УДАЛЕНИЯ (только dispatch) ==================
 function deleteRoom(room) {
     if (!room) return;
     if (confirm(`Удалить комнату "${room.name}"?`)) {
@@ -248,7 +258,7 @@ function updateProjectSummary() {
     if (totalAreaElem) totalAreaElem.textContent = `${totalArea.toFixed(1)} м²`;
 }
 
-// ================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==================
+// ================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ UI ==================
 function updateCheckboxColor(checkboxId, color) {
     const checkbox = safeGetElement(checkboxId);
     if (checkbox) {
@@ -278,61 +288,53 @@ function hideAllProperties() {
 }
 
 // ================== ОБРАБОТЧИКИ ПОЛЕЙ ВВОДА ==================
-// Для окон: при изменении leftOffset или width пересчитываем rightOffset, но не мешаем вводу
-function windowChangeHandler(e) {
-    if (!window.selectedRoom || !window.selectedElementObj) return;
-
-    const wallLength = window.selectedElementObj.wall === 'top' || window.selectedElementObj.wall === 'bottom' ?
-        (window.selectedRoom.width / window.scale) : (window.selectedRoom.height / window.scale);
-
-    let left = parseFloat(windowLeftOffset.value) || 0;
-    let width = parseFloat(windowWidth.value) || window.selectedElementObj.width;
-
-    // Ограничиваем значения
-    left = Math.max(0, Math.min(wallLength - width, left));
-    width = Math.max(0.5, Math.min(wallLength, width));
-
-    // Обновляем поля
-    windowLeftOffset.value = left.toFixed(2);
-    windowWidth.value = width.toFixed(2);
-    windowRightOffset.value = (wallLength - left - width).toFixed(2);
-
-    // Снимаем блокировку с кнопки "Применить"
-    if (applyWindowChangesBtn) applyWindowChangesBtn.disabled = false;
-}
-
 function windowInputHandler(e) {
-    // Только разблокируем кнопку, не трогаем значения
     if (applyWindowChangesBtn) applyWindowChangesBtn.disabled = false;
     if (e.target.id === 'windowSlopes') {
         updateSlopesSelectColor('windowSlopes', e.target.value);
     }
-}
-
-// Для дверей
-function doorChangeHandler(e) {
-    if (!window.selectedRoom || !window.selectedElementObj) return;
-
-    const wallLength = window.selectedElementObj.wall === 'top' || window.selectedElementObj.wall === 'bottom' ?
-        (window.selectedRoom.width / window.scale) : (window.selectedRoom.height / window.scale);
-
-    let left = parseFloat(doorLeftOffset.value) || 0;
-    let width = parseFloat(doorWidth.value) || window.selectedElementObj.width;
-
-    left = Math.max(0, Math.min(wallLength - width, left));
-    width = Math.max(0.6, Math.min(wallLength, width));
-
-    doorLeftOffset.value = left.toFixed(2);
-    doorWidth.value = width.toFixed(2);
-    doorRightOffset.value = (wallLength - left - width).toFixed(2);
-
-    if (applyDoorChangesBtn) applyDoorChangesBtn.disabled = false;
+    if (e.target.id === 'windowWidth' || e.target.id === 'windowLeftOffset') {
+        if (!window.selectedRoom || !window.selectedElementObj) return;
+        const wallLength = window.selectedElementObj.wall === 'top' || window.selectedElementObj.wall === 'bottom' ?
+            (window.selectedRoom.width / window.scale) : (window.selectedRoom.height / window.scale);
+        let currentLeft = parseFloat(windowLeftOffset?.value) || 0;
+        let currentWidth = parseFloat(windowWidth?.value) || window.selectedElementObj.width;
+        if (e.target.id === 'windowLeftOffset') {
+            currentLeft = Math.max(0, Math.min(wallLength - currentWidth, currentLeft));
+            windowLeftOffset.value = currentLeft.toFixed(2);
+            const newRight = wallLength - currentLeft - currentWidth;
+            if (windowRightOffset) windowRightOffset.value = Math.max(0, newRight).toFixed(2);
+        } else if (e.target.id === 'windowWidth') {
+            currentWidth = Math.max(0.5, Math.min(wallLength, currentWidth));
+            windowWidth.value = currentWidth.toFixed(2);
+            const newRight = wallLength - currentLeft - currentWidth;
+            if (windowRightOffset) windowRightOffset.value = Math.max(0, newRight).toFixed(2);
+        }
+    }
 }
 
 function doorInputHandler(e) {
     if (applyDoorChangesBtn) applyDoorChangesBtn.disabled = false;
     if (e.target.id === 'doorSlopes') {
         updateSlopesSelectColor('doorSlopes', e.target.value);
+    }
+    if (e.target.id === 'doorWidth' || e.target.id === 'doorLeftOffset') {
+        if (!window.selectedRoom || !window.selectedElementObj) return;
+        const wallLength = window.selectedElementObj.wall === 'top' || window.selectedElementObj.wall === 'bottom' ?
+            (window.selectedRoom.width / window.scale) : (window.selectedRoom.height / window.scale);
+        let currentLeft = parseFloat(doorLeftOffset?.value) || 0;
+        let currentWidth = parseFloat(doorWidth?.value) || window.selectedElementObj.width;
+        if (e.target.id === 'doorLeftOffset') {
+            currentLeft = Math.max(0, Math.min(wallLength - currentWidth, currentLeft));
+            doorLeftOffset.value = currentLeft.toFixed(2);
+            const newRight = wallLength - currentLeft - currentWidth;
+            if (doorRightOffset) doorRightOffset.value = Math.max(0, newRight).toFixed(2);
+        } else if (e.target.id === 'doorWidth') {
+            currentWidth = Math.max(0.6, Math.min(wallLength, currentWidth));
+            doorWidth.value = currentWidth.toFixed(2);
+            const newRight = wallLength - currentLeft - currentWidth;
+            if (doorRightOffset) doorRightOffset.value = Math.max(0, newRight).toFixed(2);
+        }
     }
 }
 
@@ -412,7 +414,6 @@ function updatePropertiesPanel(element) {
         const wallLength = element.wall === 'top' || element.wall === 'bottom' ?
             (window.selectedRoom.width / window.scale) : (window.selectedRoom.height / window.scale);
 
-        // Проверка на корректность leftOffset (если выходит за пределы)
         let left = element.leftOffset || 0;
         if (left > wallLength - element.width) {
             left = Math.max(0, wallLength - element.width);
@@ -422,12 +423,10 @@ function updatePropertiesPanel(element) {
             windowRightOffset.value = element.rightOffset.toFixed(2);
         }
 
-        // Устанавливаем атрибуты min/max для удобства
         windowLeftOffset.max = (wallLength - element.width).toFixed(2);
         windowLeftOffset.min = 0;
         windowWidth.max = wallLength.toFixed(2);
         windowWidth.min = 0.5;
-
         applyWindowChangesBtn.disabled = false;
     } else if (element.type === 'door') {
         doorProperties.style.display = 'block';
@@ -458,7 +457,6 @@ function updatePropertiesPanel(element) {
         doorLeftOffset.min = 0;
         doorWidth.max = wallLength.toFixed(2);
         doorWidth.min = 0.6;
-
         applyDoorChangesBtn.disabled = false;
     }
 
@@ -553,28 +551,88 @@ function closeFeedbackModal() {
     }
 }
 
+// ================== КРАТКАЯ СМЕТА (только итоги по разделам) ==================
+function getBriefReceiptText() {
+    try {
+        const data = generateReceiptData();
+        let text = '';
+
+        if (data.rooms.length === 0) {
+            text += 'Нет данных для расчета\n\n';
+            return text;
+        }
+
+        data.rooms.forEach(room => {
+            text += `${escapeHTML(room.name)} (${room.width.toFixed(1)}x${room.height.toFixed(1)} м)\n`;
+
+            const plasterItems = room.items.filter(i => i.type === 'plaster');
+            const armoringItems = room.items.filter(i => i.type === 'armoring');
+            const puttyItems = room.items.filter(i => i.type === 'putty');
+            const paintingItems = room.items.filter(i => i.type === 'painting');
+
+            if (plasterItems.length > 0) {
+                const plasterTotal = plasterItems.reduce((sum, i) => sum + i.cost, 0);
+                text += `СТАРТОВАЯ ШТУКАТУРКА\nИтого по штукатурке: ${plasterTotal.toFixed(2)} руб\n`;
+            }
+
+            if (armoringItems.length > 0) {
+                const armoringTotal = armoringItems.reduce((sum, i) => sum + i.cost, 0);
+                text += `АРМИРОВАНИЕ СЕТКОЙ\nИтого по армированию: ${armoringTotal.toFixed(2)} руб\n`;
+            }
+
+            if (puttyItems.length > 0) {
+                const puttyName = room.items.some(i => i.sub.includes('под обои')) ? 'ПОД ОБОИ' : 'ПОД ПОКРАСКУ';
+                const puttyTotal = puttyItems.reduce((sum, i) => sum + i.cost, 0);
+                text += `ФИНИШНАЯ ШПАКЛЕВКА ${puttyName}\nИтого по шпаклевке: ${puttyTotal.toFixed(2)} руб\n`;
+            }
+
+            if (paintingItems.length > 0) {
+                const paintingTotal = paintingItems.reduce((sum, i) => sum + i.cost, 0);
+                text += `ПОКРАСКА В 2 СЛОЯ\nИтого по покраске: ${paintingTotal.toFixed(2)} руб\n`;
+            }
+
+            text += `ИТОГО ПО КОМНАТЕ: ${room.cost.toFixed(2)} руб\n\n`;
+        });
+
+        text += `════════════════════════════\n`;
+        text += `💵 ОБЩАЯ СТОИМОСТЬ РАБОТ: ${data.totalCost.toFixed(2)} руб\n`;
+
+        return text;
+    } catch (error) {
+        console.error('Error generating brief receipt text:', error);
+        return 'Ошибка формирования сметы. Пожалуйста, попробуйте еще раз.';
+    }
+}
+
+/**
+ * Отправка формы обратной связи в Telegram с таймаутом и улучшенной обработкой ошибок
+ */
 async function submitFeedbackForm(formData) {
     const config = window.getTelegramConfig();
     const TELEGRAM_BOT_TOKEN = config.token;
     const TELEGRAM_CHAT_ID = config.chatId;
 
-    let receiptText = getReceiptText();
+    // Используем краткую смету вместо полной
+    let receiptText = getBriefReceiptText();
 
-    if (receiptText.length > 3800) {
-        receiptText = receiptText.substring(0, 3800) + '\n\n... (полная смета слишком большая — смотрите в конструкторе)';
-    }
+    // Локализуем тип помещения
+    const propertyTypeRussian = propertyTypeMap[formData.propertyType] || formData.propertyType || 'Не указано';
 
     const message = `
 📋 НОВАЯ ЗАЯВКА НА КОНСУЛЬТАЦИЮ
 👤 Клиент: ${formData.clientName || 'Не указано'}
 📞 Контакты: ${formData.clientContact || 'Не указано'}
-🏠 Тип помещения: ${formData.propertyType || 'Не указано'}
+🏠 Тип помещения: ${propertyTypeRussian}
 📏 Площадь: ${formData.totalArea || 'Не указана'} м²
 💬 Доп. информация: ${formData.additionalInfo || 'Не указана'}
 
 ━━━━━━━━━━━━━━━━━━━━
 ${receiptText}
     `.trim();
+
+    // Создаём контроллер для тайм-аута
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 секунд тайм-аут
 
     try {
         const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
@@ -584,8 +642,11 @@ ${receiptText}
                 chat_id: TELEGRAM_CHAT_ID,
                 text: message,
                 parse_mode: undefined
-            })
+            }),
+            signal: controller.signal
         });
+
+        clearTimeout(timeoutId);
 
         const result = await response.json();
 
@@ -596,9 +657,12 @@ ${receiptText}
             throw new Error(result.description || 'Неизвестная ошибка Telegram');
         }
     } catch (error) {
+        clearTimeout(timeoutId);
+        if (error.name === 'AbortError') {
+            throw new Error('Превышено время ожидания ответа. Пожалуйста, попробуйте ещё раз.');
+        }
         console.error('Ошибка отправки в Telegram:', error);
-        showNotification('Ошибка отправки заявки. Проверьте консоль (F12).');
-        return false;
+        throw error; // Пробрасываем дальше для обработки в форме
     }
 }
 
@@ -649,7 +713,14 @@ function initFeedbackModal() {
             }
         } catch (error) {
             console.error('Ошибка отправки формы:', error);
-            showNotification('Ошибка отправки заявки.');
+            // Показываем понятное сообщение об ошибке
+            let errorMessage = 'Ошибка отправки заявки. ';
+            if (error.message.includes('тайм')) {
+                errorMessage = 'Сервер не отвечает. Пожалуйста, попробуйте позже.';
+            } else {
+                errorMessage += error.message || 'Проверьте подключение к интернету.';
+            }
+            showNotification(errorMessage);
         } finally {
             if (submitBtn) {
                 submitBtn.innerHTML = originalText;
@@ -710,42 +781,23 @@ function initUI() {
     doorRightOffset = safeGetElement('doorRightOffset');
     doorSlopes = safeGetElement('doorSlopes');
 
-    // Назначаем постоянные обработчики
-    if (windowWidth) {
-        windowWidth.addEventListener('input', windowInputHandler);
-        windowWidth.addEventListener('change', windowChangeHandler);
-    }
-    if (windowLeftOffset) {
-        windowLeftOffset.addEventListener('input', windowInputHandler);
-        windowLeftOffset.addEventListener('change', windowChangeHandler);
-    }
-    if (windowSlopes) {
-        windowSlopes.addEventListener('input', windowInputHandler);
-    }
-
-    if (doorWidth) {
-        doorWidth.addEventListener('input', doorInputHandler);
-        doorWidth.addEventListener('change', doorChangeHandler);
-    }
-    if (doorLeftOffset) {
-        doorLeftOffset.addEventListener('input', doorInputHandler);
-        doorLeftOffset.addEventListener('change', doorChangeHandler);
-    }
-    if (doorSlopes) {
-        doorSlopes.addEventListener('input', doorInputHandler);
-    }
-
+    // Назначаем постоянные обработчики (один раз)
+    if (windowWidth) windowWidth.addEventListener('input', windowInputHandler);
+    if (windowLeftOffset) windowLeftOffset.addEventListener('input', windowInputHandler);
+    if (windowSlopes) windowSlopes.addEventListener('input', windowInputHandler);
+    if (doorWidth) doorWidth.addEventListener('input', doorInputHandler);
+    if (doorLeftOffset) doorLeftOffset.addEventListener('input', doorInputHandler);
+    if (doorSlopes) doorSlopes.addEventListener('input', doorInputHandler);
     if (roomName) roomName.addEventListener('input', roomInputHandler);
     if (roomWidth) roomWidth.addEventListener('input', roomInputHandler);
     if (roomHeightProp) roomHeightProp.addEventListener('input', roomInputHandler);
-
     if (plasterCheckbox) plasterCheckbox.addEventListener('change', roomCheckboxHandler);
     if (armoringCheckbox) armoringCheckbox.addEventListener('change', roomCheckboxHandler);
     if (puttyWallpaperCheckbox) puttyWallpaperCheckbox.addEventListener('change', roomCheckboxHandler);
     if (puttyPaintCheckbox) puttyPaintCheckbox.addEventListener('change', roomCheckboxHandler);
     if (paintingCheckbox) paintingCheckbox.addEventListener('change', roomCheckboxHandler);
 
-    // Кнопки "Применить"
+    // Кнопки "Применить" (теперь используют Event Bus)
     if (applyRoomChangesBtn) {
         applyRoomChangesBtn.addEventListener('click', () => {
             if (!window.selectedRoom) return;
@@ -822,7 +874,7 @@ function initUI() {
     initFeedbackModal();
     initEventListeners();
 
-    // ================== EVENT BUS ==================
+    // ================== EVENT BUS (единственный обработчик) ==================
     window.addEventListener('stateChanged', () => {
         updateElementList();
         updateProjectSummary();
