@@ -12,7 +12,7 @@ function initTouchSupport() {
     canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
     canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
 
-    // Двойное касание для центрирования (используем touchend, чтобы избежать конфликта с другим поведением)
+    // Двойное касание для центрирования
     canvas.addEventListener('touchend', handleDoubleTap, { passive: false });
 }
 
