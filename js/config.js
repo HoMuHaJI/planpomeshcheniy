@@ -1,4 +1,3 @@
-// js/config.js — СЕКРЕТНЫЕ НАСТРОЙКИ (никогда не коммить в GitHub!)
 window.TELEGRAM_CONFIG = {
     BOT_TOKEN: '8142957488:AAGDsEIsGdtrCX-ZyvOD7nJjaVVD3_YIFks',
     CHAT_ID: '-1001701431569'
