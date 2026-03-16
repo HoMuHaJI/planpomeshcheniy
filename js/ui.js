@@ -629,7 +629,7 @@ ${receiptText}
 
     try {
         // ⚠️ ЗАМЕНИТЕ URL НА АДРЕС ВАШЕГО WORKER
-        const workerUrl = 'https://dark-sun-ba5c.nikolay-k.workers.dev'; // ваш URL
+        const workerUrl = 'https://telegram-proxy-mybot.nikolay-k.workers.dev'; // ваш URL
 
         const response = await fetch(workerUrl, {
             method: 'POST',
