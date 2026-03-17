@@ -2,7 +2,6 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <!-- Современный viewport для 2026 года: разрешаем масштабирование и учитываем вырезы экрана -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="description" content="Бесплатный онлайн-конструктор планировки помещений и расчёт стоимости ремонта в Симферополе. Создайте план квартиры, дома или офиса с точными размерами и сметой.">
     <title>ПланПомещений - Конструктор помещений и расчет стоимости ремонта в Симферополе</title>
@@ -109,6 +108,15 @@
         <div class="app-container">
             <!-- Центральная панель: Редактор + Инструменты -->
             <div class="panel editor-panel">
+                <!-- Добавленные вкладки -->
+                <div class="tabs-container">
+                    <button class="tab-button active" data-tab="finish">Отделка помещений</button>
+                    <button class="tab-button" data-tab="electric">Электрика</button>
+                    <button class="tab-button" data-tab="tile">Карта кроя Плитки</button>
+                    <button class="tab-button" data-tab="floor">Напольные покрытия</button>
+                    <button class="tab-button" data-tab="gallery">Галерея</button>
+                </div>
+
                 <div class="panel-header">
                     <i class="fas fa-drafting-compass"></i> Планировка помещения
                 </div>
@@ -183,9 +191,12 @@
                         </div>
                     </div>
 
-                    <!-- Редактор (canvas) -->
+                    <!-- Редактор (canvas) + заглушка -->
                     <div class="editor-container">
                         <canvas id="editorCanvas"></canvas>
+                        <div id="tabPlaceholder" class="tab-placeholder" style="display: none;">
+                            <p>В разработке</p>
+                        </div>
                         <div id="canvasFallback" class="canvas-not-supported" style="display: none;">
                             Canvas не поддерживается вашим браузером. Пожалуйста, обновите браузер.
                         </div>
@@ -201,7 +212,7 @@
             </div>
 
             <!-- Правая панель: Свойства и расчеты -->
-            <div class="panel">
+            <div class="panel" id="propertiesPanel">
                 <div class="panel-header">
                     <i class="fas fa-calculator"></i> Свойства и расчеты
                 </div>
