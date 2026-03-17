@@ -10,9 +10,9 @@
     --neutral-dark: #495057;
     --text-color: #333333;
     --text-light: #6c757d;
-    --success-color: #28a745;
-    --warning-color: #ffc107;
-    --danger-color: #dc3545;
+    --success-color: #66BB6A;         /* спокойный зелёный */
+    --warning-color: #FFB74D;         /* мягкий янтарный вместо ярко-жёлтого */
+    --danger-color: #EF5350;          /* чуть мягче красный */
     --white: #ffffff;
     --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     --shadow-hover: 0 6px 16px rgba(0, 0, 0, 0.12);
@@ -28,7 +28,7 @@
 }
 
 body {
-    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+    background: linear-gradient(145deg, #f9fafb 0%, #eef2f7 100%); /* очень лёгкий градиент */
     color: var(--text-color);
     line-height: 1.6;
     min-height: 100vh;
@@ -373,15 +373,12 @@ header a, header button, .contact-btn {
     padding: 20px;
 }
 
+/* 7. Статус-бар (если есть) — тоже премиум */
 .status-bar {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 15px;
-    font-size: 13px;
-    color: var(--text-light);
-    background: var(--neutral-light);
-    padding: 10px 15px;
-    border-radius: 8px;
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(12px);
+    border-top: 1px solid rgba(0,0,0,0.06);
+    box-shadow: 0 -2px 12px rgba(0,0,0,0.08);
 }
 
 /* Form Elements */
@@ -448,7 +445,7 @@ button:disabled {
 
 .btn-success {
     background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
-}
+}й
 
 .btn-success:hover:not(:disabled) {
     background: linear-gradient(135deg, #1e7e34 0%, #145523 100%);
@@ -482,18 +479,19 @@ button:disabled {
     border-radius: 8px;
 }
 
+/* 6. Улучшаем карточки элементов (element-item) — премиум-вид */
 .element-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 15px;
-    border-bottom: 1px solid var(--neutral-medium);
-    cursor: pointer;
-    transition: var(--transition);
+    background: white;
+    border-radius: 12px;
+    border: 1px solid rgba(0,0,0,0.06);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .element-item:hover {
-    background-color: var(--neutral-light);
+    border-color: var(--primary-light);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    transform: translateY(-3px);
 }
 
 .element-item:last-child {
@@ -1076,4 +1074,154 @@ button:disabled {
     .tagline {
         font-size: 1rem;
     }
+}
+
+
+
+
+/* ================== ВКЛАДКИ В СТИЛЕ WINDOWS 11 / FLUENT ================== */
+
+/* Контейнер всех вкладок — фон, отступы, тень */
+.tabs-container {
+    display: grid;                          /* сетка для равномерного распределения кнопок */
+    grid-template-columns: repeat(5, 1fr);  /* 5 равных колонок — под 5 вкладок */
+    gap: 6px;                               /* расстояние между вкладками (можно 4–8px) */
+    background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary-color) 100%); /* градиентный фон вкладок */
+    border-radius: var(--border-radius) var(--border-radius) 0 0; /* скругление только сверху */
+    padding: 12px 16px 0 16px;              /* внутренние отступы (сверху больше, чтобы вкладки "плавали") */
+    box-shadow: inset 0 0px 0 rgba(0,0,0,0); /* тонкая внутренняя тень снизу */
+    min-height: 110px;                      /* минимальная высота контейнера — подбирай под шапку */
+    position: relative;                     /* важно для позиционирования вкладок */
+    z-index: 10;                            /* выше остальных элементов страницы */
+}
+
+/* Каждая отдельная кнопка-вкладка */
+.tab-button {
+    background: rgba(255, 255, 255, 0.18);  /* полупрозрачный белый фон для неактивных */
+    text-shadow: 0 1px 3px rgba(0,0,0,0.4); /* лёгкая тень для белого текста */
+    letter-spacing: 0.3px;                  /* чуть больше воздуха в буквах */
+    border: none;                           /* убираем стандартную рамку кнопки */
+    color: white;                           /* цвет текста */
+    padding: 12px 8px;                      /* внутренние отступы внутри кнопки */
+    font-size: 17px;                        /* размер шрифта (можно 15–19px) */
+    font-weight: 500;                       /* средняя жирность текста */
+    border-radius: 12px;                    /* скругление углов */
+    cursor: pointer;                        /* курсор-рука при наведении */
+    transition: all 0.25s ease;             /* плавная анимация всех изменений (0.2–0.4s) */
+    text-align: center;                     /* текст по центру */
+    white-space: nowrap;                    /* текст не переносится на новую строку */
+    overflow: hidden;                       /* обрезаем слишком длинный текст */
+    text-overflow: ellipsis;                /* показываем ... если текст не помещается */
+    line-height: 1.3;                       /* межстрочный интервал */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12); /* тень снизу — эффект "плавания" */
+    backdrop-filter: blur(4px);             /* размытие фона под вкладкой (стекло) */
+    transform: translateY(-40px);           /* сдвигаем все неактивные вкладки вверх */
+    position: relative;                     /* важно для z-index и transform */
+}
+
+/* Активная вкладка (когда выбрана) */
+.tab-button.active {
+    transform: translateY(0);               /* возвращаем на место (прижата вниз) */
+    background: linear-gradient(135deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.25) 100%); /* более яркий фон */
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.08); /* эффект вдавленности */
+    border-radius: 12px 12px 12px 12px;           /* скругление только сверху */
+    backdrop-filter: blur(6px);             /* сильнее размытие для активной */
+}
+
+/* При наведении курсором (не активная вкладка) */
+.tab-button:hover {
+    background: rgba(255, 255, 255, 0.30);  /* светлее при наведении */
+    box-shadow: 0 6px 16px rgba(0,0,0,0.18); /* тень усиливается */
+    transform: translateY(-42px);           /* чуть выше при наведении */
+}
+
+/* Активная вкладка при наведении — не поднимаем */
+.tab-button.active:hover {
+    transform: translateY(0) scale(1.01);
+    box-shadow: inset 0 3px 8px rgba(0,0,0,0.18);
+}
+
+/* Цветовые акценты для каждой неактивной вкладки */
+.tab-button[data-tab="electric"] { background: rgba(255, 193, 7, 0.22); }     /* жёлтый оттенок */
+.tab-button[data-tab="electric"]:hover { background: rgba(255, 193, 7, 0.38); }
+
+.tab-button[data-tab="tile"] { background: rgba(76, 175, 80, 0.22); }         /* зелёный */
+.tab-button[data-tab="tile"]:hover { background: rgba(76, 175, 80, 0.38); }
+
+.tab-button[data-tab="floor"] { background: rgba(156, 39, 176, 0.22); }       /* фиолетовый */
+.tab-button[data-tab="floor"]:hover { background: rgba(156, 39, 176, 0.38); }
+
+.tab-button[data-tab="gallery"] { background: rgba(233, 30, 99, 0.22); }      /* розовый */
+.tab-button[data-tab="gallery"]:hover { background: rgba(233, 30, 99, 0.38); }
+
+/* ================== ПРЕМИУМ И СПОКОЙНЫЕ ТЕМЫ (дорогой вид) ================== */
+
+/* Финишная отделка — спокойный глубокий индиго */
+.theme-finish {
+    --primary-color: #5C6BC0;       /* основной — интеллигентный синий */
+    --primary-light: #7986CB;       /* светлый для hover/градиентов */
+    --primary-dark: #3F51B5;        /* тёмный для теней и акцентов */
+    --accent-color: #e0e7ff88;        /* очень светлый лавандовый — мягкий контраст */
+}
+
+/* Электрика — строгий графитовый серо-синий (технический премиум) */
+.theme-electric {
+    --primary-color: #546E7A;       /* основной — серьёзный, современный */
+    --primary-light: #78909C;       /* светлый для выделения */
+    --primary-dark: #37474F;        /* очень тёмный — для кнопок/иконок */
+    --accent-color: #b2ebf288;        /* холодный мятный — акцент на "умный дом" */
+}
+
+/* Плитка — элегантный сланцево-серый (натуральный камень) */
+.theme-tile {
+    --primary-color: #455A64;       /* основной — дорогой серый */
+    --primary-light: #607D8B;       /* светлый для hover */
+    --primary-dark: #263238;        /* глубокий тёмный — премиум-эффект */
+    --accent-color: #b2dfdbad;        /* приглушённая бирюза — свежесть керамики */
+}
+
+/* Напольные покрытия — тёплый шоколадный (дерево, паркет) */
+.theme-floor {
+    --primary-color: #5D4037;       /* основной — натуральный тёмный шоколад */
+    --primary-light: #795548;       /* светлый для градиентов */
+    --primary-dark: #3E2723;        /* почти чёрный — для теней */
+    --accent-color: #d7ccc891;        /* тёплый бежевый — уют и дерево */
+}
+
+/* 1. Исправляем грязный акцент в галерее */
+.theme-gallery {
+    --primary-color: #6D4C41;
+    --primary-light: #8D6E63;
+    --primary-dark: #4E342E;
+    --accent-color: #ffecb3b6;          /* чистый янтарь, без прозрачности */
+}
+
+/* ================== ПРЕМИУМ HOVER-ЭФФЕКТЫ (последние правила) ================== */
+
+.btn, .tool-btn, .tab-button, .element-item, .sharing-btn,
+.card, .receipt-container, .sharing-buttons button, .delete-btn {
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn:hover, .tool-btn:hover, .tab-button:hover:not(.active), .element-item:hover, 
+.sharing-btn:hover, .card:hover, .receipt-container:hover, .sharing-buttons button:hover, .delete-btn:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+
+/* Активная вкладка при наведении не поднимается */
+.tab-button.active:hover {
+    transform: translateY(0) scale(1.01);
+    box-shadow: inset 0 3px 8px rgba(0,0,0,0.18);
+}
+
+/* Улучшение читаемости текста на вкладках */
+.tab-button {
+    text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    letter-spacing: 0.3px;
+}
+
+/* Финальный лёгкий градиент фона страницы */
+body {
+    background: linear-gradient(145deg, #f9fafb 0%, #eef2f7 100%);
 }
