@@ -466,6 +466,59 @@ function updatePropertiesPanel(element) {
     }
 }
 
+
+// ================== УПРАВЛЕНИЕ ВКЛАДКАМИ ==================
+function initTabs() {
+    const tabs = document.querySelectorAll('.tab-button');
+    const canvas = document.getElementById('editorCanvas');
+    const placeholder = document.getElementById('tabPlaceholder');
+    const propertiesPanel = document.getElementById('propertiesPanel');
+    const statusBar = document.querySelector('.status-bar');
+
+    function switchTab(tabId) {
+        // Переключаем активную вкладку
+        tabs.forEach(t => t.classList.remove('active'));
+        const activeTab = document.querySelector(`.tab-button[data-tab="${tabId}"]`);
+        if (activeTab) activeTab.classList.add('active');
+
+        // Удаляем предыдущие классы тем
+        document.body.classList.remove('theme-finish', 'theme-electric', 'theme-tile', 'theme-floor', 'theme-gallery');
+
+        // Добавляем класс темы (finish — это дефолт, поэтому без класса)
+        if (tabId !== 'finish') {
+            document.body.classList.add(`theme-${tabId}`);
+        }
+
+        // Управление видимостью контента
+        if (tabId === 'finish') {
+            canvas.style.display = 'block';
+            placeholder.style.display = 'none';
+            if (propertiesPanel) propertiesPanel.style.display = 'block';
+            if (statusBar) statusBar.style.display = 'flex';
+        } else {
+            canvas.style.display = 'none';
+            placeholder.style.display = 'flex';
+            if (propertiesPanel) propertiesPanel.style.display = 'none';
+            if (statusBar) statusBar.style.display = 'none';
+        }
+
+        // Сохраняем выбор вкладки (если нужно — для перезагрузки страницы)
+        localStorage.setItem('activeTab', tabId);
+    }
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const tabId = tab.getAttribute('data-tab');
+            switchTab(tabId);
+        });
+    });
+
+    // Восстанавливаем вкладку после перезагрузки страницы
+    const savedTab = localStorage.getItem('activeTab') || 'finish';
+    switchTab(savedTab);
+}
+
+
 // ================== ФУНКЦИИ ДЛЯ ОТПРАВКИ СМЕТЫ ==================
 function initSharingButtons() {
     console.log('✓ initSharingButtons called');
@@ -865,6 +918,7 @@ function initUI() {
     initSharingButtons();
     initFeedbackModal();
     initEventListeners();
+    initTabs();
 
     // ================== EVENT BUS (единственный обработчик) ==================
     window.addEventListener('stateChanged', () => {
