@@ -1225,3 +1225,13 @@ button:disabled {
 body {
     background: linear-gradient(145deg, #f9fafb 0%, #eef2f7 100%);
 }
+
+.receipt-container,
+.receipt-container:hover {
+    transform: none !important;
+    transition: box-shadow 0.28s ease; /* оставляем плавную смену тени */
+}
+
+.receipt-container:hover {
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12) !important;
+}
